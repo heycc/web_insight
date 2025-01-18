@@ -1,0 +1,76 @@
+// Initialize sidebar
+function initSidebar() {
+  // Set initial state
+  document.getElementById('post-title').textContent = 'Reddit Insight';
+  document.getElementById('post-content').textContent = 'Click refresh to load content';
+  document.getElementById('post-author').textContent = '';
+  document.getElementById('post-score').textContent = '';
+  document.getElementById('comments-list').innerHTML = '';
+
+  // Listen for tab updates to enable refresh button
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete' && tab.url && tab.url.includes('reddit.com')) {
+      document.getElementById('refresh-btn').disabled = false;
+    }
+  });
+}
+
+// Update sidebar with new data
+function updateSidebarData(tabId) {
+  chrome.tabs.sendMessage(tabId, {action: 'getRedditData'}, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error communicating with content script:', chrome.runtime.lastError);
+      document.getElementById('post-title').textContent = 'Error loading data';
+      document.getElementById('post-content').textContent = 'Please refresh the page and try again.';
+      return;
+    }
+
+    if (!response) {
+      console.error('No response received from content script');
+      document.getElementById('post-title').textContent = 'Error loading data';
+      document.getElementById('post-content').textContent = 'Please refresh the page and try again.';
+      return;
+    }
+    
+    // Update post data
+    document.getElementById('post-title').textContent = response.title;
+    document.getElementById('post-content').textContent = response.content;
+    document.getElementById('post-author').textContent = `by ${response.author}`;
+    document.getElementById('post-score').textContent = `${response.score} points`;
+
+    // Update post URL with current tab URL
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs.length > 0) {
+        const urlElement = document.getElementById('post-url');
+        urlElement.href = tabs[0].url;
+        urlElement.textContent = tabs[0].url;
+      }
+    });
+
+    // Update comments
+    const commentsList = document.getElementById('comments-list');
+    commentsList.innerHTML = ''; // Clear existing comments
+    response.comments.forEach(comment => {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment';
+      commentDiv.innerHTML = `
+        <div class="author">${comment.author}</div>
+        <div class="content">${comment.content}</div>
+        <div class="score">${comment.score} points</div>
+      `;
+      commentsList.appendChild(commentDiv);
+    });
+  });
+}
+
+// Add refresh button click handler
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    if (tabs.length > 0 && tabs[0].url.includes('reddit.com')) {
+      updateSidebarData(tabs[0].id);
+    }
+  });
+});
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initSidebar);
