@@ -41,9 +41,19 @@ function updateSidebarData(tabId) {
     // Update post URL with current tab URL
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       if (tabs.length > 0) {
-        const urlElement = document.getElementById('post-url');
-        urlElement.href = tabs[0].url;
-        urlElement.textContent = tabs[0].url;
+        if (tabs[0].url.includes('reddit.com')) {
+          const urlElement = document.getElementById('post-url');
+          urlElement.href = tabs[0].url;
+          urlElement.textContent = tabs[0].url;
+          document.getElementById('refresh-btn').disabled = false;
+        } else {
+          document.getElementById('post-title').textContent = 'Unsupported Page';
+          document.getElementById('post-content').textContent = 'This extension only works on Reddit pages.';
+          document.getElementById('post-author').textContent = '';
+          document.getElementById('post-score').textContent = '';
+          document.getElementById('comments-list').innerHTML = '';
+          document.getElementById('refresh-btn').disabled = true;
+        }
       }
     });
 

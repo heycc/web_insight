@@ -11,13 +11,17 @@ function extractRedditData() {
   };
 
   // Extract comments
-  const commentElements = document.querySelectorAll('[data-testid="comment"]');
+  const commentElements = document.querySelectorAll('shreddit-comment');
   commentElements.forEach(comment => {
-    post.comments.push({
-      author: comment.querySelector('[data-testid="comment_author_link"]')?.innerText,
-      content: comment.querySelector('[data-testid="comment_content"]')?.innerText || '',
-      score: comment.querySelector('[data-testid="comment-score"]')?.innerText
-    });
+    const author = comment.getAttribute('author');
+    // Skip AutoModerator comments
+    if (author !== "AutoModerator") {
+      const commentContent = comment.querySelector('[slot="comment"]')?.innerText;
+      post.comments.push({
+        author: author,
+        content: commentContent
+      });
+    }
   });
 
   return post;
