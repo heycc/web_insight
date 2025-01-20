@@ -34,26 +34,26 @@ function updateSidebarData(tabId) {
     
     // Update post data
     document.getElementById('post-title').textContent = response.title;
-    document.getElementById('post-content').textContent = response.content;
+    document.getElementById('post-content').innerHTML = response.content.replace(/\n/g, '<br>');
     document.getElementById('post-author').textContent = `by ${response.author}`;
     document.getElementById('post-score').textContent = `${response.score} points`;
 
     // Update post URL with current tab URL
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       if (tabs.length > 0) {
-        if (tabs[0].url.includes('reddit.com')) {
-          const urlElement = document.getElementById('post-url');
-          urlElement.href = tabs[0].url;
-          urlElement.textContent = tabs[0].url;
-          document.getElementById('refresh-btn').disabled = false;
-        } else {
-          document.getElementById('post-title').textContent = 'Unsupported Page';
-          document.getElementById('post-content').textContent = 'This extension only works on Reddit pages.';
-          document.getElementById('post-author').textContent = '';
-          document.getElementById('post-score').textContent = '';
-          document.getElementById('comments-list').innerHTML = '';
-          document.getElementById('refresh-btn').disabled = true;
-        }
+      if (tabs[0].url.includes('reddit.com')) {
+        const urlElement = document.getElementById('post-url');
+        urlElement.href = tabs[0].url;
+        urlElement.textContent = tabs[0].url;
+        document.getElementById('refresh-btn').disabled = false;
+      } else {
+        document.getElementById('post-title').textContent = 'Unsupported Page';
+        document.getElementById('post-content').textContent = 'This extension only works on Reddit pages.';
+        document.getElementById('post-author').textContent = '';
+        document.getElementById('post-score').textContent = '';
+        document.getElementById('comments-list').innerHTML = '';
+        document.getElementById('refresh-btn').disabled = true;
+      }
       }
     });
 
@@ -64,9 +64,9 @@ function updateSidebarData(tabId) {
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment';
       commentDiv.innerHTML = `
-        <div class="author">${comment.author}</div>
-        <div class="content">${comment.content}</div>
-        <div class="score">${comment.score} points</div>
+      <div class="author">${comment.author}</div>
+      <div class="content">${comment.content.replace(/\n/g, '<br>')}</div>
+      <div class="score">${comment.score} points</div>
       `;
       commentsList.appendChild(commentDiv);
     });

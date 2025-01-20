@@ -1,27 +1,36 @@
 // Extract Reddit post and comment data
 function extractRedditData() {
+  const postElement = document.querySelector('shreddit-post');
   const post = {
-    title: document.querySelector('h1')?.innerText,
-    content: Array.from(document.querySelectorAll('[slot="text-body"] p'))
+    title: postElement?.getAttribute('post-title').innerText,
+    content: Array.from(postElement?.querySelectorAll('[slot="text-body"] p') || [])
       .map(p => p.innerText)
       .join('\n\n'),
-    author: document.querySelector('[slot="authorName"]')?.innerText,
-    score: document.querySelector('[data-test-id="post-score"]')?.getAttribute('aria-label') || document.querySelector('[data-test-id="post-score"]')?.innerText,
+    author: postElement?.querySelector('author')?.innerText,
+    score: postElement?.getAttribute('score'),
     comments: []
   };
 
   // Extract comments
-  const commentElements = document.querySelectorAll('shreddit-comment');
+  const commentElements = document.querySelectorAll('shreddit-comment[depth="0"], shreddit-comment[depth="1"]');
   commentElements.forEach(comment => {
     const author = comment.getAttribute('author');
     // Skip AutoModerator comments
-    if (author !== "AutoModerator") {
-      const commentContent = comment.querySelector('[slot="comment"]')?.innerText;
-      post.comments.push({
-        author: author,
-        content: commentContent
-      });
+    if (author == "AutoModerator") {
+      return;
     }
+    const score = comment.getAttribute('score');
+    const commentElement = comment.querySelector(':scope > [slot="comment"]');
+    const commentContent = Array.from(commentElement.querySelectorAll('p'))
+      .map(p => p.innerText)
+      .join('\n\n');
+    
+    post.comments.push({
+      author: author,
+      content: commentContent,
+      score: score ? parseInt(score) : 0
+    });
+  
   });
 
   return post;
