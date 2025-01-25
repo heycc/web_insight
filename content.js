@@ -2,7 +2,7 @@
 function extractRedditData() {
   const postElement = document.querySelector('shreddit-post');
   const post = {
-    title: postElement?.getAttribute('post-title').innerText,
+    title: postElement?.getAttribute('post-title'),
     content: Array.from(postElement?.querySelectorAll('[slot="text-body"] p') || [])
       .map(p => p.innerText)
       .join('\n\n'),
@@ -14,33 +14,65 @@ function extractRedditData() {
   // Extract comments
   const commentElements = document.querySelectorAll('shreddit-comment[depth="0"], shreddit-comment[depth="1"]');
   commentElements.forEach(comment => {
-    const author = comment.getAttribute('author');
-    // Skip AutoModerator comments
-    if (author == "AutoModerator") {
+    try {
+      const author = comment.getAttribute('author');
+      const score = comment.getAttribute('score');
+      const commentElement = comment.querySelector(':scope > [slot="comment"]');
+      
+      // Validate required fields
+      if (!author || !commentElement) {
+        return;
+      }
+      
+      // Skip AutoModerator and invalid authors
+      if (author === "AutoModerator" || typeof author !== 'string') {
+        return;
+      }
+
+      // Parse and validate score
+      const commentScore = score ? parseInt(score) : 0;
+      if (isNaN(commentScore) || commentScore < 0) {
+        return;
+      }
+
+      // Extract comment content
+      const commentContent = Array.from(commentElement.querySelectorAll('p'))
+        .map(p => p.innerText?.trim() || '')
+        .filter(Boolean)
+        .join('\n\n');
+
+      // Add valid comment to post
+      post.comments.push({
+        author: author,
+        content: commentContent,
+        score: commentScore
+      });
+    } catch (error) {
+      console.error('Error processing comment:', error);
       return;
     }
-    const score = comment.getAttribute('score');
-    const commentElement = comment.querySelector(':scope > [slot="comment"]');
-    const commentContent = Array.from(commentElement.querySelectorAll('p'))
-      .map(p => p.innerText)
-      .join('\n\n');
-    
-    post.comments.push({
-      author: author,
-      content: commentContent,
-      score: score ? parseInt(score) : 0
-    });
-  
   });
-
+  console.log('[DEBUG] Reddit Insight Data:', post);
   return post;
 }
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getRedditData') {
-    const data = extractRedditData();
-    sendResponse(data);
+  try {
+    if (request.action === 'getRedditData') {
+      const data = extractRedditData();
+      sendResponse({
+        success: true,
+        data: data
+      });
+    }
+  } catch (error) {
+    console.error('Reddit Insight Error:', error);
+    sendResponse({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
   }
-  return true; // Return true to indicate that the message was received
+  return true; // Keep message channel open for async response
 });

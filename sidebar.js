@@ -33,10 +33,13 @@ function updateSidebarData(tabId) {
     }
     
     // Update post data
-    document.getElementById('post-title').textContent = response.title;
-    document.getElementById('post-content').innerHTML = response.content.replace(/\n/g, '<br>');
-    document.getElementById('post-author').textContent = `by ${response.author}`;
-    document.getElementById('post-score').textContent = `${response.score} points`;
+    if (!response.data) {
+      throw new Error('Invalid response structure from content script');
+    }
+    document.getElementById('post-title').textContent = response.data.title || 'Untitled Post';
+    document.getElementById('post-content').innerHTML = (response.data.content || '').replace(/\n/g, '<br>');
+    document.getElementById('post-author').textContent = `by ${response.data.author || 'Unknown'}`;
+    document.getElementById('post-score').textContent = `${response.data.score || 0} points`;
 
     // Update post URL with current tab URL
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
@@ -60,13 +63,13 @@ function updateSidebarData(tabId) {
     // Update comments
     const commentsList = document.getElementById('comments-list');
     commentsList.innerHTML = ''; // Clear existing comments
-    response.comments.forEach(comment => {
+    (response.data.comments || []).forEach(comment => {
       const commentDiv = document.createElement('div');
       commentDiv.className = 'comment';
       commentDiv.innerHTML = `
-      <div class="author">${comment.author}</div>
-      <div class="content">${comment.content.replace(/\n/g, '<br>')}</div>
-      <div class="score">${comment.score} points</div>
+      <div class="author">${comment.author || 'Deleted'}</div>
+      <div class="content">${(comment.content || '').replace(/\n/g, '<br>')}</div>
+      <div class="score">${comment.score || 0} points</div>
       `;
       commentsList.appendChild(commentDiv);
     });
