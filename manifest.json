@@ -24,8 +24,16 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "sidePanel"
+    "sidePanel",
+    "storage"
   ],
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": false
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "side_panel": {
     "default_path": "sidebar.html"
   },

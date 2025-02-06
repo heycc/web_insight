@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reddit Insight Settings</title>
+  <link rel="stylesheet" href="sidebar.css">
+  <style>
+    .settings-container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .setting-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0079d3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1484d6;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>Reddit Insight Settings</h1>
+    
+    <div class="setting-group">
+      <label for="theme">Theme:</label>
+      <select id="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>
+        <input type="checkbox" id="showSidebar">
+        Show sidebar by default
+      </label>
+    </div>
+
+    <div class="setting-group">
+      <label for="refreshInterval">Auto-refresh interval (minutes):</label>
+      <input type="number" id="refreshInterval" min="1" max="60">
+    </div>
+
+    <button id="save">Save Settings</button>
+    <p id="status"></p>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

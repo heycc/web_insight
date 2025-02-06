@@ -1,15 +1,43 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+  <meta charset="UTF-8">
   <title>Reddit Insight</title>
-  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="sidebar.module.css">
 </head>
+
 <body>
-  <div class="container">
+  <div class="container sidebar">
     <div class="header">
       <h1>Reddit Insight</h1>
-      <button id="refresh-btn">Refresh</button>
+      <div class="header-controls">
+        <button id="refresh-btn">Refresh</button>
+        <button id="settings-toggle">⚙️</button>
+      </div>
     </div>
+    <div class="settings-section hidden">
+      <h3>API Configuration</h3>
+      <div class="form-group">
+        <label for="api-url">API Endpoint:</label>
+        <input type="url" id="api-url" placeholder="https://api.openai.com/v1/chat/completions">
+      </div>
+      <div class="form-group">
+        <label for="api-key">API Key:</label>
+        <input type="password" id="api-key" placeholder="Enter your API key">
+      </div>
+      <div class="form-group">
+        <label for="model-name">Model Name:</label>
+        <input type="text" id="model-name" placeholder="gpt-3.5-turbo">
+      </div>
+      <div class="form-group">
+        <label for="custom-prompt">Analysis Prompt:</label>
+        <textarea id="custom-prompt" rows="4"></textarea>
+      </div>
+      <button id="save-settings">Save Settings</button>
+    </div>
+
+
     <div id="post-data">
       <a id="post-url" target="_blank"></a>
       <h2 id="post-title"></h2>
@@ -24,6 +52,7 @@
       <div id="comments-list"></div>
     </div>
   </div>
-  <script src="sidebar.js"></script>
+  <script type="module" src="sidebar.js"></script>
 </body>
+
 </html>
