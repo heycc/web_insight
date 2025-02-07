@@ -6,7 +6,7 @@ function extractRedditData() {
     content: Array.from(postElement?.querySelectorAll('[slot="text-body"] p') || [])
       .map(p => p.innerText)
       .join('\n\n'),
-    author: postElement?.querySelector('author')?.innerText,
+    author: postElement?.getAttribute('author'),
     score: postElement?.getAttribute('score'),
     comments: []
   };
