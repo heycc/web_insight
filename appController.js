@@ -1,6 +1,6 @@
 import { PostDisplayController } from './postDisplayController.js';
 import { RedditDataController } from './redditDataController.js';
-import { SettingsController } from './settingsController.js';
+// import { SettingsController } from './settingsController.js'; // Removed import
 
 export class AppController {
   static SELECTORS = {
@@ -12,12 +12,12 @@ export class AppController {
     this.currentData = null;
     this.postDisplayController = PostDisplayController;
     this.redditDataController = RedditDataController;
-    this.settingsController = new SettingsController();
+    // this.settingsController = new SettingsController(); // Removed initialization
   }
 
   async initialize() {
     try {
-      await this.settingsController.initialize();
+      // await this.settingsController.initialize(); // Removed settingsController initialization
       this.setupEventListeners();
       this.loadContent();
     } catch (error) {

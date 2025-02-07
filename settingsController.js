@@ -1,7 +1,5 @@
 export class SettingsController {
   static SELECTORS = {
-    settingsToggle: '#settings-toggle',
-    settingsSection: '#settings-section',
     saveSettingsButton: '#save-settings',
     apiUrlInput: '#api-url',
     apiKeyInput: '#api-key',
@@ -16,7 +14,6 @@ export class SettingsController {
       modelName: 'gpt-3.5-turbo',
       customPrompt: 'Analyze this Reddit post and its comments:'
     };
-    this.isSettingsVisible = false;
   }
 
   async initialize() {
@@ -26,7 +23,9 @@ export class SettingsController {
   }
 
   setupEventListeners() {
-    document.querySelector(SettingsController.SELECTORS.settingsToggle).addEventListener('click', () => this.toggleSettings());
+    document.querySelector('#settings-btn').addEventListener('click', () => { // Changed selector to #settings-btn from sidebar.html
+      chrome.tabs.create({ url: 'settings.html' });
+    });
     document.querySelector(SettingsController.SELECTORS.saveSettingsButton).addEventListener('click', () => this.saveSettings());
   }
 
