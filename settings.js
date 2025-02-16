@@ -4,11 +4,15 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM fully loaded');
 
   // Load saved settings
-  chrome.storage.sync.get(['theme', 'showSidebar', 'refreshInterval'], function(settings) {
+  chrome.storage.sync.get(['theme', 'showSidebar', 'refreshInterval', 'apiEndpoint', 'apiKey', 'model', 'temperature'], function(settings) {
     console.log('Loading settings:', settings);
     document.getElementById('theme').value = settings.theme || 'light';
     document.getElementById('showSidebar').checked = settings.showSidebar || false;
     document.getElementById('refreshInterval').value = settings.refreshInterval || 5;
+    document.getElementById('apiEndpoint').value = settings.apiEndpoint || 'https://api.openai.com/v1';
+    document.getElementById('apiKey').value = settings.apiKey || '';
+    document.getElementById('model').value = settings.model || 'gpt-3.5-turbo';
+    document.getElementById('temperature').value = settings.temperature || 0.7;
   });
 
   // Move save button event listener inside DOMContentLoaded
