@@ -4,15 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM fully loaded');
 
   // Load saved settings
-  chrome.storage.sync.get(['theme', 'showSidebar', 'refreshInterval', 'apiEndpoint', 'apiKey', 'model', 'temperature'], function(settings) {
+  chrome.storage.sync.get(['provider', 'apiEndpoint', 'apiKey', 'model'], function(settings) {
     console.log('Loading settings:', settings);
-    document.getElementById('theme').value = settings.theme || 'light';
-    document.getElementById('showSidebar').checked = settings.showSidebar || false;
-    document.getElementById('refreshInterval').value = settings.refreshInterval || 5;
+    document.getElementById('provider').value = settings.provider || 'openai';
     document.getElementById('apiEndpoint').value = settings.apiEndpoint || 'https://api.openai.com/v1';
     document.getElementById('apiKey').value = settings.apiKey || '';
-    document.getElementById('model').value = settings.model || 'gpt-3.5-turbo';
-    document.getElementById('temperature').value = settings.temperature || 0.7;
+    document.getElementById('model').value = settings.model || '';
   });
 
   // Move save button event listener inside DOMContentLoaded
@@ -25,16 +22,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
       try {
         const settings = {
-          theme: document.getElementById('theme').value,
-          showSidebar: document.getElementById('showSidebar').checked,
-          refreshInterval: parseInt(document.getElementById('refreshInterval').value)
+          provider: document.getElementById('provider').value,
+          apiEndpoint: document.getElementById('apiEndpoint').value,
+          apiKey: document.getElementById('apiKey').value,
+          model: document.getElementById('model').value
         };
 
         console.log('Saving settings:', settings);
 
-        // Validate refresh interval
-        if (isNaN(settings.refreshInterval) || settings.refreshInterval < 1 || settings.refreshInterval > 60) {
-          showStatus('Refresh interval must be between 1 and 60 minutes', true);
+        // Validate required fields
+        if (!settings.apiEndpoint || !settings.apiKey || !settings.model) {
+          showStatus('All fields are required', true);
           return;
         }
 
