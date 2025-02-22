@@ -76,6 +76,9 @@ export class AppController {
     }
 
     try {
+      // Log the received data for debugging
+      console.log('Current data:', this.currentData);
+
       // Get all settings from storage
       const { provider, apiKey, apiEndpoint, model } = await chrome.storage.local.get([
         'provider', 
@@ -89,27 +92,35 @@ export class AppController {
         throw new Error('Please configure all required settings (provider, API key, endpoint, and model)');
       }
 
+      const title = this.currentData.title || 'No title';
+      const postContent = this.currentData.content || 'No content';
+      const commentsList = (this.currentData.comments || [])
+        .filter(c => c && c.content)
+        .slice(0, 5)
+        .map(c => `• ${c.content.trim()}`)
+        .join('\n')
+        || 'No comments';
+
       // Format data for LLM
       const prompt = `Please provide a clear and concise summary of this Reddit post and its top comments:
 
 TITLE:
-${this.currentData.title || 'No title'}
+${title}
 
 POST CONTENT:
-${this.currentData.selftext || 'No content'}
+${postContent}
 
 TOP COMMENTS:
-${this.currentData.comments && this.currentData.comments.length > 0 
-  ? this.currentData.comments.slice(0, 5)
-    .filter(c => c && c.body) // Add filter to ensure comment and body exist
-    .map(c => `• ${c.body.trim()}`)
-    .join('\n')
-  : 'No comments'}
+${commentsList}
 
 Please structure the summary in the following format:
 1. Main point of the post
 2. Key discussion points from comments
 3. Overall sentiment/conclusion`;
+
+      // Clear previous content
+      document.querySelector('#post-content').innerHTML = '';
+      document.querySelector('#comments').innerHTML = '';
 
       // Create response container
       const responseContainer = document.createElement('div');
@@ -120,7 +131,7 @@ Please structure the summary in the following format:
       responseContainer.style.borderRadius = '4px';
       document.querySelector('#comments').appendChild(responseContainer);
 
-      // Make API call with correct endpoint and model
+      // Make API call using the correct endpoint and model
       const response = await fetch(`${apiEndpoint}/chat/completions`, {
         method: 'POST',
         headers: {
