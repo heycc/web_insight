@@ -1,59 +1,101 @@
 // Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Add console log to verify DOM loading
+document.addEventListener('DOMContentLoaded', async function() {
   console.log('DOM fully loaded');
 
-  // Load saved settings
-  chrome.storage.sync.get(['provider', 'apiEndpoint', 'apiKey', 'model'], function(settings) {
-    console.log('Loading settings:', settings);
-    document.getElementById('provider').value = settings.provider || 'openai';
-    document.getElementById('apiEndpoint').value = settings.apiEndpoint || 'https://api.openai.com/v1';
-    document.getElementById('apiKey').value = settings.apiKey || '';
-    document.getElementById('model').value = settings.model || '';
-  });
+  // Add default values
+  const defaultSettings = {
+    provider: 'openai',
+    apiEndpoint: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-3.5-turbo'
+  };
 
-  // Move save button event listener inside DOMContentLoaded
+  try {
+    // Load settings with Promise-based approach
+    const settings = await new Promise((resolve, reject) => {
+      chrome.storage.local.get(null, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+
+    console.log('Initial settings loaded:', settings);
+
+    // Apply settings or defaults
+    document.getElementById('provider').value = settings.provider || defaultSettings.provider;
+    document.getElementById('apiEndpoint').value = settings.apiEndpoint || defaultSettings.apiEndpoint;
+    document.getElementById('apiKey').value = settings.apiKey || defaultSettings.apiKey;
+    document.getElementById('model').value = settings.model || defaultSettings.model;
+
+    // Save initial settings if empty
+    if (Object.keys(settings).length === 0) {
+      console.log('No settings found, saving defaults...');
+      await new Promise((resolve, reject) => {
+        chrome.storage.local.set(defaultSettings, () => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve();
+          }
+        });
+      });
+      console.log('Default settings saved');
+    }
+  } catch (error) {
+    console.error('Error loading settings:', error);
+    showStatus('Error loading settings: ' + error.message, true);
+  }
+
   const saveButton = document.getElementById('save');
   if (saveButton) {
-    console.log('Save button found');
-    saveButton.addEventListener('click', function(e) {
-      console.log('Save button clicked');
+    saveButton.addEventListener('click', async function(e) {
       e.preventDefault();
+      console.log('Save button clicked');
 
       try {
-        const settings = {
+        const newSettings = {
           provider: document.getElementById('provider').value,
           apiEndpoint: document.getElementById('apiEndpoint').value,
           apiKey: document.getElementById('apiKey').value,
           model: document.getElementById('model').value
         };
 
-        console.log('Saving settings:', settings);
+        console.log('Attempting to save settings:', newSettings);
 
-        // Validate required fields
-        if (!settings.apiEndpoint || !settings.apiKey || !settings.model) {
+        // Validate
+        if (!newSettings.apiEndpoint || !newSettings.apiKey || !newSettings.model) {
           showStatus('All fields are required', true);
           return;
         }
 
-        // Save settings
-        chrome.storage.sync.set(settings, function() {
-          if (chrome.runtime.lastError) {
-            console.error('Error saving settings:', chrome.runtime.lastError);
-            showStatus('Error saving settings: ' + chrome.runtime.lastError.message, true);
-            return;
-          }
-          showStatus('Settings saved successfully!');
-          // Notify background script of changes
-          chrome.runtime.sendMessage({type: 'settingsUpdated', settings: settings});
+        // Save with Promise-based approach
+        await new Promise((resolve, reject) => {
+          chrome.storage.local.set(newSettings, () => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve();
+            }
+          });
         });
+
+        console.log('Settings saved successfully');
+        showStatus('Settings saved successfully!');
+
+        // Verify save
+        const savedSettings = await new Promise((resolve) => {
+          chrome.storage.local.get(null, resolve);
+        });
+        console.log('Verified saved settings:', savedSettings);
+
       } catch (error) {
-        console.error('Error in save handler:', error);
-        showStatus('An error occurred: ' + error.message, true);
+        console.error('Error saving settings:', error);
+        showStatus('Error saving settings: ' + error.message, true);
       }
     });
-  } else {
-    console.error('Save button not found in DOM');
   }
 });
 
