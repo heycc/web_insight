@@ -9,7 +9,7 @@ chrome.action.onClicked.addListener((tab) => {
     // Enable and open side panel
     chrome.sidePanel.setOptions({
       enabled: true,
-      path: 'sidebar.html'
+      path: 'pages/sidebar/sidebar.html'
     });
     chrome.sidePanel.open({ windowId: tab.windowId });
   } else {
@@ -22,7 +22,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url && tab.url.includes('reddit.com')) {
     chrome.sidePanel.setOptions({
       enabled: true,
-      path: 'sidebar.html'
+      path: 'pages/sidebar/sidebar.html'
     });
   }
 });

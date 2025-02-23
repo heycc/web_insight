@@ -12,7 +12,7 @@
     "*://*.reddit.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/background.js"
   },
   "action": {
     "default_icon": {
@@ -28,19 +28,19 @@
     "storage"
   ],
   "options_ui": {
-    "page": "settings.html",
+    "page": "pages/options/settings.html",
     "open_in_tab": true
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "side_panel": {
-    "default_path": "sidebar.html"
+    "default_path": "pages/sidebar/sidebar.html"
   },
   "content_scripts": [
     {
       "matches": ["*://*.reddit.com/*"],
-      "js": ["content.js"]
+      "js": ["content/content.js"]
     }
   ]
 }

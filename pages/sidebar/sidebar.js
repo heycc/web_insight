@@ -1,4 +1,5 @@
-import { AppController } from './appController.js';
+import { AppController } from '../../modules/appController.js';
+import { PostDisplayController } from '../../modules/postDisplayController.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
@@ -7,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up event listener for settings button here, after DOM is loaded
     document.querySelector('#settings-btn').addEventListener('click', () => {
-      chrome.tabs.create({ url: 'settings.html' });
+      chrome.tabs.create({ url: 'pages/options/settings.html' });
     });
 
   } catch (error) {
