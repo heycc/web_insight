@@ -119,17 +119,13 @@ Please structure the summary in the following format:
 3. Overall sentiment/conclusion`;
 
       // Clear previous content
+      // Clear content areas but preserve containers
       document.querySelector('#post-content').innerHTML = '';
-      document.querySelector('#comments').innerHTML = '';
+      document.querySelector('#comments-list').innerHTML = '';
+      document.querySelector('#summary-response').innerHTML = '';
 
-      // Create response container
-      const responseContainer = document.createElement('div');
-      responseContainer.id = 'summary-response';
-      responseContainer.style.marginTop = '20px';
-      responseContainer.style.padding = '10px';
-      responseContainer.style.backgroundColor = '#f5f5f5';
-      responseContainer.style.borderRadius = '4px';
-      document.querySelector('#comments').appendChild(responseContainer);
+      // Reference existing summary container
+      const responseContainer = document.querySelector('#summary-response');
 
       // Make API call using the correct endpoint and model
       const response = await fetch(`${apiEndpoint}/chat/completions`, {
