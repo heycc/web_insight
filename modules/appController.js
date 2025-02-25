@@ -6,7 +6,10 @@ export class AppController {
   static SELECTORS = {
     refreshButton: '#refresh-btn',
     analyzeButton: '#analyze-btn', // Still in HTML, but not used in JS, consider removing from HTML as well
-    summarizeButton: '#summarize-btn'
+    summarizeButton: '#summarize-btn',
+    settingsButton: '#settings-btn',
+    contentView: '.content-view',
+    summaryView: '.summary-view'
   };
 
   constructor() {
@@ -28,13 +31,31 @@ export class AppController {
   }
 
   setupEventListeners() {
-    document.querySelector(AppController.SELECTORS.refreshButton).addEventListener('click', () => this.loadContent());
+    // Settings button
+    document.querySelector(AppController.SELECTORS.settingsButton).addEventListener('click', () => {
+      chrome.tabs.create({ url: 'pages/options/settings.html' });
+    });
+
+    // Refresh button
+    document.querySelector(AppController.SELECTORS.refreshButton).addEventListener('click', () => {
+      document.querySelectorAll(AppController.SELECTORS.contentView).forEach(el => el.classList.remove('hidden'));
+      document.querySelector(AppController.SELECTORS.summaryView).classList.add('hidden');
+      this.loadContent();
+    });
+
+    // Summarize button
+    document.querySelector(AppController.SELECTORS.summarizeButton).addEventListener('click', () => {
+      document.querySelectorAll(AppController.SELECTORS.contentView).forEach(el => el.classList.add('hidden'));
+      document.querySelector(AppController.SELECTORS.summaryView).classList.remove('hidden');
+      this.summarizeContent();
+    });
+
     // document.querySelector(AppController.SELECTORS.analyzeButton).addEventListener('click', () => this.analyzeContent()); // Analyze button is commented out in original sidebar.js
-    document.querySelector(AppController.SELECTORS.summarizeButton).addEventListener('click', () => this.summarizeContent());
   }
 
   async loadContent() {
     try {
+      console.log('Loading content...');
       const tabs = await chrome.tabs.query({active: true, currentWindow: true});
       if (!tabs[0].url.includes('reddit.com')) {
         throw new Error('Not a Reddit page');
@@ -86,7 +107,7 @@ export class AppController {
         'apiEndpoint',
         'model'
       ]);
-      console.log('Settings:', provider, apiKey, apiEndpoint, model);
+      // console.log('Settings:', provider, apiKey, apiEndpoint, model);
       
       if (!provider || !apiKey || !apiEndpoint || !model) {
         throw new Error('Please configure all required settings (provider, API key, endpoint, and model)');
@@ -126,6 +147,16 @@ Please structure the summary in the following format:
 
       // Reference existing summary container
       const responseContainer = document.querySelector('#summary-response');
+      responseContainer.innerHTML = ''; // Clear initial content
+
+      // Create cursor element
+      const cursorSpan = document.createElement('span');
+      cursorSpan.classList.add('streaming-cursor');
+      responseContainer.appendChild(cursorSpan);
+
+      // Create a content div to hold the markdown content
+      const contentDiv = document.createElement('div');
+      responseContainer.insertBefore(contentDiv, cursorSpan);
 
       // Make API call using the correct endpoint and model
       const response = await fetch(`${apiEndpoint}/chat/completions`, {
@@ -181,12 +212,11 @@ Please structure the summary in the following format:
               const text = json.choices[0].delta.content || '';
               result += text;
               
-              // Use marked.js to convert markdown to HTML if available
+              // Update content div while preserving cursor
               if (window.marked) {
-                responseContainer.innerHTML = marked.parse(result);
+                contentDiv.innerHTML = marked.parse(result);
               } else {
-                // Fallback to plain text if marked.js isn't loaded
-                responseContainer.textContent = result;
+                contentDiv.textContent = result;
               }
             } catch (error) {
               console.error('Error parsing stream:', error);
@@ -194,6 +224,9 @@ Please structure the summary in the following format:
           }
         }
       }
+
+      // Remove cursor after stream completes
+      responseContainer.removeChild(cursorSpan);
     } catch (error) {
       this.postDisplayController.showError(error.message);
     }
