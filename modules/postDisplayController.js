@@ -10,7 +10,7 @@ export class PostDisplayController {
 
   static updatePostDisplay(postData) {
     document.querySelector(PostDisplayController.SELECTORS.postTitle).textContent = postData.title || 'Untitled Post';
-    document.querySelector(PostDisplayController.SELECTORS.postContent).textContent = postData.content || 'No content';
+    document.querySelector(PostDisplayController.SELECTORS.postContent).textContent = postData.content || 'No text';
     document.querySelector(PostDisplayController.SELECTORS.postAuthor).textContent = `by ${postData.author || 'Unknown'}`;
     document.querySelector(PostDisplayController.SELECTORS.postScore).textContent = `${postData.score || 0} points`;
     document.querySelector(PostDisplayController.SELECTORS.postUrl).href = postData.url || '';

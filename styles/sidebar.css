@@ -179,3 +179,89 @@ textarea:focus {
   font-size: 0.9em;
   margin-left: 0.5em;
 }
+
+/* Markdown styling */
+#summary-response {
+  line-height: 1.5;
+  color: #333;
+}
+
+#summary-response h1, 
+#summary-response h2,
+#summary-response h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+#summary-response h1 {
+  font-size: 1.5em;
+}
+
+#summary-response h2 {
+  font-size: 1.3em;
+}
+
+#summary-response h3 {
+  font-size: 1.1em;
+}
+
+#summary-response ul, 
+#summary-response ol {
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+
+#summary-response li {
+  margin-bottom: 0.3em;
+}
+
+#summary-response p {
+  margin: 0.5em 0;
+}
+
+#summary-response code {
+  background-color: #f5f5f5;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+#summary-response pre {
+  background-color: #f5f5f5;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+#summary-response blockquote {
+  border-left: 4px solid #ddd;
+  padding-left: 1em;
+  margin-left: 0;
+  color: #666;
+}
+
+#summary-response a {
+  color: #0079d3;
+  text-decoration: none;
+}
+
+#summary-response a:hover {
+  text-decoration: underline;
+}
+
+#summary-response table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+#summary-response th,
+#summary-response td {
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  text-align: left;
+}
+
+#summary-response th {
+  background-color: #f2f2f2;
+}

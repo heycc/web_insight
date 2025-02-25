@@ -154,6 +154,16 @@ Please structure the summary in the following format:
       const decoder = new TextDecoder();
       let result = '';
 
+      // Set up marked.js options for security
+      if (window.marked) {
+        marked.setOptions({
+          sanitize: true, // Sanitize HTML input
+          gfm: true, // GitHub Flavored Markdown
+          breaks: true, // Convert line breaks to <br>
+          smartLists: true // Use smart lists
+        });
+      }
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -170,7 +180,14 @@ Please structure the summary in the following format:
               const json = JSON.parse(data);
               const text = json.choices[0].delta.content || '';
               result += text;
-              responseContainer.textContent = result;
+              
+              // Use marked.js to convert markdown to HTML if available
+              if (window.marked) {
+                responseContainer.innerHTML = marked.parse(result);
+              } else {
+                // Fallback to plain text if marked.js isn't loaded
+                responseContainer.textContent = result;
+              }
             } catch (error) {
               console.error('Error parsing stream:', error);
             }
