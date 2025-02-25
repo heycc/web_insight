@@ -6,17 +6,7 @@
   <title>Reddit Insight</title>
   <link rel="stylesheet" href="../../styles/sidebar.css">
   <script src="../../lib/marked.min.js"></script>
-  <script>
-    // Add this script to check if marked.js loaded correctly
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log("Marked.js loaded:", typeof marked !== 'undefined');
-      if (typeof marked !== 'undefined') {
-        console.log("Marked.js version:", marked.version || "unknown");
-      } else {
-        console.error("Marked.js not loaded properly!");
-      }
-    });
-  </script>
+  <script src="../../scripts/marked-check.js"></script>
 </head>
 
 <body>

@@ -184,6 +184,7 @@ textarea:focus {
 #summary-response {
   line-height: 1.5;
   color: #333;
+  font-size: 13px;
 }
 
 #summary-response h1, 
