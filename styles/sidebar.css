@@ -48,6 +48,10 @@ h1 {
   display: none;
 }
 
+.hidden {
+  display: none;
+}
+
 .settings-section h3 {
   margin: 0 0 1rem 0;
   color: #1a1a1a;
