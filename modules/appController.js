@@ -105,6 +105,7 @@ export class AppController {
     container.innerHTML = '';
     const cursorSpan = document.createElement('span');
     cursorSpan.classList.add('streaming-cursor');
+    cursorSpan.textContent = '🛬'; // Use airplane landing emoji
     const contentDiv = document.createElement('div');
     container.appendChild(contentDiv);
     container.appendChild(cursorSpan);

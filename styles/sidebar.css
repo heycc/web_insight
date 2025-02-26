@@ -270,13 +270,37 @@ textarea:focus {
 /* Blinking cursor styling */
 .streaming-cursor {
   display: inline-block;
-  width: 6px;
-  height: 1em;
   margin-left: 4px;
-  background-color: #333;
-  animation: blink 0.8s steps(2, start) infinite;
+  animation: moveCursor 1.5s ease-in-out infinite;
+  font-size: 16px;
+  vertical-align: middle;
 }
 
+@keyframes moveCursor {
+  0% { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(8px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(-5px);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Remove or comment out the old blink animation */
+/* 
 @keyframes blink {
   0% { background-color: #333; }
   50% { background-color: transparent; }
