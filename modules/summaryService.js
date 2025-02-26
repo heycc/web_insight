@@ -2,7 +2,10 @@ export class SummaryService {
   constructor() {
     this.decoder = new TextDecoder();
     this.systemPrompt = `You are a helpful assistant that give insight of Reddit posts and their comments.
-What ever the language of the post is, you MUST response in Simplifed Chinese.`;
+Your audience is too busy to read the original post and comments.
+But they want to know whether this post and comments have valuable information or perspectives,
+such as people's painpoint, desires, or valuable opinions, or from person with unique background.
+Your audience trust you to provide a clear and concise insight of the post and its top up-votes comments.`;
   }
 
   formatPrompt(data) {
@@ -10,11 +13,11 @@ What ever the language of the post is, you MUST response in Simplifed Chinese.`;
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
-      .slice(0, 5)
-      .map(c => `• ${c.content.trim()}`)
+      .slice(0, 20)
+      .map(c => `## [Author: ${c.author || 'unknown'}, Up Votes: ${c.score || 0}] \n${c.content.trim()}\n\n`)
       .join('\n') || 'No comments';
 
-    return `Please provide a clear and concise insight of this Reddit post and its top comments:
+    return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
 
 <reddit_post_context>
 # TITLE:
@@ -23,23 +26,31 @@ ${title}
 # POST CONTENT:
 ${postContent}
 
-# TOP COMMENTS:
+# TOP COMMENTS (Up to 20):
 ${commentsList}
 
 </reddit_post_context>
 
+<instrunction>
 Please structure the summary in the following markdown format:
 
 **Main point of the post**
-<this is the main point of the post>
-**Key discussion points from comments**
-<key point 1>
-<key point 2>
-<key point 3>
-**Overall sentiment/conclusion**
-<this is the overall sentiment or conclusion>
 
-Remember to summarize the post and comments in Simplified Chinese.
+<here goes the main point of the post>
+
+**Main point in comments**
+
+<The Key points of some hot/top comments, up from 4~10 points. You should also quote the original representative sentence, especially those from person with unique backgroup. List them as bullet points>
+- key point 1
+- key point 2
+- key point 3
+
+**Overall sentiment**
+
+<here goes the overall sentiment or conclusion>
+
+Remember to summarize the post and comments in Simplified Chinese, the markdown title included, but the quoted sentences should be in original.
+</instrunction>
 `;
   }
 
