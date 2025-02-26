@@ -1,6 +1,8 @@
 export class SummaryService {
   constructor() {
     this.decoder = new TextDecoder();
+    this.systemPrompt = `You are a helpful assistant that give insight of Reddit posts and their comments.
+What ever the language of the post is, you MUST response in Simplifed Chinese.`;
   }
 
   formatPrompt(data) {
@@ -12,21 +14,33 @@ export class SummaryService {
       .map(c => `• ${c.content.trim()}`)
       .join('\n') || 'No comments';
 
-    return `Please provide a clear and concise summary of this Reddit post and its top comments:
+    return `Please provide a clear and concise insight of this Reddit post and its top comments:
 
-TITLE:
+<reddit_post_context>
+# TITLE:
 ${title}
 
-POST CONTENT:
+# POST CONTENT:
 ${postContent}
 
-TOP COMMENTS:
+# TOP COMMENTS:
 ${commentsList}
 
-Please structure the summary in the following format:
-1. Main point of the post
-2. Key discussion points from comments
-3. Overall sentiment/conclusion`;
+</reddit_post_context>
+
+Please structure the summary in the following markdown format:
+
+**Main point of the post**
+<this is the main point of the post>
+**Key discussion points from comments**
+<key point 1>
+<key point 2>
+<key point 3>
+**Overall sentiment/conclusion**
+<this is the overall sentiment or conclusion>
+
+Remember to summarize the post and comments in Simplified Chinese.
+`;
   }
 
   async getSettings() {
@@ -59,7 +73,7 @@ Please structure the summary in the following format:
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that summarizes Reddit posts and their comments."
+            content: this.systemPrompt
           },
           {
             role: "user",
