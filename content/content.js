@@ -1,11 +1,24 @@
 // Extract Reddit post and comment data
 function extractRedditData() {
   const postElement = document.querySelector('shreddit-post');
+  let postContent;
+  
+  const textBody = postElement?.querySelectorAll('[slot="text-body"] p');
+  const hasMedia = postElement?.querySelector('[slot="post-media-container"]');
+  
+  if (textBody && textBody.length > 0) {
+    postContent = Array.from(textBody)
+      .map(p => p.innerText)
+      .join('\n\n');
+  } else if (hasMedia) {
+    postContent = '<hint: author post a media, no text>';
+  } else {
+    postContent = '<no content>';
+  }
+  
   const post = {
     title: postElement?.getAttribute('post-title'),
-    content: Array.from(postElement?.querySelectorAll('[slot="text-body"] p') || [])
-      .map(p => p.innerText)
-      .join('\n\n'),
+    content: postContent,
     author: postElement?.getAttribute('author'),
     score: postElement?.getAttribute('score'),
     comments: []
