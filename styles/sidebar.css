@@ -184,6 +184,11 @@ textarea:focus {
 #summary-response {
   line-height: 1.5;
   color: #333;
+  /* font-size: 13px; */
+}
+
+.content-view,
+.summary-view {
   font-size: 13px;
 }
 

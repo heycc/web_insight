@@ -2,10 +2,10 @@ export class SummaryService {
   constructor() {
     this.decoder = new TextDecoder();
     this.systemPrompt = `You are a helpful assistant that give insight of Reddit posts and their comments.
-Your audience is too busy to read the original post and comments.
-But they want to know whether this post and comments have valuable information or perspectives,
-such as people's painpoint, desires, or valuable opinions, or from person with unique background.
-Your audience trust you to provide a clear and concise insight of the post and its top up-votes comments.`;
+I'm too busy to read the original post and comments.
+But I want to know whether this post and comments have any information or perspectives helpful for me to develop my product,
+such as person's painpoint, desires, or valuable opinions, or from person with unique background.
+I trust you to provide a clear and concise insight of the post and its top up-votes comments.`;
   }
 
   formatPrompt(data) {
@@ -14,10 +14,42 @@ Your audience trust you to provide a clear and concise insight of the post and i
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
       .slice(0, 20)
-      .map(c => `## [Author: ${c.author || 'unknown'}, Up Votes: ${c.score || 0}] \n${c.content.trim()}\n\n`)
+      .map(c => `## [Author: ${c.author || 'unknown'}, Up-Votes: ${c.score || 0}] \n${c.content.trim()}\n\n`)
       .join('\n') || 'No comments';
 
     return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
+
+You should read entire post and comments before summarizing, then group the comments into 4~6 opinions.
+
+Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.
+
+<instruction>
+Please structure the summary in the following markdown format:
+
+**Main point of the post**
+
+[here goes the main point of the post]
+
+**Main point in comments**
+
+[The Key points of some hot/top comments, up from 4 ~ 6 opinions. You should also quote the original representative sentence, especially those from person with unique backgroup. List them as bullet points]
+1. **opinion xx** (author_name, author_name, Votes: 1000+)
+here is summary of the opinion
+> here is quoted original sentence
+
+2. **opinion xx** (author_name, Votes: 234+)
+here is summary of the opinion
+> here is quoted original sentence
+
+3. **opinion xx** (author_name, Votes: 45+)
+here is summary of the opinion
+> here is quoted original sentence
+
+**Overall sentiment**
+
+here goes the overall sentiment or conclusion
+
+</instruction>
 
 <reddit_post_context>
 # TITLE:
@@ -30,27 +62,6 @@ ${postContent}
 ${commentsList}
 
 </reddit_post_context>
-
-<instrunction>
-Please structure the summary in the following markdown format:
-
-**Main point of the post**
-
-<here goes the main point of the post>
-
-**Main point in comments**
-
-<The Key points of some hot/top comments, up from 4~10 points. You should also quote the original representative sentence, especially those from person with unique backgroup. List them as bullet points>
-- key point 1
-- key point 2
-- key point 3
-
-**Overall sentiment**
-
-<here goes the overall sentiment or conclusion>
-
-Remember to summarize the post and comments in Simplified Chinese, the markdown title included, but the quoted sentences should be in original.
-</instrunction>
 `;
   }
 
