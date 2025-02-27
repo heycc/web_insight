@@ -4,12 +4,12 @@ import { SummaryService } from './summaryService.js';
 
 export class AppController {
   static SELECTORS = {
-    refreshButton: '#refresh-btn',
     summarizeButton: '#summarize-btn',
     settingsButton: '#settings-btn',
     contentView: '.content-view',
     summaryView: '.summary-view',
-    summaryResponse: '#summary-response'
+    summaryResponse: '#summary-response',
+    contentDetails: '#content-details'
   };
 
   constructor() {
@@ -22,7 +22,6 @@ export class AppController {
   async initialize() {
     try {
       this.setupEventListeners();
-      this.loadContent();
     } catch (error) {
       console.error('Initialization error:', error);
       this.postDisplayController.showError('Failed to initialize: ' + error.message);
@@ -35,18 +34,22 @@ export class AppController {
       chrome.tabs.create({ url: 'pages/options/settings.html' });
     });
 
-    // Refresh button
-    document.querySelector(AppController.SELECTORS.refreshButton).addEventListener('click', () => {
-      document.querySelectorAll(AppController.SELECTORS.contentView).forEach(el => el.classList.remove('hidden'));
-      document.querySelector(AppController.SELECTORS.summaryView).classList.add('hidden');
-      this.loadContent();
-    });
-
     // Summarize button
-    document.querySelector(AppController.SELECTORS.summarizeButton).addEventListener('click', () => {
-      document.querySelectorAll(AppController.SELECTORS.contentView).forEach(el => el.classList.add('hidden'));
-      document.querySelector(AppController.SELECTORS.summaryView).classList.remove('hidden');
-      this.summarizeContent();
+    document.querySelector(AppController.SELECTORS.summarizeButton).addEventListener('click', async () => {
+      try {
+        // First load the content
+        await this.loadContent();
+        
+        // Show content in folded state
+        const contentDetails = document.querySelector(AppController.SELECTORS.contentDetails);
+        contentDetails.classList.remove('hidden');
+        
+        // Then show summary view and generate summary
+        document.querySelector(AppController.SELECTORS.summaryView).classList.remove('hidden');
+        await this.summarizeContent();
+      } catch (error) {
+        this.postDisplayController.showError(error.message);
+      }
     });
   }
 

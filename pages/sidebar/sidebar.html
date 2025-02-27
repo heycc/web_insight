@@ -14,26 +14,28 @@
     <div class="header">
       <h1>Reddit Insight</h1>
       <div class="header-controls">
-        <button id="refresh-btn">Refresh</button>
         <button id="settings-btn">⚙️</button>
         <button id="summarize-btn">Summarize</button>
       </div>
     </div>
 
     <div id="post-data">
-      <a id="post-url" target="_blank"></a>
-      <h2 id="post-title"></h2>
-      <div id="post-content-container" class="content-view">
-        <p id="post-content"></p>
-        <div class="meta">
-          <span id="post-author"></span>
-          <span id="post-score"></span>
+      <details id="content-details" class="content-view">
+        <summary>Post Content</summary>
+        <a id="post-url" target="_blank"></a>
+        <h2 id="post-title"></h2>
+        <div id="post-content-container">
+          <p id="post-content"></p>
+          <div class="meta">
+            <span id="post-author"></span>
+            <span id="post-score"></span>
+          </div>
         </div>
-      </div>
-    </div>
-    <div id="comments" class="content-view">
-      <h3>Comments</h3>
-      <div id="comments-list"></div>
+        <div id="comments">
+          <h3>Comments</h3>
+          <div id="comments-list"></div>
+        </div>
+      </details>
     </div>
     <div id="summary-container" class="summary-view hidden">
       <h3>Summary</h3>
