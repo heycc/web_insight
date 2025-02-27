@@ -6,10 +6,11 @@ export class AppController {
   static SELECTORS = {
     summarizeButton: '#summarize-btn',
     settingsButton: '#settings-btn',
-    contentView: '.content-view',
-    summaryView: '.summary-view',
+    tabButtons: '.tab-btn',
+    tabContents: '.tab-content',
     summaryResponse: '#summary-response',
-    contentDetails: '#content-details'
+    summaryTab: '[data-tab="summary"]',
+    contentTab: '[data-tab="content"]'
   };
 
   constructor() {
@@ -22,6 +23,7 @@ export class AppController {
   async initialize() {
     try {
       this.setupEventListeners();
+      await this.loadContent();
     } catch (error) {
       console.error('Initialization error:', error);
       this.postDisplayController.showError('Failed to initialize: ' + error.message);
@@ -37,19 +39,37 @@ export class AppController {
     // Summarize button
     document.querySelector(AppController.SELECTORS.summarizeButton).addEventListener('click', async () => {
       try {
-        // First load the content
+        // Switch to summary tab
+        this.switchTab('summary');
+        
+        // Reload content
         await this.loadContent();
-        
-        // Show content in folded state
-        const contentDetails = document.querySelector(AppController.SELECTORS.contentDetails);
-        contentDetails.classList.remove('hidden');
-        
-        // Then show summary view and generate summary
-        document.querySelector(AppController.SELECTORS.summaryView).classList.remove('hidden');
+
+        // Generate summary
         await this.summarizeContent();
       } catch (error) {
         this.postDisplayController.showError(error.message);
       }
+    });
+
+    // Tab switching
+    document.querySelectorAll(AppController.SELECTORS.tabButtons).forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        this.switchTab(tabName);
+      });
+    });
+  }
+
+  switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll(AppController.SELECTORS.tabButtons).forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+    });
+
+    // Update tab contents
+    document.querySelectorAll(AppController.SELECTORS.tabContents).forEach(content => {
+      content.classList.toggle('active', content.getAttribute('data-tab') === tabName);
     });
   }
 
@@ -108,7 +128,7 @@ export class AppController {
     container.innerHTML = '';
     const cursorSpan = document.createElement('span');
     cursorSpan.classList.add('streaming-cursor');
-    cursorSpan.textContent = '🛬'; // Use airplane landing emoji
+    cursorSpan.textContent = '🚃'; // Use airplane landing emoji 🛬
     const contentDiv = document.createElement('div');
     container.appendChild(contentDiv);
     container.appendChild(cursorSpan);
