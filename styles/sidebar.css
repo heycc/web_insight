@@ -71,34 +71,66 @@ h1 {
 
 .tab-navigation {
   display: flex;
-  /* border-bottom: 1px solid #e6e6e6; */
   background: #fff;
-  padding: 0 16px;
-  /* justify-content: center; */
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  justify-content: center;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  width: fit-content;
+  margin: 0 auto 12px;
 }
 
 .tab-btn {
-  padding: 6px 12px;
-  border: none;
-  background: #f0f0f0;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: transparent;
   cursor: pointer;
   color: #666;
-  font-size: 1.3em;
+  font-size: 1.1em;
   font-weight: 500;
-  border-radius: 9999px; /* Fully rounded corners */
-  margin: 0 4px;
+  margin: 0;
   transition: all 0.2s ease;
+  position: relative;
+}
+
+/* First button in the group */
+.tab-btn:first-child {
+  border-radius: 20px 0 0 20px;
+}
+
+/* Last button in the group */
+.tab-btn:last-child {
+  border-radius: 0 20px 20px 0;
+}
+
+/* Remove double borders between buttons */
+.tab-btn:not(:first-child) {
+  border-left: none;
 }
 
 .tab-btn:hover {
   color: #0079d3;
-  background: #e0e0e0;
+  background: rgba(0, 121, 211, 0.1);
+  z-index: 1;
 }
 
 .tab-btn.active {
   color: white;
   background: #5F85DB;
-  border-bottom-color: transparent;
+  border-color: #5F85DB;
+  z-index: 2;
+}
+
+/* Add a subtle shadow to active button */
+.tab-btn.active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure active state overrides hover */
+.tab-btn.active:hover {
+  color: white;
+  background: #5F85DB;
 }
 
 .tab-content {
