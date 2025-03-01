@@ -2,108 +2,8 @@
 <html>
 <head>
   <title>Reddit Insight Settings</title>
-  <link rel="stylesheet" href="../../styles/sidebar.css">
-  <style>
-    body {
-      background: #ffffff;
-      color: #1a1a1a;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      margin: 0;
-      min-height: 100vh;
-      padding: 1rem;
-    }
-    
-    .settings-container {
-      background: #f8f9fa;
-      max-width: 680px;
-      margin: 2rem auto;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    }
-    
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin: 0 0 2rem;
-      color: #1a1a1a;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 1rem;
-    }
-    
-    .setting-group {
-      margin-bottom: 1.5rem;
-      padding: 1.25rem;
-      background: #ffffff;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
-    }
-    
-    .setting-group:last-child {
-      margin-bottom: 0;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 0.75rem;
-      font-weight: 500;
-      font-size: 0.9rem;
-      color: #1a1a1a;
-    }
-    
-    input[type="text"],
-    input[type="url"],
-    input[type="password"],
-    select {
-      width: 100%;
-      padding: 0.75rem;
-      background: #ffffff;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      color: #1a1a1a;
-      font-size: 0.95rem;
-      transition: all 0.2s ease;
-    }
-    
-    input:focus,
-    select:focus {
-      outline: none;
-      border-color: #0079d3;
-      box-shadow: 0 0 0 3px rgba(0,121,211,0.2);
-    }
-    
-    button {
-      padding: 0.875rem 1.5rem;
-      background: linear-gradient(135deg, #0079d3 0%, #0069b5 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    button:hover {
-      background: linear-gradient(135deg, #0069b5 0%, #005899 100%);
-      transform: translateY(-1px);
-    }
-    
-    button:active {
-      transform: translateY(0);
-    }
-    
-    #status {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #666666;
-    }
-  </style>
+  <!-- <link rel="stylesheet" href="../../styles/sidebar.css"> -->
+  <link rel="stylesheet" href="../../styles/settings.css">
 </head>
 <body>
   <div class="settings-container">
@@ -131,7 +31,9 @@
       <input type="password" id="apiKey" autocomplete="new-password">
     </div>
 
-    <button id="save">Save Settings</button>
+    <div class="actions">
+      <button id="save">Save Settings</button>
+    </div>
     <p id="status"></p>
   </div>
 
