@@ -1,6 +1,10 @@
 :root {
   --primary-color: #0079d3;
   --primary-hover: #0069b5;
+  --secondary-color: #f2f8fc;
+  --secondary-hover: #e2f0fa;
+  --danger-color: #ff4500;
+  --danger-hover: #e03d00;
   --bg-color: #ffffff;
   --card-bg: #f8f9fa;
   --border-color: #e0e0e0;
@@ -29,7 +33,7 @@ body {
 }
 
 .settings-container {
-  background: var(--card-bg);
+  background: var(--bg-color);
   max-width: 580px;
   margin: 2rem auto;
   padding: 2rem;
@@ -47,11 +51,7 @@ h1 {
 }
 
 .setting-group {
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: var(--bg-color);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  margin-bottom: 1.4rem;
 }
 
 .setting-group:last-child {
@@ -60,7 +60,7 @@ h1 {
 
 label {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   font-weight: 500;
   font-size: 0.9rem;
   color: var(--text-color);
@@ -89,7 +89,7 @@ select:focus {
 }
 
 .actions {
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
   display: flex;
   justify-content: flex-end;
 }
@@ -124,13 +124,93 @@ button:active {
   text-align: center;
 }
 
+.profile-controls {
+  /* This can be removed entirely */
+}
+
+.profile-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.profile-input-group select {
+  flex: 1;
+}
+
+.model-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.model-input-group select {
+  flex: 1;
+}
+
+#custom-model-input {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+#custom-model-input input {
+  flex: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button.primary-btn {
+  background: var(--primary-color);
+  color: white;
+}
+
+button.primary-btn:hover {
+  background: var(--primary-hover);
+}
+
+button.secondary-btn {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+button.secondary-btn:hover {
+  background: var(--secondary-hover);
+}
+
+button.danger-btn {
+  background: var(--danger-color);
+  color: white;
+}
+
+button.danger-btn:hover {
+  background: var(--danger-hover);
+}
+
 @media (max-width: 600px) {
   .settings-container {
     padding: 1.5rem;
     margin: 1rem auto;
   }
   
-  .setting-group {
-    padding: 1rem;
+  .profile-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .model-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  #custom-model-input {
+    flex-direction: column;
+    align-items: stretch;
   }
 } 

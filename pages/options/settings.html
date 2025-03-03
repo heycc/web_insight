@@ -9,6 +9,20 @@
   <div class="settings-container">
     <h1>Reddit Insight Settings</h1>
     
+    <div class="setting-group profile-controls">
+      <label for="profile-select">Profile:</label>
+      <div class="profile-input-group">
+        <select id="profile-select"></select>
+        <button id="new-profile" class="secondary-btn">New</button>
+        <button id="delete-profile" class="danger-btn">Del</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="profile-name">Profile Name:</label>
+      <input type="text" id="profile-name" placeholder="Enter profile name">
+    </div>
+    
     <div class="setting-group">
       <label for="provider">Provider:</label>
       <select id="provider">
@@ -21,9 +35,17 @@
       <input type="url" id="apiEndpoint" placeholder="https://api.openai.com/v1">
     </div>
 
-    <div class="setting-group">
+    <div class="setting-group model-selection">
       <label for="model">Model Name:</label>
-      <input type="text" id="model" placeholder="Enter model name">
+      <div class="model-input-group">
+        <select id="model"></select>
+        <button id="add-model" class="secondary-btn">Add</button>
+      </div>
+      <div id="custom-model-input" class="hidden">
+        <input type="text" id="new-model-name" placeholder="Enter custom model name">
+        <button id="save-model" class="secondary-btn">Save</button>
+        <button id="cancel-model" class="secondary-btn">Cancel</button>
+      </div>
     </div>
 
     <div class="setting-group">
@@ -32,7 +54,7 @@
     </div>
 
     <div class="actions">
-      <button id="save">Save Settings</button>
+      <button id="save" class="primary-btn">Save Settings</button>
     </div>
     <p id="status"></p>
   </div>
