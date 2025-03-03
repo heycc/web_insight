@@ -109,9 +109,21 @@ export class AppController {
     }
 
     try {
+      console.log('Starting summarization process...');
+      // First check if settings are properly configured
+      console.log('Checking settings...');
+      const settings = await this.summaryService.getSettings();
+      console.log('Settings check passed:', settings);
+      
+      if (!settings) {
+        this.postDisplayController.showError('Please configure your settings in the options page first');
+        return;
+      }
+
       const responseContainer = document.querySelector(AppController.SELECTORS.summaryResponse);
       const { contentDiv, cursorSpan } = this.createStreamingUI(responseContainer);
 
+      console.log('Starting summary generation...');
       let result = '';
       for await (const text of this.summaryService.streamSummary(this.currentData)) {
         result += text;
@@ -120,7 +132,14 @@ export class AppController {
 
       responseContainer.removeChild(cursorSpan);
     } catch (error) {
-      this.postDisplayController.showError(error.message);
+      console.error('Summarization error:', error);
+      if (error.message.includes('configure settings')) {
+        this.postDisplayController.showError('Please configure your settings in the options page first');
+      } else if (error.message.includes('Active profile')) {
+        this.postDisplayController.showError('Please check your active profile settings in the options page');
+      } else {
+        this.postDisplayController.showError(`Failed to generate summary: ${error.message}`);
+      }
     }
   }
 

@@ -66,18 +66,47 @@ ${commentsList}
   }
 
   async getSettings() {
+    console.log('Fetching settings from storage...');
     const settings = await chrome.storage.local.get([
-      'provider', 
-      'apiKey',
-      'apiEndpoint',
-      'model'
+      'profiles',
+      'activeProfileIndex'
     ]);
+    console.log('Raw settings from storage:', settings);
+    console.log('Profiles array:', settings.profiles);
+    console.log('Profiles array length:', settings.profiles?.length);
+    console.log('Profiles array type:', typeof settings.profiles);
+    console.log('Is profiles an array?', Array.isArray(settings.profiles));
 
-    if (!settings.provider || !settings.apiKey || !settings.apiEndpoint || !settings.model) {
-      throw new Error('Please configure all required settings');
+    // Check if profiles array exists and has content
+    if (!Array.isArray(settings.profiles) || settings.profiles.length === 0 || typeof settings.activeProfileIndex !== 'number') {
+      console.error('Missing required settings:', {
+        hasProfiles: !!settings.profiles,
+        activeProfileIndex: settings.activeProfileIndex,
+        profilesType: typeof settings.profiles,
+        isArray: Array.isArray(settings.profiles),
+        profilesLength: settings.profiles?.length
+      });
+      throw new Error('Please configure settings with at least one profile');
     }
 
-    return settings;
+    const activeProfile = settings.profiles[settings.activeProfileIndex];
+    console.log('Active profile:', activeProfile);
+    console.log('Active profile type:', typeof activeProfile);
+    console.log('Is activeProfile an object?', activeProfile && typeof activeProfile === 'object');
+
+    if (!activeProfile || !activeProfile.provider || !activeProfile.apiKey || !activeProfile.apiEndpoint || !activeProfile.model) {
+      console.error('Missing required profile fields:', {
+        hasActiveProfile: !!activeProfile,
+        provider: activeProfile?.provider,
+        hasApiKey: !!activeProfile?.apiKey,
+        apiEndpoint: activeProfile?.apiEndpoint,
+        model: activeProfile?.model,
+        activeProfileKeys: activeProfile ? Object.keys(activeProfile) : []
+      });
+      throw new Error('Active profile is missing required settings');
+    }
+
+    return activeProfile;
   }
 
   async* streamSummary(data) {
