@@ -15,6 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "class-variance-authority": "^0.7.0",
@@ -26,7 +27,9 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@types/chrome": "^0.0.280",
+    "@types/node": "^22.13.9",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@wxt-dev/module-react": "^1.1.2",
