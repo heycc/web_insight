@@ -13,7 +13,7 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
-      .slice(0, 20)
+      .slice(0, 30)
       .map(c => `## [Author: ${c.author || 'unknown'}, Up-Votes: ${c.score || 0}] \n${c.content.trim()}\n\n`)
       .join('\n') || 'No comments';
 
@@ -26,28 +26,30 @@ Remember to respond in Simplified Chinese, but the quoted original sentences sho
 <instruction>
 Please structure the summary in the following markdown format:
 
-**Main point of the post**
+**{ here goes the main point of the post }**
 
-[here goes the main point of the post]
+{ here goes the main point of the post }
 
-**Main point in comments**
+**{ here goes the main point in comments }**
+The Key points of some hot/top comments, up from 4 ~ 6 opinions.
+You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
+List them as bullet points
 
-[The Key points of some hot/top comments, up from 4 ~ 6 opinions. You should also quote the original representative sentence, especially those from person with unique backgroup. List them as bullet points]
 1. **opinion xx** (author_name, author_name, Votes: 1000+)
-here is summary of the opinion
-> here is quoted original sentence
+{ here is summary of the opinion }
+>{ here is quoted original sentence }
 
 2. **opinion xx** (author_name, Votes: 234+)
-here is summary of the opinion
-> here is quoted original sentence
+{ here goes the summary of the opinion }
+>{ here is quoted original sentence }
 
 3. **opinion xx** (author_name, Votes: 45+)
-here is summary of the opinion
-> here is quoted original sentence
+{ here goes the summary of the opinion }
+>{ here is quoted original sentence }
 
-**Overall sentiment**
+**{ here goes the overall sentiment or conclusion }**
 
-here goes the overall sentiment or conclusion
+{ here goes the overall sentiment or conclusion }
 
 </instruction>
 
@@ -58,7 +60,7 @@ ${title}
 # POST CONTENT:
 ${postContent}
 
-# TOP COMMENTS (Up to 20):
+# TOP COMMENTS (Up to 30):
 ${commentsList}
 
 </reddit_post_context>
