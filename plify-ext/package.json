@@ -27,7 +27,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@shadcn/ui": "^0.0.4",
     "@types/chrome": "^0.0.280",
     "@types/node": "^22.13.9",
     "@types/react": "^18.2.0",

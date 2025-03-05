@@ -36,6 +36,10 @@ const App: React.FC = () => {
     }
   };
 
+  const openSettings = () => {
+    chrome.runtime.openOptionsPage();
+  };
+
   const extractRedditData = async () => {
     setIsLoading(true);
     setError(null);
@@ -82,127 +86,64 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-md mx-auto">
-      <header className="bg-primary p-4 text-primary-foreground text-center">
-        <h1 className="text-xl font-semibold">Web Insight</h1>
-      </header>
+    <div className="flex flex-col h-full max-w-2xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium">Reddit Data Extractor</h2>
+        <Button 
+          onClick={openSettings}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Settings
+        </Button>
+      </div>
       
-      <Tabs defaultValue="insights" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="insights">Insights</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="reddit">Reddit</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="insights" className="p-4 overflow-y-auto">
-          <h2 className="text-lg font-medium mb-4">Page Insights</h2>
-          
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="text-base">Page Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">Load Time</span>
-                  <span className="text-2xl font-bold">1.2s</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">Resources</span>
-                  <span className="text-2xl font-bold">24</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="text-base">SEO Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">Meta Tags</span>
-                  <span className="text-2xl font-bold">8/10</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">Headings</span>
-                  <span className="text-2xl font-bold">6/10</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="notes" className="p-4 overflow-y-auto">
-          <h2 className="text-lg font-medium mb-4">Your Notes</h2>
-          
-          <div className="space-y-2 mb-4">
-            {notes.map((note, index) => (
-              <div key={index} className="p-3 bg-muted rounded-md">
-                {note}
-              </div>
-            ))}
-          </div>
-          
-          <div className="flex gap-2">
-            <Input
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Add a new note..."
-              className="flex-1"
-              onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
-            />
-            <Button onClick={handleAddNote}>+</Button>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="reddit" className="p-4 overflow-y-auto">
-          <h2 className="text-lg font-medium mb-4">Reddit Data Extractor</h2>
-          
-          <Button 
-            onClick={extractRedditData} 
-            disabled={isLoading}
-            className="w-full mb-4"
-            variant="default"
-          >
-            {isLoading ? 'Extracting...' : 'Extract Reddit Data'}
-          </Button>
-          
-          {error && (
-            <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md">
-              {error}
+      <Button 
+        onClick={extractRedditData} 
+        disabled={isLoading}
+        className="w-full mb-4"
+        variant="default"
+      >
+        {isLoading ? 'Extracting...' : 'Extract Reddit Data'}
+      </Button>
+      
+      {error && (
+        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md">
+          {error}
+        </div>
+      )}
+      
+      {redditData && (
+        <div className="rounded-lg shadow-sm overflow-hidden">
+          <div className="p-2 border-b">
+            <h3 className="text-base font-semibold">{redditData.title || 'Untitled Post'}</h3>
+            <div className="text-sm text-muted-foreground">
+              Posted by {redditData.author || 'unknown'} • Score: {redditData.score || '0'}
             </div>
-          )}
-          
-          {redditData && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{redditData.title || 'Untitled Post'}</CardTitle>
-                <div className="text-sm text-muted-foreground">
-                  Posted by {redditData.author || 'unknown'} • Score: {redditData.score || '0'}
+          </div>
+          <div className="p-2">
+            <div className="mb-4 text-sm">{redditData.content}</div>
+            
+            <h4 className="font-medium mb-2">Comments ({redditData.comments.length})</h4>
+            <div className="space-y-3">
+              {redditData.comments.map((comment, index) => (
+                <div key={index} className="border-l-2 border-muted pl-3">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium">{comment.author}</span>
+                    <span className="text-muted-foreground">Score: {comment.score}</span>
+                  </div>
+                  <div className="text-sm">{comment.content}</div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 text-sm">{redditData.content}</div>
-                
-                <h4 className="font-medium mb-2">Comments ({redditData.comments.length})</h4>
-                <div className="space-y-3">
-                  {redditData.comments.map((comment, index) => (
-                    <div key={index} className="border-l-2 border-muted pl-3">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium">{comment.author}</span>
-                        <span className="text-muted-foreground">Score: {comment.score}</span>
-                      </div>
-                      <div className="text-sm">{comment.content}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
