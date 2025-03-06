@@ -65,7 +65,7 @@ const DEFAULT_PROFILE: Profile = {
   provider_type: ProviderType.OAI_COMPATIBLE,
   api_endpoint: '',
   api_key: '',
-  model_name: ''
+  model_name: ModelName.GPT_35_TURBO
 };
 
 // Define the form schema with Zod
@@ -117,12 +117,11 @@ const App = () => {
         provider_type: activeProfile.provider_type,
         api_endpoint: activeProfile.api_endpoint,
         api_key: activeProfile.api_key,
-        model_name: activeProfile.model_name,
+        model_name: activeProfile.model_name || '',
       });
 
-      // Check if the model name is a predefined one or custom
-      const isPredefinedModel = Object.values(ModelName).includes(activeProfile.model_name as ModelName);
-      setCustomModelInput(!isPredefinedModel);
+      // Always reset customModelInput to false when profile changes
+      setCustomModelInput(false);
     }
   }, [activeProfile, form]);
 
@@ -130,14 +129,21 @@ const App = () => {
     try {
       setIsLoading(true);
       const result = await chrome.storage.local.get(['profiles', 'theme']);
+      console.log('Loaded from storage:', result.profiles);
 
       if (result.profiles && result.profiles.length > 0) {
+        // Ensure model_name is properly set for each profile
+        const validatedProfiles = result.profiles.map((profile: Profile) => ({
+          ...profile,
+          model_name: profile.model_name || '' // Ensure model_name is never undefined
+        }));
+        
         setSettings({
-          profiles: result.profiles,
+          profiles: validatedProfiles,
           theme: result.theme || 'system'
         });
         // Set the first profile as active
-        setActiveProfile(result.profiles[0]);
+        setActiveProfile(validatedProfiles[0]);
       } else {
         // No profiles found
         setSettings({
@@ -152,16 +158,20 @@ const App = () => {
     }
   };
 
-  const saveSettings = async () => {
+  const saveSettings = async (currentSettings: Settings | null = null) => {
     try {
-      await chrome.storage.local.set({
+      // Use provided settings or get from state
+      const settingsToSave = currentSettings || {
         profiles: settings.profiles,
         theme: settings.theme
-      });
+      };
+      
+      console.log('Saving settings:', settingsToSave.profiles);
+      await chrome.storage.local.set(settingsToSave);
       toast({
         title: "Settings saved successfully!",
         description: "Your settings have been saved.",
-        variant: "success",
+        variant: "default",
       });
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -204,27 +214,37 @@ const App = () => {
       model_name: data.model_name
     };
 
+    // Log the updated profile to verify model_name is being set correctly
+    console.log('Updated profile before saving:', updatedProfile);
+
+    let updatedProfiles: Profile[] = [];
+
     // If this is a new profile, add it to the list
     if (!settings.profiles.find(p => p.index === activeProfile.index)) {
+      updatedProfiles = [...settings.profiles, updatedProfile];
       setSettings(prev => ({
         ...prev,
-        profiles: [...prev.profiles, updatedProfile]
+        profiles: updatedProfiles
       }));
     } else {
       // Otherwise update the existing profile
+      updatedProfiles = settings.profiles.map(p =>
+        p.index === activeProfile.index ? updatedProfile : p
+      );
       setSettings(prev => ({
         ...prev,
-        profiles: prev.profiles.map(p =>
-          p.index === activeProfile.index ? updatedProfile : p
-        )
+        profiles: updatedProfiles
       }));
     }
 
     setActiveProfile(updatedProfile);
     setIsEditing(false);
 
-    // Save the updated settings
-    saveSettings();
+    // Save the updated settings immediately with the new profiles array
+    saveSettings({
+      profiles: updatedProfiles,
+      theme: settings.theme
+    });
   };
 
   const editProfile = () => {
@@ -254,6 +274,104 @@ const App = () => {
 
     // Close the popover after deletion
     setIsDeletePopoverOpen(false);
+  };
+
+  const renderNoProfiles = () => {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 mb-4">No profiles configured. Add a profile to get started.</p>
+        <Button onClick={addNewProfile} className="mx-auto">
+          Add New Profile
+        </Button>
+      </div>
+    );
+  };
+
+  const renderProfileSelector = () => {
+    if (!activeProfile || isEditing) return null;
+
+    return (
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex-1 mr-4">
+          <Select
+            onValueChange={(value: string) => {
+              const selectedProfile = settings.profiles.find(p => p.index === parseInt(value));
+              if (selectedProfile) {
+                setActiveProfile(selectedProfile);
+              }
+            }}
+            value={activeProfile.index.toString()}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a profile" />
+            </SelectTrigger>
+            <SelectContent>
+              {settings.profiles.map((profile) => (
+                <SelectItem key={profile.index} value={profile.index.toString()}>
+                  {profile.profile_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-x-2 flex-shrink-0">
+          <Button
+            onClick={editProfile}
+            size="sm"
+            variant="outline"
+          >
+            Edit
+          </Button>
+          {settings.profiles.length > 0 && (
+            <Button
+              onClick={addNewProfile}
+              size="sm"
+              variant="outline"
+            >
+              Add
+            </Button>
+          )}
+          <Popover open={isDeletePopoverOpen} onOpenChange={setIsDeletePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-500"
+              >
+                Delete
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-4">
+              <div className="space-y-2">
+                <h4 className="font-bold">Confirm Deletion</h4>
+                <p className="text-sm text-muted-foreground">
+                  Are you sure you want to delete the profile?
+                </p>
+                <p className="text-sm text-blue-500">
+                  {activeProfile.profile_name}
+                </p>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsDeletePopoverOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={deleteProfile}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+    );
   };
 
   const renderProfileForm = () => {
@@ -288,7 +406,7 @@ const App = () => {
                 <FormLabel>Provider Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={!isEditing}
                 >
                   <FormControl>
@@ -352,7 +470,7 @@ const App = () => {
                           toast({
                             title: "Copied!",
                             description: "API key copied to clipboard",
-                            variant: "success",
+                            variant: "default",
                           });
                         })
                         .catch(() => {
@@ -387,42 +505,103 @@ const App = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Model Name</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!isEditing}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select model" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(ModelName).map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
-                    {field.value && !Object.values(ModelName).includes(field.value as ModelName) && (
-                      <SelectItem key={field.value} value={field.value}>
-                        {field.value} (Custom)
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {isEditing && (
-                  <div className="mt-2">
-                    <FormControl>
-                      <Input
-                        placeholder="Enter custom model name"
-                        value={field.value}
-                        onChange={field.onChange}
-                        disabled={!isEditing}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Select from the dropdown or enter a custom model name
-                    </p>
+                {!isEditing && (
+                  <div className="flex items-center">
+                    <div className="flex-grow">
+                      <FormControl>
+                        <Input
+                          value={field.value || ''}
+                          disabled={true}
+                        />
+                      </FormControl>
+                    </div>
+                  </div>
+                )}
+                {isEditing && customModelInput && (
+                  <div className="flex items-center">
+                    <div className="flex-grow">
+                      <FormControl>
+                        <Input
+                          placeholder="Enter custom model name"
+                          value={field.value || ''}
+                          onChange={field.onChange}
+                          disabled={false}
+                        />
+                      </FormControl>
+                    </div>
+                    <div className="flex ml-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCustomModelInput(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (field.value && field.value.trim() !== '') {
+                            setCustomModelInput(false);
+                            toast({
+                              title: "Custom model added",
+                              description: `Added "${field.value}" to model selection`,
+                              variant: "default",
+                            });
+                          } else {
+                            toast({
+                              title: "Invalid model name",
+                              description: "Please enter a valid model name",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        OK
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {isEditing && !customModelInput && (
+                  <div className="flex items-center">
+                    <div className="flex-grow">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ''}
+                        disabled={false}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select model" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(ModelName).map((model) => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))}
+                          {field.value && !Object.values(ModelName).includes(field.value as ModelName) && (
+                            <SelectItem key={field.value} value={field.value}>
+                              {field.value}
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="ml-2"
+                      onClick={() => setCustomModelInput(true)}
+                    >
+                      <span className="text-xl">+</span>
+                    </Button>
                   </div>
                 )}
                 <FormMessage />
@@ -474,147 +653,20 @@ const App = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Case 1: No profiles configured */}
-            {settings.profiles.length === 0 && !isEditing && (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No profiles configured. Add a profile to get started.</p>
-                <Button onClick={addNewProfile} className="mx-auto">
-                  Add New Profile
-                </Button>
-              </div>
+            {settings.profiles.length === 0 && !isEditing && renderNoProfiles()}
+
+            {/* Case 2: Has profiles and not editing */}
+            {settings.profiles.length > 0 && !isEditing && (
+              <>
+                {renderProfileSelector()}
+                {activeProfile && renderProfileForm()}
+              </>
             )}
 
-            {/* Case 2: Has profiles or is editing */}
-            {(settings.profiles.length > 0 || isEditing) && (
-              <div>
-                {!isEditing && activeProfile && (
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex-1 mr-4">
-                      <Select
-                        onValueChange={(value: string) => {
-                          const selectedProfile = settings.profiles.find(p => p.index === parseInt(value));
-                          if (selectedProfile) {
-                            setActiveProfile(selectedProfile);
-                          }
-                        }}
-                        value={activeProfile.index.toString()}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a profile" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {settings.profiles.map((profile) => (
-                            <SelectItem key={profile.index} value={profile.index.toString()}>
-                              {profile.profile_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-x-2 flex-shrink-0">
-                      <Button
-                        onClick={editProfile}
-                        size="sm"
-                        variant="outline"
-                      >
-                        Edit
-                      </Button>
-                      {!isEditing && settings.profiles.length > 0 && (
-                        <Button
-                          onClick={addNewProfile}
-                          size="sm"
-                          variant="outline"
-                        >
-                          Add
-                        </Button>
-                      )}
-                      <Popover open={isDeletePopoverOpen} onOpenChange={setIsDeletePopoverOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-500"
-                          >
-                            Delete
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-4">
-                          <div className="space-y-2">
-                            <h4 className="font-bold">Confirm Deletion</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Are you sure you want to delete the profile?
-                            </p>
-                            <p className="text-sm text-muted-foreground text-blue-500">
-                              "{activeProfile.profile_name}"
-                            </p>
-                            <div className="flex justify-end space-x-2 pt-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsDeletePopoverOpen(false)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={deleteProfile}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
-
-                {/* {isEditing && (
-                  <h3 className="font-medium mb-4">
-                    {settings.profiles.findIndex(p => p.index === activeProfile?.index) >= 0 ? 'Edit Profile' : 'New Profile'}
-                  </h3>
-                )} */}
-
-                {renderProfileForm()}
-
-
-              </div>
-            )}
+            {/* Case 3: Is editing (either existing profile or new profile) */}
+            {isEditing && renderProfileForm()}
           </CardContent>
         </Card>
-
-        {/* <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Appearance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium mb-1">Theme</label>
-              <div className="flex space-x-4">
-                {['light', 'dark', 'system'].map((theme) => (
-                  <div key={theme} className="flex items-center">
-                    <input
-                      type="radio"
-                      id={`theme-${theme}`}
-                      name="theme"
-                      value={theme}
-                      checked={settings.theme === theme}
-                      onChange={handleThemeChange}
-                      className="mr-2"
-                    />
-                    <label htmlFor={`theme-${theme}`} className="text-sm capitalize">
-                      {theme}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Button onClick={saveSettings} className="w-full">
-          Save Settings
-        </Button> */}
       </div>
       <Toaster />
     </>
