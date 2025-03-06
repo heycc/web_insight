@@ -90,10 +90,8 @@ ${commentsList}
   }
 
   async getSettings(): Promise<ApiSettings> {
-    console.log('Fetching settings from storage...');
     const settings = await chrome.storage.local.get(['profiles']);
-    console.log('Raw settings from storage:', settings);
-    console.log('Profiles array:', settings.profiles);
+    console.log('Fetched settings:', settings.profiles);
     
     // Check if profiles array exists and has content
     if (!Array.isArray(settings.profiles) || settings.profiles.length === 0) {
