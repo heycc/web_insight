@@ -164,7 +164,7 @@ const App: React.FC = () => {
                                 {...props}
                               />
                             ),
-                            h1: ({ node, ...props }) => <h1 className="text-xl font-base my-3" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-xl font-base my-3" {...props} />,
                             blockquote: ({ node, ...props }) => (
                               <blockquote
                                 className="border-l-4 border-muted pl-4 py-1 my-2 italic text-gray-500"
