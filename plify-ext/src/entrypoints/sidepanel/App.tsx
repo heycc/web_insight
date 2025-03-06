@@ -3,20 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/ta
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-
-interface RedditComment {
-  author: string;
-  content: string;
-  score: number;
-}
-
-interface RedditPost {
-  title: string | null;
-  content: string;
-  author: string | null;
-  score: string | null;
-  comments: RedditComment[];
-}
+import { RedditService, RedditPost } from '../../lib/reddit-service';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('insights');
@@ -28,6 +15,9 @@ const App: React.FC = () => {
   const [redditData, setRedditData] = useState<RedditPost | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string>('');
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [redditService] = useState(() => new RedditService());
 
   const handleAddNote = () => {
     if (newNote.trim()) {
@@ -45,43 +35,39 @@ const App: React.FC = () => {
     setError(null);
     
     try {
-      // Get the current active tab
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tabs || tabs.length === 0) {
-        throw new Error('No active tab found');
-      }
-      
-      const activeTab = tabs[0];
-      
-      // Check if we're on a Reddit page
-      if (!activeTab.url?.includes('reddit.com')) {
-        throw new Error('Not a Reddit page');
-      }
-      
-      if (!activeTab.id) {
-        throw new Error('Tab ID is undefined');
-      }
-      
-      // First check if content script is loaded by sending a ping
-      try {
-        await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
-      } catch (error) {
-        throw new Error('Content script not loaded. Please refresh the Reddit page.');
-      }
-      
-      // Execute script to extract data
-      const results = await chrome.tabs.sendMessage(activeTab.id, { action: 'extractRedditData' });
-      
-      if (results && results.success) {
-        setRedditData(results.data);
-      } else {
-        throw new Error(results?.error || 'Failed to extract data');
-      }
+      const data = await redditService.extractData();
+      setRedditData(data);
     } catch (err) {
       console.error('Error extracting Reddit data:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const summarizeRedditData = async () => {
+    if (!redditData) {
+      setError('No Reddit data to summarize. Please extract data first.');
+      return;
+    }
+
+    setIsSummarizing(true);
+    setError(null);
+    setSummary('');
+
+    try {
+      let fullSummary = '';
+
+      // Use the streaming API to get the summary in chunks
+      for await (const chunk of redditService.summarizeData(redditData)) {
+        fullSummary += chunk;
+        setSummary(fullSummary);
+      }
+    } catch (err) {
+      console.error('Error summarizing Reddit data:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred during summarization');
+    } finally {
+      setIsSummarizing(false);
     }
   };
 
@@ -103,14 +89,25 @@ const App: React.FC = () => {
         </Button>
       </div>
       
-      <Button 
-        onClick={extractRedditData} 
-        disabled={isLoading}
-        className="w-full mb-4"
-        variant="default"
-      >
-        {isLoading ? 'Extracting...' : 'Extract Reddit Data'}
-      </Button>
+      <div className="flex gap-2 mb-4">
+        <Button 
+          onClick={extractRedditData} 
+          disabled={isLoading}
+          className="flex-1"
+          variant="default"
+        >
+          {isLoading ? 'Extracting...' : 'Extract Reddit Data'}
+        </Button>
+        
+        <Button 
+          onClick={summarizeRedditData} 
+          disabled={isSummarizing || !redditData}
+          className="flex-1"
+          variant="secondary"
+        >
+          {isSummarizing ? 'Summarizing...' : 'Summarize'}
+        </Button>
+      </div>
       
       {error && (
         <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md">
@@ -118,8 +115,19 @@ const App: React.FC = () => {
         </div>
       )}
       
+      {summary && (
+        <div className="rounded-lg shadow-sm overflow-hidden mb-4 border">
+          <div className="p-2 border-b bg-muted/50">
+            <h3 className="text-base font-semibold">Summary</h3>
+          </div>
+          <div className="p-3 whitespace-pre-wrap markdown">
+            {summary}
+          </div>
+        </div>
+      )}
+      
       {redditData && (
-        <div className="rounded-lg shadow-sm overflow-hidden">
+        <div className="rounded-lg shadow-sm overflow-hidden border">
           <div className="p-2 border-b">
             <h3 className="text-base font-semibold">{redditData.title || 'Untitled Post'}</h3>
             <div className="text-sm text-muted-foreground">

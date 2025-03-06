@@ -74,3 +74,72 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Markdown styling */
+.markdown {
+  @apply text-sm leading-relaxed;
+}
+
+.markdown h1, 
+.markdown h2, 
+.markdown h3, 
+.markdown h4, 
+.markdown h5, 
+.markdown h6 {
+  @apply font-bold my-3;
+}
+
+.markdown h1 {
+  @apply text-2xl;
+}
+
+.markdown h2 {
+  @apply text-xl;
+}
+
+.markdown h3 {
+  @apply text-lg;
+}
+
+.markdown p {
+  @apply my-2;
+}
+
+.markdown ul, 
+.markdown ol {
+  @apply pl-5 my-2;
+}
+
+.markdown ul {
+  @apply list-disc;
+}
+
+.markdown ol {
+  @apply list-decimal;
+}
+
+.markdown blockquote {
+  @apply border-l-4 border-muted pl-3 italic my-3;
+}
+
+.markdown code {
+  @apply bg-muted px-1 py-0.5 rounded text-xs;
+}
+
+.markdown pre {
+  @apply bg-muted p-3 rounded my-3 overflow-auto;
+}
+
+.markdown a {
+  @apply text-blue-600 hover:underline;
+}
+
+.markdown strong, 
+.markdown b {
+  @apply font-bold;
+}
+
+.markdown em, 
+.markdown i {
+  @apply italic;
+}
