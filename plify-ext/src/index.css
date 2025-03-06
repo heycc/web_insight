@@ -90,15 +90,19 @@
 }
 
 .markdown h1 {
-  @apply text-2xl;
+  @apply text-xl;
 }
 
 .markdown h2 {
-  @apply text-xl;
+  @apply text-lg;
 }
 
 .markdown h3 {
   @apply text-lg;
+}
+
+.markdown h4 {
+  @apply text-base;
 }
 
 .markdown p {

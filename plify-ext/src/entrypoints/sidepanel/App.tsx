@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [redditService] = useState(() => new RedditService());
   const [resultTab, setResultTab] = useState('summary');
+  const [emojiPosition, setEmojiPosition] = useState(0);
 
   const handleAddNote = () => {
     if (newNote.trim()) {
@@ -86,6 +88,15 @@ const App: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (isSummarizing) {
+      const interval = setInterval(() => {
+        setEmojiPosition((prev) => (prev >= 100 ? 0 : prev + 5));
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [isSummarizing]);
+
   return (
     <div className="flex flex-col h-full max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -120,29 +131,61 @@ const App: React.FC = () => {
       {(summary || redditData) && (
         <>
           {redditData && (
-            <div className="mb-3 flex flex-col gap-4">
+            <div className="mb-3 mx-2 flex flex-col gap-4">
               <h3 className="text-base font-semibold">{redditData.title || 'Untitled Post'}</h3>
-              <div className="text-sm">
+              {/* <div className="text-sm">
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium">{redditData.author || 'unknown'}</span>
+                  <span className="font-base">{redditData.author || 'unknown'}</span>
                   <span className="text-muted-foreground">Score: {redditData.score || '0'}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsList className="grid grid-cols-2 mx-4">
+              <TabsTrigger value="summary">✨ Summary</TabsTrigger>
               <TabsTrigger value="data">Extracted Data</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
+              
               {summary ? (
-                <div className="rounded-lg shadow-sm overflow-hidden">
-                  <div className="p-2 whitespace-pre-wrap markdown">
-                    {summary}
+                <>
+                  <div className="rounded-lg shadow-sm overflow-hidden">
+                    <div className="p-2">
+                      <div className="markdown text-gray-800">
+                        <ReactMarkdown
+                          components={{
+                            ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
+                            ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
+                            li: ({ node, ...props }) => (
+                              <li
+                                className="mt-2"
+                                {...props}
+                              />
+                            ),
+                            h1: ({ node, ...props }) => <h1 className="text-xl font-base my-3" {...props} />,
+                            blockquote: ({ node, ...props }) => (
+                              <blockquote
+                                className="border-l-4 border-muted pl-4 py-1 my-2 italic text-gray-500"
+                                {...props}
+                              />
+                            ),
+                          }}
+                        >
+                          {summary}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                  {isSummarizing && (
+                    <div className="text-start p-2 mb-2">
+                      <span className="inline-block animate-[flyAcross_1.5s_ease-in-out_infinite] text-xl" style={{ verticalAlign: 'middle' }}>
+                        🛬
+                      </span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="p-3 text-center text-muted-foreground">
                   No summary available yet. Click Summarize to generate one.

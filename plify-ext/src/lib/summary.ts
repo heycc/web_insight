@@ -48,11 +48,11 @@ Remember to respond in Simplified Chinese, but the quoted original sentences sho
 <instruction>
 Please structure the summary in the following markdown format:
 
-**{ here goes the main point of the post }**
+## { here goes the main point of the post }
 
 { here goes the main point of the post }
 
-**{ here goes the main point in comments }**
+## { here goes the main point in comments }
 The Key points of some hot/top comments, up from 4 ~ 6 opinions.
 You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
 List them as bullet points
@@ -69,7 +69,7 @@ List them as bullet points
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
-**{ here goes the overall sentiment or conclusion }**
+## { here goes the overall sentiment or conclusion }
 
 { here goes the overall sentiment or conclusion }
 
