@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Modern vibrant light theme */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+ 
+    /* Vibrant blue primary color */
+    --primary: 220 85% 57%;
+    --primary-foreground: 210 40% 98%;
+ 
+    /* Soft blue-gray secondary */
+    --secondary: 215 25% 92%;
+    --secondary-foreground: 222 47% 11%;
+ 
+    --muted: 215 25% 92%;
+    --muted-foreground: 215 25% 40%;
+ 
+    /* Subtle accent color - light purple */
+    --accent: 250 95% 92%;
+    --accent-foreground: 250 95% 30%;
+ 
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 220 85% 57%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    /* Modern dark theme with rich colors */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+ 
+    /* Vibrant blue with higher saturation for dark mode */
+    --primary: 217 92% 65%;
+    --primary-foreground: 222 47% 11%;
+ 
+    /* Deeper secondary for dark mode */
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217 33% 25%;
+    --muted-foreground: 215 20% 75%;
+ 
+    /* Dark mode accent - deeper purple */
+    --accent: 250 70% 30%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 224 76% 60%;
+  }
+}
+ 
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@keyframes flyAcross {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  20% {
+    transform: translateX(10px);
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(20px);
+    opacity: 1;
+  }
+  60% {
+    transform: translateX(30px);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(40px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+} 
+
+/* Add gradient background for the header */
+.header-gradient {
+  background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--radius);
+}
+
+/* Add subtle hover effects for buttons */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Add subtle shadow for cards */
+.card-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+} 
