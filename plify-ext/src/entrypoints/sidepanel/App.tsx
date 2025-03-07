@@ -98,14 +98,14 @@ const App: React.FC = () => {
   }, [isSummarizing]);
 
   return (
-    <div className="flex flex-col h-full max-w-2xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Reddit Data Extractor</h2>
+    <div className="flex flex-col h-full max-w-2xl mx-auto p-4 bg-background">
+      <div className="flex justify-between items-center mb-4 header-gradient p-3">
+        <h2 className="text-lg font-medium">Web Insight</h2>
         <Button
           onClick={openSettings}
           variant="ghost"
           size="sm"
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 text-primary-foreground hover:bg-primary/20"
         >
           <Settings className="w-4 h-4" />
         </Button>
@@ -115,7 +115,7 @@ const App: React.FC = () => {
         <Button
           onClick={handleSummarize}
           disabled={isLoading || isSummarizing}
-          className="flex-1"
+          className="flex-1 shadow-md hover:shadow-lg transition-all"
           variant="default"
         >
           {isLoading ? 'Extracting...' : isSummarizing ? 'Summarizing...' : 'Summarize'}
@@ -123,7 +123,7 @@ const App: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md">
+        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm">
           {error}
         </div>
       )}
@@ -142,18 +142,17 @@ const App: React.FC = () => {
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
-            <TabsList className="grid grid-cols-2 mx-4">
-              <TabsTrigger value="summary" className="rounded-full">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="rounded-full">Extracted Data</TabsTrigger>
+            <TabsList className="grid grid-cols-2 mx-4 bg-secondary">
+              <TabsTrigger value="summary" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Extracted Data</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
-
               {summary ? (
                 <>
-                  <div className="rounded-lg shadow-sm overflow-hidden">
-                    <div className="p-2">
-                      <div className="markdown text-gray-800">
+                  <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
+                    <div className="p-4">
+                      <div className="markdown text-card-foreground">
                         <ReactMarkdown
                           components={{
                             ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
@@ -164,10 +163,10 @@ const App: React.FC = () => {
                                 {...props}
                               />
                             ),
-                            h2: ({ node, ...props }) => <h2 className="text-lg font-base my-3" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-lg font-base my-3 text-accent-foreground" {...props} />,
                             blockquote: ({ node, ...props }) => (
                               <blockquote
-                                className="border-l-4 border-muted pl-4 py-1 my-2 italic text-gray-500"
+                                className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
                                 {...props}
                               />
                             ),
@@ -187,7 +186,7 @@ const App: React.FC = () => {
                   )}
                 </>
               ) : (
-                <div className="p-3 text-center text-muted-foreground">
+                <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
                   No summary available yet. Click Summarize to generate one.
                 </div>
               )}
@@ -195,14 +194,14 @@ const App: React.FC = () => {
 
             <TabsContent value="data">
               {redditData ? (
-                <div className="shadow-sm overflow-hidden">
-                  <div className="p-2">
-                    <div className="mb-4 text-sm">{redditData.content}</div>
+                <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+                  <div className="p-4">
+                    <div className="mb-4 text-sm text-card-foreground">{redditData.content}</div>
 
-                    <h4 className="font-medium mb-2">Comments ({redditData.comments.length})</h4>
+                    <h4 className="font-medium mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
                     <div className="space-y-3">
                       {redditData.comments.map((comment, index) => (
-                        <div key={index} className="border-l-2 border-muted pl-3">
+                        <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
                           <div className="flex justify-between text-sm mb-1">
                             <span className="font-medium">{comment.author}</span>
                             <span className="text-muted-foreground">Score: {comment.score}</span>
@@ -214,7 +213,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 text-center text-muted-foreground">
+                <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
                   No data extracted yet. Click Summarize to extract data.
                 </div>
               )}
