@@ -143,12 +143,12 @@ const App: React.FC = () => {
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
             <TabsList className="grid grid-cols-2 mx-4">
-              <TabsTrigger value="summary">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data">Extracted Data</TabsTrigger>
+              <TabsTrigger value="summary" className="rounded-full">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="rounded-full">Extracted Data</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
-              
+
               {summary ? (
                 <>
                   <div className="rounded-lg shadow-sm overflow-hidden">
@@ -164,7 +164,7 @@ const App: React.FC = () => {
                                 {...props}
                               />
                             ),
-                            h2: ({ node, ...props }) => <h2 className="text-xl font-base my-3" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-lg font-base my-3" {...props} />,
                             blockquote: ({ node, ...props }) => (
                               <blockquote
                                 className="border-l-4 border-muted pl-4 py-1 my-2 italic text-gray-500"
