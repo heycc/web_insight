@@ -149,9 +149,9 @@ const App: React.FC = () => {
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
-            <TabsList className="grid grid-cols-2 mx-4 bg-secondary">
-              <TabsTrigger value="summary" className="rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">📄 Content</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mx-auto bg-secondary">
+              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">📄 Content</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -183,7 +183,7 @@ const App: React.FC = () => {
                         </ReactMarkdown>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center p-2 bg-muted/50">
+                    <div className="flex justify-between items-center p-2 bg-muted/20">
                       {(isSummarizing || isLoading) && (
                         <span className="inline-block animate-[flyAcross_1.5s_ease-in-out_infinite] text-xl" style={{ verticalAlign: 'middle' }}>
                           🛬
