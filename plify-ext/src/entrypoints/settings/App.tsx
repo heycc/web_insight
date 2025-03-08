@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Eye, EyeOff, Copy } from 'lucide-react';
+import { Eye, EyeOff, Copy, Pencil, Plus, Trash2, Star } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -34,8 +34,18 @@ enum ProviderType {
   OAI_COMPATIBLE = 'oai_compatible',
   OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
-  GEMINI = 'gemini'
+  GEMINI = 'gemini',
+  LMSTUDIO = 'lmstudio'
 }
+
+// Add default API endpoints for each provider type
+const DEFAULT_API_ENDPOINTS: Record<ProviderType, string> = {
+  [ProviderType.OAI_COMPATIBLE]: '',
+  [ProviderType.OPENAI]: 'https://api.openai.com/v1',
+  [ProviderType.ANTHROPIC]: 'https://api.anthropic.com',
+  [ProviderType.GEMINI]: 'https://generativelanguage.googleapis.com',
+  [ProviderType.LMSTUDIO]: 'http://127.0.0.1:1234/v1'
+};
 
 enum ModelName {
   GPT_4 = 'gpt-4',
@@ -65,16 +75,16 @@ const DEFAULT_PROFILE: Profile = {
   provider_type: ProviderType.OAI_COMPATIBLE,
   api_endpoint: '',
   api_key: '',
-  model_name: ModelName.GPT_35_TURBO
+  model_name: ''
 };
 
 // Define the form schema with Zod
 const profileFormSchema = z.object({
-  profile_name: z.string().min(4, "Profile name is required"),
+  profile_name: z.string().min(4, "Profile name is required").max(32, "Profile name must be less than 32 characters"),
   provider_type: z.string(),
   api_endpoint: z.string().url("Please enter a valid URL"),
-  api_key: z.string().min(4, "API key is required"),
-  model_name: z.string().min(1, "Model name is required")
+  api_key: z.string().min(1, "API key is required").max(100, "API key must be less than 100 characters"),
+  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters")
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -137,7 +147,7 @@ const App = () => {
           ...profile,
           model_name: profile.model_name || '' // Ensure model_name is never undefined
         }));
-        
+
         setSettings({
           profiles: validatedProfiles,
           theme: result.theme || 'system'
@@ -165,7 +175,7 @@ const App = () => {
         profiles: settings.profiles,
         theme: settings.theme
       };
-      
+
       console.log('Saving settings:', settingsToSave.profiles);
       await chrome.storage.local.set(settingsToSave);
       toast({
@@ -266,6 +276,12 @@ const App = () => {
         setActiveProfile(updatedProfiles[0]);
       }
 
+      // Save the updated profiles to storage
+      saveSettings({
+        profiles: updatedProfiles,
+        theme: prev.theme
+      });
+
       return {
         ...prev,
         profiles: updatedProfiles
@@ -314,31 +330,68 @@ const App = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-x-2 flex-shrink-0">
-          <Button
-            onClick={editProfile}
-            size="sm"
-            variant="outline"
-          >
-            Edit
-          </Button>
-          {settings.profiles.length > 0 && (
+        <div className="space-x-1 flex-shrink-0">
+          {activeProfile.index !== settings.profiles[0]?.index && (
             <Button
-              onClick={addNewProfile}
-              size="sm"
-              variant="outline"
+              onClick={() => {
+                const updatedProfiles = [...settings.profiles];
+                const profileIndex = updatedProfiles.findIndex(p => p.index === activeProfile.index);
+
+                if (profileIndex > 0) {
+                  const [movedProfile] = updatedProfiles.splice(profileIndex, 1);
+                  updatedProfiles.unshift(movedProfile);
+
+                  setSettings(prev => ({
+                    ...prev,
+                    profiles: updatedProfiles
+                  }));
+
+                  saveSettings({
+                    profiles: updatedProfiles,
+                    theme: settings.theme
+                  });
+
+                  toast({
+                    title: "Profile set as favorite",
+                    description: `${activeProfile.profile_name} is now your top profile.`,
+                    variant: "default",
+                  });
+                }
+              }}
+              size="icon"
+              variant="ghost"
+              title="Set as favorite profile"
+              className="text-red-500 hover:text-red-600"
             >
-              Add
+              <Star className="h-4 w-4" />
             </Button>
           )}
+          <Button
+            onClick={addNewProfile}
+            size="icon"
+            variant="ghost"
+            title="Add new profile"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={editProfile}
+            size="icon"
+            variant="ghost"
+            title="Edit profile"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+
           <Popover open={isDeletePopoverOpen} onOpenChange={setIsDeletePopoverOpen}>
             <PopoverTrigger asChild>
               <Button
-                size="sm"
-                variant="outline"
+                size="icon"
+                variant="ghost"
                 className="text-red-500"
+                title="Delete profile"
               >
-                Delete
+                <Trash2 className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-4">
@@ -405,7 +458,13 @@ const App = () => {
               <FormItem>
                 <FormLabel>Provider Type</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    // Update API endpoint with default value when provider type changes
+                    if (isEditing && value in DEFAULT_API_ENDPOINTS) {
+                      form.setValue('api_endpoint', DEFAULT_API_ENDPOINTS[value as ProviderType]);
+                    }
+                  }}
                   value={field.value}
                   disabled={!isEditing}
                 >
@@ -416,9 +475,10 @@ const App = () => {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value={ProviderType.OAI_COMPATIBLE}>OpenAI API Compatible</SelectItem>
-                    <SelectItem value={ProviderType.OPENAI}>OpenAI</SelectItem>
+                    {/* <SelectItem value={ProviderType.OPENAI}>OpenAI</SelectItem>
                     <SelectItem value={ProviderType.ANTHROPIC}>Anthropic</SelectItem>
-                    <SelectItem value={ProviderType.GEMINI}>Gemini</SelectItem>
+                    <SelectItem value={ProviderType.GEMINI}>Gemini</SelectItem> */}
+                    <SelectItem value={ProviderType.LMSTUDIO}>LMStudio</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -434,7 +494,7 @@ const App = () => {
                 <FormLabel>API Endpoint</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="https://api.openai.com/v1"
+                    placeholder="Enter api endpoint, usually ending with /v1"
                     {...field}
                     disabled={!isEditing}
                   />
@@ -576,7 +636,7 @@ const App = () => {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select model" />
+                            <SelectValue placeholder="Select model, or click to add custom model 👉" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -609,7 +669,7 @@ const App = () => {
             )}
           />
 
-          {isEditing && (
+          {isEditing && !customModelInput && (
             <div className="flex justify-end space-x-2 mt-4">
               <Button
                 type="button"
