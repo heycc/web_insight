@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings, Text, Copy, Check, RefreshCw } from 'lucide-react';
+import { Settings, Text, Copy, Check, RefreshCw, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('insights');
@@ -125,7 +125,14 @@ const App: React.FC = () => {
           className="flex-1 shadow-md hover:shadow-lg transition-all"
           variant="default"
         >
-          {isLoading ? 'Extracting...' : isSummarizing ? 'Summarizing...' : 'Summarize'}
+          {isLoading || isSummarizing ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {isLoading ? 'Extracting' : 'Summarizing'}
+            </span>
+          ) : (
+            'Summarize'
+          )}
         </Button>
       </div>
 
@@ -150,8 +157,8 @@ const App: React.FC = () => {
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
             <TabsList className="grid w-full grid-cols-2 mx-auto bg-secondary">
-              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">📄 Content</TabsTrigger>
+              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold ">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold">📄 Content</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -185,7 +192,14 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center p-2 bg-muted/20">
                       {(isSummarizing || isLoading) && (
-                        <span className="inline-block animate-[flyAcross_1.5s_ease-in-out_infinite] text-xl" style={{ verticalAlign: 'middle' }}>
+                        <span 
+                          className="inline-block text-xl" 
+                          style={{ 
+                            verticalAlign: 'middle',
+                            animation: 'flyAcross 1.2s linear infinite',
+                            display: 'inline-block'
+                          }}
+                        >
                           🛬
                         </span>
                       )}

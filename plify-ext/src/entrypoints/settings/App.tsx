@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Eye, EyeOff, Copy, Pencil, Plus, Trash2, Star } from 'lucide-react';
+import { Eye, EyeOff, Copy, Pencil, Plus, Trash2, ArrowUpToLine } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -366,9 +366,8 @@ const App = () => {
               size="icon"
               variant="ghost"
               title="Set as favorite profile"
-              className="text-red-500 hover:text-red-600"
             >
-              <Star className="h-4 w-4" />
+              <ArrowUpToLine className="h-4 w-4" />
             </Button>
           )}
           <Button
