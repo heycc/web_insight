@@ -163,7 +163,7 @@ const App: React.FC = () => {
                                 {...props}
                               />
                             ),
-                            h2: ({ node, ...props }) => <h2 className="text-lg font-base my-3 text-accent-foreground" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
                             blockquote: ({ node, ...props }) => (
                               <blockquote
                                 className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"

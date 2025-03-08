@@ -5,6 +5,7 @@ export default defineConfig({
   extensionApi: 'chrome',
   modules: ['@wxt-dev/module-react'],
   srcDir: 'src',
+  outDir: 'dist',
   manifest: {
     name: 'Web Insight',
     description: 'A demo sidebar extension with Reddit data extraction',
