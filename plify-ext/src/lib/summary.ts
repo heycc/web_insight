@@ -101,7 +101,7 @@ ${commentsList}
         isArray: Array.isArray(settings.profiles),
         profilesLength: settings.profiles?.length
       });
-      throw new Error('Please configure settings with at least one profile');
+      throw new Error('Please configure LLM provider in settings');
     }
 
     // Always use the first profile

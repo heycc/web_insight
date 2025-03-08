@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings } from 'lucide-react';
+import { Settings, Text, Copy, Check, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('insights');
@@ -22,6 +20,7 @@ const App: React.FC = () => {
   const [redditService] = useState(() => new RedditService());
   const [resultTab, setResultTab] = useState('summary');
   const [emojiPosition, setEmojiPosition] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const handleAddNote = () => {
     if (newNote.trim()) {
@@ -88,6 +87,14 @@ const App: React.FC = () => {
     }
   };
 
+  const handleCopySummary = () => {
+    if (summary) {
+      navigator.clipboard.writeText(summary);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    }
+  };
+
   useEffect(() => {
     if (isSummarizing) {
       const interval = setInterval(() => {
@@ -143,12 +150,12 @@ const App: React.FC = () => {
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
             <TabsList className="grid grid-cols-2 mx-4 bg-secondary">
-              <TabsTrigger value="summary" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Extracted Data</TabsTrigger>
+              <TabsTrigger value="summary" className="rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="rounded-full font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">📄 Content</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
-              {summary ? (
+              {summary && (
                 <>
                   <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
                     <div className="p-4">
@@ -176,18 +183,50 @@ const App: React.FC = () => {
                         </ReactMarkdown>
                       </div>
                     </div>
-                  </div>
-                  {isSummarizing && (
-                    <div className="text-start p-2 mb-2">
-                      <span className="inline-block animate-[flyAcross_1.5s_ease-in-out_infinite] text-xl" style={{ verticalAlign: 'middle' }}>
-                        🛬
-                      </span>
+                    <div className="flex justify-between items-center p-2 bg-muted/50">
+                      {(isSummarizing || isLoading) && (
+                        <span className="inline-block animate-[flyAcross_1.5s_ease-in-out_infinite] text-xl" style={{ verticalAlign: 'middle' }}>
+                          🛬
+                        </span>
+                      )}
+                      <div className="flex ml-auto">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleSummarize}
+                          className="text-muted-foreground hover:text-foreground mr-2"
+                          title="Refresh summary"
+                          disabled={isLoading || isSummarizing}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleCopySummary}
+                          className="text-muted-foreground hover:text-foreground"
+                          title="Copy summary"
+                          disabled={isLoading || isSummarizing}
+                        >
+                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </>
-              ) : (
-                <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
-                  No summary available yet. Click Summarize to generate one.
+              )}
+              {!summary && !isSummarizing && (
+                <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg card-shadow">
+                  Click to generate summary
+                  <div className="flex justify-center mb-4">
+                    <Button
+                      onClick={handleSummarize}
+                      className="hover:shadow-lg transition-all"
+                      variant="outline"
+                    >
+                      Summarize
+                    </Button>
+                  </div>
                 </div>
               )}
             </TabsContent>
@@ -196,17 +235,17 @@ const App: React.FC = () => {
               {redditData ? (
                 <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
                   <div className="p-4">
-                    <div className="mb-4 text-sm text-card-foreground">{redditData.content}</div>
+                    <div className="mb-4 text-base text-card-foreground">{redditData.content}</div>
 
-                    <h4 className="font-medium mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
+                    <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
                     <div className="space-y-3">
                       {redditData.comments.map((comment, index) => (
                         <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
                           <div className="flex justify-between text-sm mb-1">
-                            <span className="font-medium">{comment.author}</span>
+                            <span className="font-semibold">{comment.author}</span>
                             <span className="text-muted-foreground">Score: {comment.score}</span>
                           </div>
-                          <div className="text-sm">{comment.content}</div>
+                          <div>{comment.content}</div>
                         </div>
                       ))}
                     </div>
