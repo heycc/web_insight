@@ -48,11 +48,16 @@ const DEFAULT_API_ENDPOINTS: Record<ProviderType, string> = {
 };
 
 enum ModelName {
-  GPT_4 = 'gpt-4',
-  GPT_35_TURBO = 'gpt-3.5-turbo',
-  CLAUDE_3_OPUS = 'claude-3-opus',
-  CLAUDE_3_SONNET = 'claude-3-sonnet',
-  GEMINI_PRO = 'gemini-pro'
+  GPT_4 = 'gpt-4o',
+  GPT_35_TURBO = 'gpt-4o-mini',
+  // CLAUDE_3_OPUS = 'claude-3-opus',
+  // CLAUDE_3_SONNET = 'claude-3-sonnet',
+  // GEMINI_PRO = 'gemini-pro',
+  DEEPSEEK_R1 = 'deepseek-r1',
+  DEEPSEEK_V3 = 'deepseek-v3',
+  QWEN_TURBO = 'qwen-turbo',
+  QWEN_LONG = 'qwen-long',
+  
 }
 
 interface Profile {
