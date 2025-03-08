@@ -6,12 +6,6 @@ import { RedditService, RedditPost } from '../../lib/reddit-service';
 import { Settings, Text, Copy, Check, RefreshCw, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('insights');
-  const [notes, setNotes] = useState<string[]>([
-    'This is a demo note',
-    'Click on the + button to add more notes',
-  ]);
-  const [newNote, setNewNote] = useState('');
   const [redditData, setRedditData] = useState<RedditPost | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,13 +15,6 @@ const App: React.FC = () => {
   const [resultTab, setResultTab] = useState('summary');
   const [emojiPosition, setEmojiPosition] = useState(0);
   const [copied, setCopied] = useState(false);
-
-  const handleAddNote = () => {
-    if (newNote.trim()) {
-      setNotes([...notes, newNote]);
-      setNewNote('');
-    }
-  };
 
   const openSettings = () => {
     chrome.runtime.openOptionsPage();
@@ -105,35 +92,35 @@ const App: React.FC = () => {
   }, [isSummarizing]);
 
   return (
-    <div className="flex flex-col h-full max-w-2xl mx-auto p-4 bg-background">
+    <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <div className="flex justify-between items-center mb-4 header-gradient p-3">
         <h2 className="text-lg font-medium">Web Insight</h2>
-        <Button
-          onClick={openSettings}
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-1 text-primary-foreground hover:bg-primary/20"
-        >
-          <Settings className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="flex mb-4">
-        <Button
-          onClick={handleSummarize}
-          disabled={isLoading || isSummarizing}
-          className="flex-1 shadow-md hover:shadow-lg transition-all"
-          variant="default"
-        >
-          {isLoading || isSummarizing ? (
-            <span className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {isLoading ? 'Extracting' : 'Summarizing'}
-            </span>
-          ) : (
-            'Summarize'
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleSummarize}
+            disabled={isLoading || isSummarizing}
+            className="shadow-md hover:shadow-lg transition-all"
+            variant="default"
+            size="sm"
+          >
+            {isLoading || isSummarizing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isLoading ? 'Extracting' : 'Summarizing'}
+              </span>
+            ) : (
+              'Summarize'
+            )}
+          </Button>
+          <Button
+            onClick={openSettings}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1 text-primary-foreground hover:bg-primary/20"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -162,6 +149,19 @@ const App: React.FC = () => {
             </TabsList>
 
             <TabsContent value="summary">
+              {(isLoading || isSummarizing) && !summary && (
+                <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg card-shadow">
+                  <div className="mb-4">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                  </div>
+                  <p className="mb-2 font-medium">
+                    {isLoading ? 'Extracting content...' : 'Generating summary...'}
+                  </p>
+                  <p className="text-sm">
+                    {isLoading ? 'Analyzing the page content' : 'Waiting for the first token'}
+                  </p>
+                </div>
+              )}
               {summary && (
                 <>
                   <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
@@ -192,9 +192,9 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center p-2 bg-muted/20">
                       {(isSummarizing || isLoading) && (
-                        <span 
-                          className="inline-block text-xl" 
-                          style={{ 
+                        <span
+                          className="inline-block text-xl"
+                          style={{
                             verticalAlign: 'middle',
                             animation: 'flyAcross 1.2s linear infinite',
                             display: 'inline-block'
@@ -204,9 +204,9 @@ const App: React.FC = () => {
                         </span>
                       )}
                       <div className="flex ml-auto">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={handleSummarize}
                           className="text-muted-foreground hover:text-foreground mr-2"
                           title="Refresh summary"
@@ -214,9 +214,9 @@ const App: React.FC = () => {
                         >
                           <RefreshCw className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={handleCopySummary}
                           className="text-muted-foreground hover:text-foreground"
                           title="Copy summary"

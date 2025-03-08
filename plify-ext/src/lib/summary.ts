@@ -41,7 +41,7 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
 
     return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
 
-You should read entire post and comments before summarizing, then group the comments into 4~6 opinions.
+You should read entire post and comments before summarizing, then group the comments into 3~6 opinions.
 
 Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.
 
@@ -52,20 +52,20 @@ Please structure the summary in the following markdown format:
 
 { here goes the main point of the post }
 
-## { here goes the main point in comments }
-The Key points of some hot/top comments, up from 4 ~ 6 opinions.
+## { here goes the main grouped points in comments }
+The Key points of some hot/top comments, group similar comments into one opinion, keep up to 3 ~ 6 opinions.
 You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
 List them as bullet points
 
-1. **opinion xx** (author_name, author_name, Votes: 1000+)
+1. **grouped opinion xx** (author_name, author_name, Votes: 1000+)
 { here is summary of the opinion }
 >{ here is quoted original sentence }
 
-2. **opinion xx** (author_name, Votes: 234+)
+2. **grouped opinion xx** (author_name, Votes: 234+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
-3. **opinion xx** (author_name, Votes: 45+)
+3. **grouped opinion xx** (author_name, Votes: 45+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
@@ -151,6 +151,7 @@ ${commentsList}
           content: prompt
         }
       ],
+      temperature: 0.5,
       stream: true
     };
 

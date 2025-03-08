@@ -482,7 +482,7 @@ const App = () => {
                     {/* <SelectItem value={ProviderType.OPENAI}>OpenAI</SelectItem>
                     <SelectItem value={ProviderType.ANTHROPIC}>Anthropic</SelectItem>
                     <SelectItem value={ProviderType.GEMINI}>Gemini</SelectItem> */}
-                    <SelectItem value={ProviderType.LMSTUDIO}>LMStudio</SelectItem>
+                    <SelectItem value={ProviderType.LMSTUDIO}>LMStudio (Local)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
