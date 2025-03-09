@@ -42,7 +42,7 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
 
     return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
 
-You should read entire post and comments before summarizing, then group the comments into 3~6 opinions.
+You should read entire post and comments before summarizing, then group the comments into 3 ~ 6 opinions.
 
 Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.
 

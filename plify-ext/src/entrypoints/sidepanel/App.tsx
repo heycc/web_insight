@@ -160,17 +160,17 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <div className="flex justify-between items-center mb-4 p-3">
-        <h2 className="text-lg font-medium text-blue-800">Reddit Insight</h2>
+        <h2 className="text-xl font-semibold text-blue-700">Reddit Insight</h2>
         <div className="flex items-center gap-2">
           {isSummarizing && (
             <Button
               onClick={handleStopSummarization}
               variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive/80"
-              title="Stop"
+              size="default"
+              className="text-destructive hover:bg-primary/20 hover:text-destructive"
+              title="Stop Generating"
             >
-              <CircleStop className="h-4 w-4" />
+              <CircleStop className="!w-6 !h-6" />
             </Button>
           )}
           <Button
@@ -192,8 +192,9 @@ const App: React.FC = () => {
           <Button
             onClick={openSettings}
             variant="ghost"
-            size="sm"
-            className="flex items-center gap-1 hover:bg-primary/20"
+            size="default"
+            className="flex items-center hover:bg-primary/20"
+            title="Configure LLM Provider"
           >
             <Settings className="w-4 h-4" />
           </Button>
