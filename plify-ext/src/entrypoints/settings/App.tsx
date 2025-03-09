@@ -57,7 +57,7 @@ enum ModelName {
   DEEPSEEK_V3 = 'deepseek-v3',
   QWEN_TURBO = 'qwen-turbo',
   QWEN_LONG = 'qwen-long',
-  
+
 }
 
 interface Profile {
@@ -72,6 +72,7 @@ interface Profile {
 interface Settings {
   profiles: Profile[];
   theme: 'light' | 'dark' | 'system';
+  language: 'en' | 'zh-CN' | 'ja';
 }
 
 const DEFAULT_PROFILE: Profile = {
@@ -98,6 +99,7 @@ const App = () => {
   const [settings, setSettings] = useState<Settings>({
     profiles: [],
     theme: 'system',
+    language: 'en',
   });
 
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
@@ -143,8 +145,8 @@ const App = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const result = await chrome.storage.local.get(['profiles', 'theme']);
-      console.log('Loaded from storage:', result.profiles);
+      const result = await chrome.storage.local.get(['profiles', 'theme', 'language']);
+      console.log('Loaded from storage:', result);
 
       if (result.profiles && result.profiles.length > 0) {
         // Ensure model_name is properly set for each profile
@@ -155,7 +157,8 @@ const App = () => {
 
         setSettings({
           profiles: validatedProfiles,
-          theme: result.theme || 'system'
+          theme: result.theme || 'system',
+          language: result.language || 'en'
         });
         // Set the first profile as active
         setActiveProfile(validatedProfiles[0]);
@@ -163,7 +166,8 @@ const App = () => {
         // No profiles found
         setSettings({
           profiles: [],
-          theme: result.theme || 'system'
+          theme: result.theme || 'system',
+          language: result.language || 'en'
         });
       }
     } catch (error) {
@@ -178,7 +182,8 @@ const App = () => {
       // Use provided settings or get from state
       const settingsToSave = currentSettings || {
         profiles: settings.profiles,
-        theme: settings.theme
+        theme: settings.theme,
+        language: settings.language
       };
 
       console.log('Saving settings:', settingsToSave.profiles);
@@ -203,6 +208,20 @@ const App = () => {
       ...prev,
       theme: e.target.value as 'light' | 'dark' | 'system'
     }));
+  };
+
+  const handleLanguageChange = (value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      language: value as 'en' | 'zh-CN' | 'ja'
+    }));
+
+    // Save the updated language setting immediately
+    saveSettings({
+      profiles: settings.profiles,
+      theme: settings.theme,
+      language: value as 'en' | 'zh-CN' | 'ja'
+    });
   };
 
   const addNewProfile = () => {
@@ -258,7 +277,8 @@ const App = () => {
     // Save the updated settings immediately with the new profiles array
     saveSettings({
       profiles: updatedProfiles,
-      theme: settings.theme
+      theme: settings.theme,
+      language: settings.language
     });
   };
 
@@ -284,7 +304,8 @@ const App = () => {
       // Save the updated profiles to storage
       saveSettings({
         profiles: updatedProfiles,
-        theme: prev.theme
+        theme: prev.theme,
+        language: prev.language
       });
 
       return {
@@ -312,120 +333,126 @@ const App = () => {
     if (!activeProfile || isEditing) return null;
 
     return (
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex-1 mr-4">
-          <Select
-            onValueChange={(value: string) => {
-              const selectedProfile = settings.profiles.find(p => p.index === parseInt(value));
-              if (selectedProfile) {
-                setActiveProfile(selectedProfile);
-              }
-            }}
-            value={activeProfile.index.toString()}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a profile" />
-            </SelectTrigger>
-            <SelectContent>
-              {settings.profiles.map((profile) => (
-                <SelectItem key={profile.index} value={profile.index.toString()}>
-                  {profile.profile_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-x-1 flex-shrink-0">
-          {activeProfile.index !== settings.profiles[0]?.index && (
-            <Button
-              onClick={() => {
-                const updatedProfiles = [...settings.profiles];
-                const profileIndex = updatedProfiles.findIndex(p => p.index === activeProfile.index);
-
-                if (profileIndex > 0) {
-                  const [movedProfile] = updatedProfiles.splice(profileIndex, 1);
-                  updatedProfiles.unshift(movedProfile);
-
-                  setSettings(prev => ({
-                    ...prev,
-                    profiles: updatedProfiles
-                  }));
-
-                  saveSettings({
-                    profiles: updatedProfiles,
-                    theme: settings.theme
-                  });
-
-                  toast({
-                    title: "Profile set as favorite",
-                    description: `${activeProfile.profile_name} is now your top profile.`,
-                    variant: "default",
-                  });
+      <div className="mb-4 flex flex-col gap-1">
+        <p className="text-sm text-muted-foreground">
+          The first profile will be used as by default. Click 'Top' to prioritize your preferred profile.
+        </p>
+        <div className="flex justify-between items-center mb-1">
+          <div className="flex-1 mr-4">
+            <Select
+              onValueChange={(value: string) => {
+                const selectedProfile = settings.profiles.find(p => p.index === parseInt(value));
+                if (selectedProfile) {
+                  setActiveProfile(selectedProfile);
                 }
               }}
-              size="icon"
-              variant="ghost"
-              title="Set as favorite profile"
+              value={activeProfile.index.toString()}
             >
-              <ArrowUpToLine className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            onClick={addNewProfile}
-            size="icon"
-            variant="ghost"
-            title="Add new profile"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={editProfile}
-            size="icon"
-            variant="ghost"
-            title="Edit profile"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-
-          <Popover open={isDeletePopoverOpen} onOpenChange={setIsDeletePopoverOpen}>
-            <PopoverTrigger asChild>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a profile" />
+              </SelectTrigger>
+              <SelectContent>
+                {settings.profiles.map((profile) => (
+                  <SelectItem key={profile.index} value={profile.index.toString()}>
+                    {profile.profile_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-x-1 flex-shrink-0">
+            {activeProfile.index !== settings.profiles[0]?.index && (
               <Button
+                onClick={() => {
+                  const updatedProfiles = [...settings.profiles];
+                  const profileIndex = updatedProfiles.findIndex(p => p.index === activeProfile.index);
+
+                  if (profileIndex > 0) {
+                    const [movedProfile] = updatedProfiles.splice(profileIndex, 1);
+                    updatedProfiles.unshift(movedProfile);
+
+                    setSettings(prev => ({
+                      ...prev,
+                      profiles: updatedProfiles
+                    }));
+
+                    saveSettings({
+                      profiles: updatedProfiles,
+                      theme: settings.theme,
+                      language: settings.language
+                    });
+
+                    toast({
+                      title: "Profile set as favorite",
+                      description: `${activeProfile.profile_name} is now your top profile.`,
+                      variant: "default",
+                    });
+                  }
+                }}
                 size="icon"
                 variant="ghost"
-                className="text-red-500"
-                title="Delete profile"
+                title="Prioritize this profile"
               >
-                <Trash2 className="h-4 w-4" />
+                <ArrowUpToLine className="h-4 w-4 text-blue-700" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-4">
-              <div className="space-y-2">
-                <h4 className="font-bold">Confirm Deletion</h4>
-                <p className="text-sm text-muted-foreground">
-                  Are you sure you want to delete the profile?
-                </p>
-                <p className="text-sm text-blue-500">
-                  {activeProfile.profile_name}
-                </p>
-                <div className="flex justify-end space-x-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsDeletePopoverOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={deleteProfile}
-                  >
-                    Delete
-                  </Button>
+            )}
+            <Button
+              onClick={addNewProfile}
+              size="icon"
+              variant="ghost"
+              title="Add new profile"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={editProfile}
+              size="icon"
+              variant="ghost"
+              title="Edit profile"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+
+            <Popover open={isDeletePopoverOpen} onOpenChange={setIsDeletePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-red-500"
+                  title="Delete profile"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4">
+                <div className="space-y-2">
+                  <h4 className="font-bold">Confirm Deletion</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Are you sure you want to delete the profile?
+                  </p>
+                  <p className="text-sm text-blue-500">
+                    {activeProfile.profile_name}
+                  </p>
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsDeletePopoverOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteProfile}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
     );
@@ -436,7 +463,7 @@ const App = () => {
 
     return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 mb-2">
           <FormField
             control={form.control}
             name="profile_name"
@@ -729,6 +756,33 @@ const App = () => {
 
             {/* Case 3: Is editing (either existing profile or new profile) */}
             {isEditing && renderProfileForm()}
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Preferences</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="font-medium">Language</div>
+              <Select
+                onValueChange={handleLanguageChange}
+                value={settings.language}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="zh-CN">简体中文 (Simplified Chinese)</SelectItem>
+                  <SelectItem value="ja">日本語 (Japanese)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Preferred language for the response.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

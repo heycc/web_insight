@@ -15,6 +15,7 @@ export interface ApiSettings {
   apiKey: string;
   apiEndpoint: string;
   model: string;
+  language: string;
 }
 
 export class SummaryService {
@@ -31,7 +32,7 @@ such as person's painpoint, desires, or valuable opinions, or from person with u
 I trust you to provide a clear and concise insight of the post and its top up-votes comments.`;
   }
 
-  formatPrompt(data: RedditData): string {
+  formatPrompt(data: RedditData, language: string = 'en'): string {
     const title = data.title || 'No title';
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
@@ -40,11 +41,19 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
       .map(c => `## [Author: ${c.author || 'unknown'}, Up-Votes: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
+    // Determine response language instruction based on language setting
+    let languageInstruction = 'Remember to respond in English';
+    if (language === 'zh-CN') {
+      languageInstruction = 'Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.';
+    } else if (language === 'ja') {
+      languageInstruction = 'Remember to respond in Japanese, but the quoted original sentences should be in original language.';
+    }
+
     return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
 
 You should read entire post and comments before summarizing, then group the comments into 3 ~ 6 opinions.
 
-Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.
+${languageInstruction}
 
 <instruction>
 Please structure the summary in the following markdown format:
@@ -91,8 +100,9 @@ ${commentsList}
   }
 
   async getSettings(): Promise<ApiSettings> {
-    const settings = await chrome.storage.local.get(['profiles']);
+    const settings = await chrome.storage.local.get(['profiles', 'language']);
     console.log('Fetched settings:', settings.profiles);
+    console.log('Fetched language:', settings.language);
     
     // Check if profiles array exists and has content
     if (!Array.isArray(settings.profiles) || settings.profiles.length === 0) {
@@ -121,11 +131,15 @@ ${commentsList}
       throw new Error('Active profile is missing required settings');
     }
 
+    // Get language setting, default to 'en' if not found
+    const language = settings.language || 'en';
+
     return {
       provider: activeProfile.provider_type,
       apiKey: activeProfile.api_key,
       apiEndpoint: activeProfile.api_endpoint,
-      model: activeProfile.model_name
+      model: activeProfile.model_name,
+      language: language
     };
   }
 
@@ -135,7 +149,7 @@ ${commentsList}
     const signal = this.abortController.signal;
     
     const settings = await this.getSettings();
-    const prompt = this.formatPrompt(data);
+    const prompt = this.formatPrompt(data, settings.language);
 
     // Determine the API endpoint and parameters based on provider type
     let endpoint = settings.apiEndpoint;
