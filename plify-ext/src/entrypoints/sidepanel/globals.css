@@ -159,6 +159,15 @@
   border-radius: var(--radius);
 }
 
+/* Add gradient text color */
+.text-gradient {
+  background: linear-gradient(90deg, #E82561 0%, #FBA518 100%, #000000 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
 /* Add subtle hover effects for buttons */
 /* button:not(:disabled):hover {
   transform: translateY(-1px);

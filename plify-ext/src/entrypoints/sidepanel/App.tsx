@@ -57,11 +57,6 @@ const App: React.FC = () => {
       console.error('Error extracting Reddit data:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Error extracting data",
-        description: errorMessage,
-      });
       return null;
     } finally {
       setIsLoading(false);
@@ -161,13 +156,13 @@ const App: React.FC = () => {
       } catch (error) {
         // Silently catch the AbortError - this is expected
         console.log('Abort operation completed with expected abort error');
-        if (!(error instanceof Error && error.name === 'AbortError')) {
-          toast({
-            variant: "destructive",
-            title: "Error stopping summarization",
-            description: error instanceof Error ? error.message : 'An unknown error occurred',
-          });
-        }
+        // if (!(error instanceof Error && error.name === 'AbortError')) {
+        //   toast({
+        //     variant: "destructive",
+        //     title: "Error stopping summarization",
+        //     description: error instanceof Error ? error.message : 'An unknown error occurred',
+        //   });
+        // }
       }
       // We don't immediately set isSummarizing to false here
       // Let the summarizeRedditData catch block handle it
@@ -186,8 +181,8 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <Toaster />
-      <div className="flex justify-between items-center mb-4 p-3">
-        <h2 className="text-xl font-semibold text-blue-700">Reddit Insight</h2>
+      <div className="flex justify-between items-center mb-4 p-1">
+        <h2 className="text-xl font-bold text-gradient">Reddit Insight</h2>
         <div className="flex items-center gap-2">
           {isSummarizing && (
             <Button
@@ -220,7 +215,7 @@ const App: React.FC = () => {
             onClick={openSettings}
             variant="ghost"
             size="default"
-            className="flex items-center hover:bg-primary/20"
+            className="flex items-center hover:bg-primary/20 p-2"
             title="Configure LLM Provider"
           >
             <Settings className="w-4 h-4" />
