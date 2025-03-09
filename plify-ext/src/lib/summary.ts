@@ -29,7 +29,7 @@ export class SummaryService {
 I'm too busy to read the original post and comments.
 But I want to know whether this post and comments have any information or perspectives helpful for me to develop my product,
 such as person's painpoint, desires, or valuable opinions, or from person with unique background.
-I trust you to provide a clear and concise insight of the post and its top up-votes comments.`;
+I trust you to provide a clear and concise insight of the post and its top votes comments.`;
   }
 
   formatPrompt(data: RedditData, language: string = 'en'): string {
@@ -38,7 +38,7 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
       .slice(0, 30)
-      .map(c => `## [Author: ${c.author || 'unknown'}, Up-Votes: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
+      .map(c => `## [Author: ${c.author || 'unknown'}, Votes: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
     // Determine response language instruction based on language setting
@@ -49,7 +49,7 @@ I trust you to provide a clear and concise insight of the post and its top up-vo
       languageInstruction = 'Remember to respond in Japanese, but the quoted original sentences should be in original language.';
     }
 
-    return `Please provide a clear and concise insight of this Reddit post and its top up-votes comments:
+    return `Please provide a clear and concise insight of this Reddit post and its top votes comments:
 
 You should read entire post and comments before summarizing, then group the comments into 3 ~ 6 opinions.
 
@@ -101,8 +101,8 @@ ${commentsList}
 
   async getSettings(): Promise<ApiSettings> {
     const settings = await chrome.storage.local.get(['profiles', 'language']);
-    console.log('Fetched settings:', settings.profiles);
-    console.log('Fetched language:', settings.language);
+    // console.debug('Fetched settings:', settings.profiles);
+    // console.debug('Fetched language:', settings.language);
     
     // Check if profiles array exists and has content
     if (!Array.isArray(settings.profiles) || settings.profiles.length === 0) {
@@ -117,7 +117,7 @@ ${commentsList}
 
     // Always use the first profile
     const activeProfile = settings.profiles[0];
-    console.log('Using first profile:', activeProfile);
+    console.log('Using first profile: [', activeProfile.profile_name, ']');
 
     if (!activeProfile || !activeProfile.provider_type || !activeProfile.api_key || !activeProfile.api_endpoint || !activeProfile.model_name) {
       console.error('Missing required profile fields:', {
@@ -223,11 +223,13 @@ ${commentsList}
               if (json.choices && !json.error) {
                 const text = json.choices[0].delta.content || '';
                 yield text;
+              } else if (json.error) {
+                throw new Error(`API error: ${JSON.stringify(json.error.message)}`);
               } else {
-                console.error('Invalid response format:', json);
+                throw new Error(`Invalid response format: ${JSON.stringify(json)}`);
               }
             } catch (error) {
-              console.error('Error parsing stream:', error);
+              throw new Error(`Error parsing stream: ${error instanceof Error ? error.message : String(error)}`);
             }
           }
         }

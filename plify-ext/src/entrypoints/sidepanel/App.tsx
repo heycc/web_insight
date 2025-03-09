@@ -5,6 +5,8 @@ import { Button } from '../../components/ui/button';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
 import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop } from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
+import { useToast } from "../../components/ui/use-toast";
+import { Toaster } from "../../components/ui/toaster";
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -25,6 +27,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>('');
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const { toast } = useToast();
 
   // Create a single shared instance of SummaryService
   const summaryServiceRef = useRef(new SummaryService());
@@ -52,7 +55,13 @@ const App: React.FC = () => {
       return data;
     } catch (err) {
       console.error('Error extracting Reddit data:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Error extracting data",
+        description: errorMessage,
+      });
       return null;
     } finally {
       setIsLoading(false);
@@ -63,7 +72,13 @@ const App: React.FC = () => {
     const dataToSummarize = data || redditData;
 
     if (!dataToSummarize) {
-      setError('No Reddit data to summarize. Please extract data first.');
+      const errorMessage = 'No Reddit data to summarize. Please extract data first.';
+      setError(errorMessage);
+      // toast({
+      //   variant: "destructive",
+      //   title: "Summarization Error",
+      //   description: errorMessage,
+      // });
       return;
     }
 
@@ -84,8 +99,6 @@ const App: React.FC = () => {
           fullSummary += chunk;
           setSummary(fullSummary);
         }
-
-        console.log('Summarization stream completed normally');
       } catch (err) {
         console.log('Caught error during summarization:', err);
 
@@ -110,7 +123,13 @@ const App: React.FC = () => {
       }
     } catch (err) {
       console.error('Error summarizing Reddit data:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred during summarization');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during summarization';
+      setError(errorMessage);
+      // toast({
+      //   variant: "destructive",
+      //   title: "Summarization Error",
+      //   description: errorMessage,
+      // });
     } finally {
       console.log('Summarization finished (finally block)');
       setIsSummarizing(false);
@@ -142,6 +161,13 @@ const App: React.FC = () => {
       } catch (error) {
         // Silently catch the AbortError - this is expected
         console.log('Abort operation completed with expected abort error');
+        if (!(error instanceof Error && error.name === 'AbortError')) {
+          toast({
+            variant: "destructive",
+            title: "Error stopping summarization",
+            description: error instanceof Error ? error.message : 'An unknown error occurred',
+          });
+        }
       }
       // We don't immediately set isSummarizing to false here
       // Let the summarizeRedditData catch block handle it
@@ -159,6 +185,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
+      <Toaster />
       <div className="flex justify-between items-center mb-4 p-3">
         <h2 className="text-xl font-semibold text-blue-700">Reddit Insight</h2>
         <div className="flex items-center gap-2">

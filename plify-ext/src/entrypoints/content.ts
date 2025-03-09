@@ -3,7 +3,7 @@ import { defineContentScript } from 'wxt/sandbox';
 export default defineContentScript({
   matches: ['*://*.reddit.com/*'],
   main() {
-    console.log('Reddit Insight content script loaded');
+    console.log('[Reddit Insight] Content script loaded');
     
     // Extract Reddit post and comment data
     function extractRedditData() {
@@ -86,7 +86,7 @@ export default defineContentScript({
           return;
         }
       });
-      console.log('[DEBUG] Reddit Insight Data:', post);
+      console.log('[Reddit Insight] Data:', post);
       return post;
     }
 
