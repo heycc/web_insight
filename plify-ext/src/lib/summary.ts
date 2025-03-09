@@ -177,14 +177,22 @@ ${commentsList}
       const lines = chunk.split('\n');
       
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') return;
-          
+        if (line.startsWith('data:')) {
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') {
+            console.log('Stream done:', data);
+            return;
+          }
+
           try {
             const json = JSON.parse(data);
-            const text = json.choices[0].delta.content || '';
-            yield text;
+            
+            if (json.choices && !json.error) {
+              const text = json.choices[0].delta.content || '';
+              yield text;
+            } else {
+              console.error('Invalid response format:', json);
+            }
           } catch (error) {
             console.error('Error parsing stream:', error);
           }
