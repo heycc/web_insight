@@ -20,6 +20,7 @@ export interface ApiSettings {
 export class SummaryService {
   private decoder: TextDecoder;
   private systemPrompt: string;
+  private abortController: AbortController | null = null;
 
   constructor() {
     this.decoder = new TextDecoder();
@@ -129,6 +130,10 @@ ${commentsList}
   }
 
   async* streamSummary(data: RedditData): AsyncGenerator<string, void, unknown> {
+    // Create a new abort controller for this request
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    
     const settings = await this.getSettings();
     const prompt = this.formatPrompt(data);
 
@@ -155,11 +160,12 @@ ${commentsList}
       stream: true
     };
 
-    // Make the API request
+    // Make the API request with the abort signal
     const response = await fetch(`${endpoint}/chat/completions`, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      signal: signal
     });
 
     if (!response.ok) {
@@ -169,35 +175,81 @@ ${commentsList}
 
     const reader = response.body!.getReader();
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = this.decoder.decode(value);
-      const lines = chunk.split('\n');
-      
-      for (const line of lines) {
-        if (line.startsWith('data:')) {
-          const data = line.slice(5).trim();
-          if (data === '[DONE]') {
-            console.log('Stream done:', data);
+    try {
+      while (true) {
+        // Check if aborted before reading the next chunk
+        if (signal.aborted) {
+          console.log('Abort detected in the stream loop');
+          break;
+        }
+        
+        const { done, value } = await reader.read();
+        if (done) break;
+  
+        const chunk = this.decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          // Check abort signal again to exit as soon as possible
+          if (signal.aborted) {
+            console.log('Abort detected while processing chunk');
             return;
           }
-
-          try {
-            const json = JSON.parse(data);
-            
-            if (json.choices && !json.error) {
-              const text = json.choices[0].delta.content || '';
-              yield text;
-            } else {
-              console.error('Invalid response format:', json);
+          
+          if (line.startsWith('data:')) {
+            const data = line.slice(5).trim();
+            if (data === '[DONE]') {
+              console.log('Stream done:', data);
+              return;
             }
-          } catch (error) {
-            console.error('Error parsing stream:', error);
+  
+            try {
+              const json = JSON.parse(data);
+              
+              if (json.choices && !json.error) {
+                const text = json.choices[0].delta.content || '';
+                yield text;
+              } else {
+                console.error('Invalid response format:', json);
+              }
+            } catch (error) {
+              console.error('Error parsing stream:', error);
+            }
           }
         }
       }
+    } catch (error: unknown) {
+      // Properly type the error
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Stream aborted by user');
+      } else {
+        throw error;
+      }
+    } finally {
+      // Clean up
+      try {
+        // Release the reader to properly close the stream
+        reader.releaseLock();
+        // Close the response body if possible
+        if (response.body) {
+          response.body.cancel();
+        }
+      } catch (e) {
+        console.warn('Error cleaning up stream resources:', e);
+      }
+      this.abortController = null;
+    }
+  }
+
+  // Add a method to abort the stream
+  abortStream(): void {
+    if (this.abortController) {
+      console.log('Aborting stream...');
+      // Simply abort - the global handler will catch the error
+      this.abortController.abort();
+      this.abortController = null;
+    } else {
+      console.warn('No active abort controller to abort');
     }
   }
 } 

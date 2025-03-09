@@ -17,8 +17,9 @@ export interface RedditPost {
 export class RedditService {
   private summaryService: SummaryService;
 
-  constructor() {
-    this.summaryService = new SummaryService();
+  constructor(summaryService?: SummaryService) {
+    // Use the provided SummaryService or create a new one
+    this.summaryService = summaryService || new SummaryService();
   }
 
   /**
@@ -82,5 +83,19 @@ export class RedditService {
   async* summarizeData(post: RedditPost): AsyncGenerator<string, void, unknown> {
     const summaryData = this.convertToSummaryFormat(post);
     yield* this.summaryService.streamSummary(summaryData);
+  }
+  
+  /**
+   * Stop the summarization process
+   */
+  stopSummarization(): void {
+    this.summaryService.abortStream();
+  }
+
+  /**
+   * Get the SummaryService instance
+   */
+  getSummaryService(): SummaryService {
+    return this.summaryService;
   }
 } 

@@ -1,9 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings, Text, Copy, Check, RefreshCw, Loader2 } from 'lucide-react';
+import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop } from 'lucide-react';
+import { SummaryService } from '../../lib/summary';
+
+// Add global handler for AbortError from stream aborts
+// This prevents the error from showing in the console
+window.addEventListener('unhandledrejection', (event) => {
+  // Only suppress AbortErrors from our code
+  if (event.reason?.name === 'AbortError' &&
+    event.reason?.message === 'BodyStreamBuffer was aborted' &&
+    event.reason?.stack?.includes('SummaryService.abortStream')) {
+    // Prevent the error from showing in the console
+    event.preventDefault();
+    console.log('Suppressed expected AbortError from stream cancellation');
+  }
+});
 
 const App: React.FC = () => {
   const [redditData, setRedditData] = useState<RedditPost | null>(null);
@@ -11,7 +25,15 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>('');
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [redditService] = useState(() => new RedditService());
+
+  // Create a single shared instance of SummaryService
+  const summaryServiceRef = useRef(new SummaryService());
+  // Pass the shared SummaryService to RedditService
+  const redditServiceRef = useRef(new RedditService(summaryServiceRef.current));
+
+  const redditService = redditServiceRef.current;
+  const summaryService = summaryServiceRef.current;
+
   const [resultTab, setResultTab] = useState('summary');
   const [emojiPosition, setEmojiPosition] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -51,16 +73,46 @@ const App: React.FC = () => {
 
     try {
       let fullSummary = '';
+      let aborted = false;
 
       // Use the streaming API to get the summary in chunks
-      for await (const chunk of redditService.summarizeData(dataToSummarize)) {
-        fullSummary += chunk;
+      try {
+        // Log to confirm we're starting the stream
+        console.log('Starting summarization stream...');
+
+        for await (const chunk of redditService.summarizeData(dataToSummarize)) {
+          fullSummary += chunk;
+          setSummary(fullSummary);
+        }
+
+        console.log('Summarization stream completed normally');
+      } catch (err) {
+        console.log('Caught error during summarization:', err);
+
+        // Check if this was an abort error
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('Confirmed abort error');
+          aborted = true;
+        } else if (isSummarizing) {
+          // If we're still in summarizing state, assume it was an abort
+          console.log('Assuming abort based on state');
+          aborted = true;
+        } else {
+          // Re-throw if it wasn't an abort
+          throw err;
+        }
+      }
+
+      // Add a note if the summary was aborted
+      if (aborted && fullSummary) {
+        fullSummary += '\n\n*Summarization was stopped by user*';
         setSummary(fullSummary);
       }
     } catch (err) {
       console.error('Error summarizing Reddit data:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred during summarization');
     } finally {
+      console.log('Summarization finished (finally block)');
       setIsSummarizing(false);
     }
   };
@@ -82,6 +134,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleStopSummarization = () => {
+    if (isSummarizing) {
+      console.log('User stopping summarization...');
+      try {
+        summaryService.abortStream();
+      } catch (error) {
+        // Silently catch the AbortError - this is expected
+        console.log('Abort operation completed with expected abort error');
+      }
+      // We don't immediately set isSummarizing to false here
+      // Let the summarizeRedditData catch block handle it
+    }
+  };
+
   useEffect(() => {
     if (isSummarizing) {
       const interval = setInterval(() => {
@@ -96,6 +162,17 @@ const App: React.FC = () => {
       <div className="flex justify-between items-center mb-4 p-3">
         <h2 className="text-lg font-medium text-blue-800">Reddit Insight</h2>
         <div className="flex items-center gap-2">
+          {isSummarizing && (
+            <Button
+              onClick={handleStopSummarization}
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive/80"
+              title="Stop"
+            >
+              <CircleStop className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             onClick={handleSummarize}
             disabled={isLoading || isSummarizing}
