@@ -93,8 +93,8 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
-      <div className="flex justify-between items-center mb-4 header-gradient p-3">
-        <h2 className="text-lg font-medium">Web Insight</h2>
+      <div className="flex justify-between items-center mb-4 p-3">
+        <h2 className="text-lg font-medium text-blue-800">Reddit Insight</h2>
         <div className="flex items-center gap-2">
           <Button
             onClick={handleSummarize}
@@ -116,7 +116,7 @@ const App: React.FC = () => {
             onClick={openSettings}
             variant="ghost"
             size="sm"
-            className="flex items-center gap-1 text-primary-foreground hover:bg-primary/20"
+            className="flex items-center gap-1 hover:bg-primary/20"
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -144,8 +144,8 @@ const App: React.FC = () => {
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
             <TabsList className="grid w-full grid-cols-2 mx-auto bg-secondary">
-              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold ">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold">📄 Content</TabsTrigger>
+              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">✨ Summary</TabsTrigger>
+              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">📄 Content</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -209,7 +209,7 @@ const App: React.FC = () => {
                           size="sm"
                           onClick={handleSummarize}
                           className="text-muted-foreground hover:text-foreground mr-2"
-                          title="Refresh summary"
+                          title="Regenerate"
                           disabled={isLoading || isSummarizing}
                         >
                           <RefreshCw className="w-4 h-4" />
@@ -219,7 +219,7 @@ const App: React.FC = () => {
                           size="sm"
                           onClick={handleCopySummary}
                           className="text-muted-foreground hover:text-foreground"
-                          title="Copy summary"
+                          title="Copy"
                           disabled={isLoading || isSummarizing}
                         >
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -235,7 +235,7 @@ const App: React.FC = () => {
                   <div className="flex justify-center mb-4">
                     <Button
                       onClick={handleSummarize}
-                      className="hover:shadow-lg transition-all"
+                      className=""
                       variant="outline"
                     >
                       Summarize
