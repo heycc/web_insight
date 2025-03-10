@@ -505,9 +505,6 @@ const App = () => {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value={ProviderType.OAI_COMPATIBLE}>OpenAI API Compatible</SelectItem>
-                    {/* <SelectItem value={ProviderType.OPENAI}>OpenAI</SelectItem>
-                    <SelectItem value={ProviderType.ANTHROPIC}>Anthropic</SelectItem>
-                    <SelectItem value={ProviderType.GEMINI}>Gemini</SelectItem> */}
                     <SelectItem value={ProviderType.LMSTUDIO}>LMStudio (Local)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -526,9 +523,26 @@ const App = () => {
                   <Input
                     placeholder="Enter api endpoint, usually ending with /v1"
                     {...field}
+                    onChange={(e) => {
+                      // Don't auto-trim trailing slashes while user is typing
+                      field.onChange(e.target.value);
+                    }}
+                    onBlur={(e) => {
+                      // Only trim trailing slashes when field loses focus
+                      let value = e.target.value.trim();
+                      while (value.endsWith('/')) {
+                        value = value.slice(0, -1);
+                      }
+                      field.onChange(value);
+                    }}
                     disabled={!isEditing}
                   />
                 </FormControl>
+                {field.value && (
+                  <p className="text-sm text-muted-foreground">
+                    The chat API will be {field.value}/chat/completions
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}

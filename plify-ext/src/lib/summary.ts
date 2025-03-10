@@ -37,7 +37,7 @@ I trust you to provide a clear and concise insight of the post and its top votes
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
-      .slice(0, 30)
+      .slice(0, 50)
       .map(c => `## [Author: ${c.author || 'unknown'}, Votes: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
@@ -51,7 +51,7 @@ I trust you to provide a clear and concise insight of the post and its top votes
 
     return `Please provide a clear and concise insight of this Reddit post and its top votes comments:
 
-You should read entire post and comments before summarizing, then group the comments into 3 ~ 6 opinions.
+You should read entire post and comments before summarizing, then group the comments into 5 ~ 8 opinions.
 
 ${languageInstruction}
 
@@ -63,7 +63,7 @@ Please structure the summary in the following markdown format:
 { here goes the main point of the post }
 
 ## { here goes the main grouped points in comments }
-The Key points of some hot/top comments, group similar comments into one opinion, keep up to 3 ~ 6 opinions.
+The Key points of some hot/top comments, group similar comments into one opinion, keep up to 5 ~ 8 opinions.
 You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
 List them as bullet points
 

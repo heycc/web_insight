@@ -10,7 +10,14 @@ export default defineConfig({
     name: 'Web Insight',
     description: 'A demo sidebar extension with Reddit data extraction',
     permissions: ['sidePanel', 'activeTab', 'storage'],
-    host_permissions: ['*://*.reddit.com/*'],
+    host_permissions: [
+      '*://*.reddit.com/*',
+      '<all_urls>'
+      // Alternatively, specify only the domains you need:
+      // 'https://*.openai.com/*',
+      // 'https://api.anthropic.com/*',
+      // Add other API domains as needed
+    ],
     action: {
       default_title: 'Open Web Insight Sidebar'
     },
