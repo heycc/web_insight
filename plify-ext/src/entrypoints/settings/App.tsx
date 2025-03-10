@@ -638,6 +638,7 @@ const App = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
+                        className='text-red-500'
                         onClick={() => {
                           setCustomModelInput(false);
                         }}
@@ -725,6 +726,7 @@ const App = () => {
                   }
                 }}
                 variant="outline"
+                className="text-red-500"
               >
                 Cancel
               </Button>
