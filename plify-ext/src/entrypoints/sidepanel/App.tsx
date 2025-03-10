@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop, MessageSquareText } from 'lucide-react';
+import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop, MessageSquareText, ChevronDown, ChevronUp } from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
 import { useToast } from "../../components/ui/use-toast";
 import { Toaster } from "../../components/ui/toaster";
@@ -26,7 +26,13 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>('');
+  const [reasoning, setReasoning] = useState<string>('');
+  const [showReasoning, setShowReasoning] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [copiedState, setCopiedState] = useState<{ summary: boolean, withReasoning: boolean }>({
+    summary: false,
+    withReasoning: false
+  });
   const { toast } = useToast();
 
   // Create a single shared instance of SummaryService
@@ -39,7 +45,6 @@ const App: React.FC = () => {
 
   const [resultTab, setResultTab] = useState('summary');
   const [emojiPosition, setEmojiPosition] = useState(0);
-  const [copied, setCopied] = useState(false);
 
   const openSettings = () => {
     chrome.runtime.openOptionsPage();
@@ -80,9 +85,11 @@ const App: React.FC = () => {
     setIsSummarizing(true);
     setError(null);
     setSummary('');
+    setReasoning('');
 
     try {
       let fullSummary = '';
+      let fullReasoning = '';
       let aborted = false;
 
       // Use the streaming API to get the summary in chunks
@@ -91,8 +98,17 @@ const App: React.FC = () => {
         console.log('Starting summarization stream...');
 
         for await (const chunk of redditService.summarizeData(dataToSummarize)) {
-          fullSummary += chunk;
-          setSummary(fullSummary);
+          if (chunk.type === 'content') {
+            fullSummary += chunk.text;
+            setSummary(fullSummary);
+          } else if (chunk.type === 'reasoning') {
+            fullReasoning += chunk.text;
+            setReasoning(fullReasoning);
+            // Make sure reasoning is visible if we're receiving reasoning content
+            // if (!showReasoning && fullReasoning.trim().length > 0) {
+            //   setShowReasoning(true);
+            // }
+          }
         }
       } catch (err) {
         console.log('Caught error during summarization:', err);
@@ -140,11 +156,25 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCopySummary = () => {
+  const handleCopySummary = (includeReasoning: boolean = false) => {
     if (summary) {
-      navigator.clipboard.writeText(summary);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1000);
+      let textToCopy = summary;
+
+      if (includeReasoning && reasoning) {
+        textToCopy = `## Model Reasoning\n${reasoning}\n\n## Summary\n${summary}`;
+      }
+
+      navigator.clipboard.writeText(textToCopy);
+
+      if (includeReasoning) {
+        setCopiedState({ summary: false, withReasoning: true });
+      } else {
+        setCopiedState({ summary: true, withReasoning: false });
+      }
+
+      setTimeout(() => {
+        setCopiedState({ summary: false, withReasoning: false });
+      }, 1500);
     }
   };
 
@@ -222,6 +252,8 @@ const App: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Welcome message on first load */}
       {!summary && !redditData && (
         <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground bg-card rounded-lg card-shadow">
           <div className="mb-4">
@@ -237,13 +269,14 @@ const App: React.FC = () => {
         </div>
       )}
 
-
+      {/* Error message */}
       {error && (
         <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm">
           {error}
         </div>
       )}
 
+      {/* Summary or Reddit data */}
       {(summary || redditData) && (
         <>
           {redditData && (
@@ -258,11 +291,8 @@ const App: React.FC = () => {
             </TabsList>
 
             <TabsContent value="summary">
-              {(isLoading || isSummarizing) && !summary && (
+              {(isLoading || isSummarizing) && !(summary || reasoning) && (
                 <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg card-shadow">
-                  {/* <div className="mb-4">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                  </div> */}
                   <p className="mb-2 font-medium">
                     {isLoading ? 'Extracting content...' : 'Generating summary...'}
                   </p>
@@ -271,9 +301,56 @@ const App: React.FC = () => {
                   </p>
                 </div>
               )}
-              {summary && (
+              {(summary || reasoning) && (
                 <>
                   <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
+                    {reasoning && (
+                      <div className="">
+                        <button
+                          onClick={() => setShowReasoning(!showReasoning)}
+                          className="w-full p-2 flex items-center justify-between bg-secondary/80 hover:bg-secondary transition-colors"
+                        >
+                          {/* <div className="flex flex-row items-center"> */}
+                            <span className="font-medium text-sm text-accent-foreground flex flex-row items-center">
+                              Model Reasoning
+                              {(isSummarizing && !summary) && <Loader2 className="h-4 w-4 ml-1 animate-spin text-accent-foreground" />}
+                            </span>
+                          {/* </div> */}
+                          {showReasoning ?
+                            <ChevronUp className="h-4 w-4" /> :
+                            <ChevronDown className="h-4 w-4" />
+                          }
+                        </button>
+                        {showReasoning && (
+                          <div className="p-3 bg-secondary/20 text-sm text-muted-foreground border-t border-border/50 max-h-[300px] overflow-y-auto">
+                            <ReactMarkdown
+                              components={{
+                                ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
+                                ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
+                                li: ({ node, ...props }) => (
+                                  <li className="mt-1" {...props} />
+                                ),
+                                h2: ({ node, ...props }) => <h2 className="text-base font-semibold my-2 text-accent-foreground" {...props} />,
+                                blockquote: ({ node, ...props }) => (
+                                  <blockquote
+                                    className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
+                                    {...props}
+                                  />
+                                ),
+                                code: ({ node, ...props }: any) => {
+                                  const isInline = !props.className?.includes('language-');
+                                  return isInline ?
+                                    <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
+                                    <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
+                                }
+                              }}
+                            >
+                              {reasoning}
+                            </ReactMarkdown>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="p-4">
                       <div className="markdown text-card-foreground">
                         <ReactMarkdown
@@ -293,6 +370,12 @@ const App: React.FC = () => {
                                 {...props}
                               />
                             ),
+                            code: ({ node, ...props }: any) => {
+                              const isInline = !props.className?.includes('language-');
+                              return isInline ?
+                                <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
+                                <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
+                            }
                           }}
                         >
                           {summary}
@@ -323,22 +406,49 @@ const App: React.FC = () => {
                         >
                           <RefreshCw className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleCopySummary}
-                          className="text-muted-foreground hover:text-foreground"
-                          title="Copy"
-                          disabled={isLoading || isSummarizing}
-                        >
-                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </Button>
+
+                        {reasoning ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopySummary(false)}
+                              className="text-muted-foreground hover:text-foreground mr-2"
+                              title="Copy summary only"
+                              disabled={isLoading || isSummarizing}
+                            >
+                              {copiedState.summary ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopySummary(true)}
+                              className="text-muted-foreground hover:text-foreground"
+                              title="Copy with reasoning"
+                              disabled={isLoading || isSummarizing}
+                            >
+                              {copiedState.withReasoning ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                              <span className="text-xs">+R</span>
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopySummary(false)}
+                            className="text-muted-foreground hover:text-foreground"
+                            title="Copy summary"
+                            disabled={isLoading || isSummarizing}
+                          >
+                            {copiedState.summary ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
                 </>
               )}
-              {!summary && !isSummarizing && (
+              {!(summary || reasoning || isSummarizing) && (
                 <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg card-shadow">
                   Click to generate summary
                   <div className="flex justify-center mb-4">

@@ -92,7 +92,7 @@ ${title}
 # POST CONTENT:
 ${postContent}
 
-# TOP COMMENTS (Up to 30):
+# TOP COMMENTS (Up to 50):
 ${commentsList}
 
 </reddit_post_context>
@@ -143,7 +143,7 @@ ${commentsList}
     };
   }
 
-  async* streamSummary(data: RedditData): AsyncGenerator<string, void, unknown> {
+  async* streamSummary(data: RedditData): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
     // Create a new abort controller for this request
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
@@ -221,8 +221,18 @@ ${commentsList}
               const json = JSON.parse(data);
               
               if (json.choices && !json.error) {
-                const text = json.choices[0].delta.content || '';
-                yield text;
+                // Check for reasoning content
+                if (json.choices[0].delta.reasoning_content) {
+                  yield { type: 'reasoning', text: json.choices[0].delta.reasoning_content };
+                }
+                
+                // Check for regular content
+                if (json.choices[0].delta.content) {
+                  yield { type: 'content', text: json.choices[0].delta.content };
+                } else if (!json.choices[0].delta.reasoning_content) {
+                  // If neither content nor reasoning_content is present, yield empty content
+                  yield { type: 'content', text: '' };
+                }
               } else if (json.error) {
                 throw new Error(`API error: ${JSON.stringify(json.error.message)}`);
               } else {

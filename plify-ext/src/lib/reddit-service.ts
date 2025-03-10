@@ -80,7 +80,7 @@ export class RedditService {
   /**
    * Summarize Reddit data
    */
-  async* summarizeData(post: RedditPost): AsyncGenerator<string, void, unknown> {
+  async* summarizeData(post: RedditPost): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
     const summaryData = this.convertToSummaryFormat(post);
     yield* this.summaryService.streamSummary(summaryData);
   }
