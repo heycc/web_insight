@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop } from 'lucide-react';
+import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop, MessageSquareText } from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
 import { useToast } from "../../components/ui/use-toast";
 import { Toaster } from "../../components/ui/toaster";
@@ -222,6 +222,21 @@ const App: React.FC = () => {
           </Button>
         </div>
       </div>
+      {!summary && !redditData && (
+        <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground bg-card rounded-lg card-shadow">
+          <div className="mb-4">
+            <MessageSquareText className="h-12 w-12 opacity-50" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Welcome to Reddit Insight</h3>
+          <p className="mb-2">
+            Navigate to any Reddit post and click "Summarize" to get started.
+          </p>
+          <p className="text-sm opacity-75">
+            The extension will analyze the post content and comments to generate an insightful summary.
+          </p>
+        </div>
+      )}
+
 
       {error && (
         <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm">
@@ -234,12 +249,6 @@ const App: React.FC = () => {
           {redditData && (
             <div className="mb-3 mx-2 flex flex-col gap-4">
               <h3 className="text-base font-semibold">{redditData.title || 'Untitled Post'}</h3>
-              {/* <div className="text-sm">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-base">{redditData.author || 'unknown'}</span>
-                  <span className="text-muted-foreground">Score: {redditData.score || '0'}</span>
-                </div>
-              </div> */}
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
@@ -251,9 +260,9 @@ const App: React.FC = () => {
             <TabsContent value="summary">
               {(isLoading || isSummarizing) && !summary && (
                 <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg card-shadow">
-                  <div className="mb-4">
+                  {/* <div className="mb-4">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                  </div>
+                  </div> */}
                   <p className="mb-2 font-medium">
                     {isLoading ? 'Extracting content...' : 'Generating summary...'}
                   </p>
