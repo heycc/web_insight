@@ -96,6 +96,9 @@ const App: React.FC = () => {
       try {
         // Log to confirm we're starting the stream
         console.log('Starting summarization stream...');
+        
+        // Check if we should show reasoning at the beginning
+        let reasoningChecked = false;
 
         for await (const chunk of redditService.summarizeData(dataToSummarize)) {
           if (chunk.type === 'content') {
@@ -104,10 +107,14 @@ const App: React.FC = () => {
           } else if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
-            // Make sure reasoning is visible if we're receiving reasoning content
-            // if (!showReasoning && fullReasoning.trim().length > 0) {
-            //   setShowReasoning(true);
-            // }
+            
+            // Only check once at the beginning if we should show reasoning
+            if (!reasoningChecked) {
+              if (!showReasoning && fullReasoning.trim().length > 0) {
+                setShowReasoning(true);
+              }
+              reasoningChecked = true;
+            }
           }
         }
       } catch (err) {
@@ -293,6 +300,9 @@ const App: React.FC = () => {
             <TabsContent value="summary">
               {(isLoading || isSummarizing) && !(summary || reasoning) && (
                 <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg card-shadow">
+                  <div className="mb-4">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  </div>
                   <p className="mb-2 font-medium">
                     {isLoading ? 'Extracting content...' : 'Generating summary...'}
                   </p>
