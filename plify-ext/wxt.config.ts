@@ -7,19 +7,19 @@ export default defineConfig({
   srcDir: 'src',
   outDir: 'dist',
   manifest: {
-    name: 'Web Insight',
-    description: 'A demo sidebar extension with Reddit data extraction',
+    name: 'Plify AI Insight',
+    description: 'Get AI insights from webpages with Plify - works privately in your browser using your own API keys.',
     permissions: ['sidePanel', 'activeTab', 'storage'],
     host_permissions: [
       '*://*.reddit.com/*',
-      '<all_urls>'
+      // '<all_urls>'
       // Alternatively, specify only the domains you need:
       // 'https://*.openai.com/*',
       // 'https://api.anthropic.com/*',
       // Add other API domains as needed
     ],
     action: {
-      default_title: 'Open Web Insight Sidebar'
+      default_title: 'Open Plify AI Insights'
     },
     options_ui: {
       page: 'settings.html',

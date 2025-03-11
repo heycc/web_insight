@@ -55,7 +55,7 @@ enum ModelName {
   // GEMINI_PRO = 'gemini-pro',
   DEEPSEEK_R1 = 'deepseek-r1',
   DEEPSEEK_V3 = 'deepseek-v3',
-  QWEN_LONG = 'qwen-long',
+  QWEN_LONG = 'qwen-max',
 
 }
 

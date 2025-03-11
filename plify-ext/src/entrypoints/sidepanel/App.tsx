@@ -97,23 +97,29 @@ const App: React.FC = () => {
         // Log to confirm we're starting the stream
         console.log('Starting summarization stream...');
         
-        // Check if we should show reasoning at the beginning
-        let reasoningChecked = false;
+        let reasoningStarted = false;
+        let contentStarted = false;
+        let reasoningFolded = false;
 
         for await (const chunk of redditService.summarizeData(dataToSummarize)) {
-          if (chunk.type === 'content') {
-            fullSummary += chunk.text;
-            setSummary(fullSummary);
-          } else if (chunk.type === 'reasoning') {
+          if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
             
-            // Only check once at the beginning if we should show reasoning
-            if (!reasoningChecked) {
-              if (!showReasoning && fullReasoning.trim().length > 0) {
-                setShowReasoning(true);
-              }
-              reasoningChecked = true;
+            // Only unfold reasoning when it first appears and hasn't been handled yet
+            if (!reasoningStarted && !reasoningFolded) {
+              setShowReasoning(true);
+              reasoningStarted = true;
+            }
+          } else if (chunk.type === 'content') {
+            fullSummary += chunk.text;
+            setSummary(fullSummary);
+            
+            // Only fold reasoning when first content chunk arrives and hasn't been handled yet
+            if (!contentStarted && reasoningStarted && !reasoningFolded) {
+              setShowReasoning(false);
+              reasoningFolded = true;
+              contentStarted = true;
             }
           }
         }
@@ -335,6 +341,7 @@ const App: React.FC = () => {
                           <div className="p-3 bg-secondary/20 text-sm text-muted-foreground border-t border-border/50 max-h-[300px] overflow-y-auto">
                             <ReactMarkdown
                               components={{
+                                p: ({ node, ...props }) => <p className="my-2" {...props} />,
                                 ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
                                 ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
                                 li: ({ node, ...props }) => (
