@@ -1,4 +1,5 @@
 import { SummaryService, RedditData } from './summary';
+import { ContentService, ContentData, ContentComment } from './content-service';
 
 export interface RedditComment {
   author: string;
@@ -14,7 +15,7 @@ export interface RedditPost {
   comments: RedditComment[];
 }
 
-export class RedditService {
+export class RedditService implements ContentService {
   private summaryService: SummaryService;
 
   constructor(summaryService?: SummaryService) {
@@ -23,9 +24,16 @@ export class RedditService {
   }
 
   /**
+   * Get the name of the site this service handles
+   */
+  getSiteName(): string {
+    return 'Reddit';
+  }
+
+  /**
    * Extract Reddit data from the current tab
    */
-  async extractData(): Promise<RedditPost> {
+  async extractData(): Promise<ContentData> {
     // Get the current active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0) {
@@ -54,6 +62,34 @@ export class RedditService {
     const results = await chrome.tabs.sendMessage(activeTab.id, { action: 'extractRedditData' });
     
     if (results && results.success) {
+      const redditPost = results.data as RedditPost;
+      // Convert RedditPost to ContentData
+      return {
+        title: redditPost.title,
+        author: redditPost.author,
+        comments: redditPost.comments.map(comment => ({
+          author: comment.author,
+          content: comment.content,
+          score: comment.score
+        }))
+      };
+    } else {
+      throw new Error(results?.error || 'Failed to extract data');
+    }
+  }
+
+  /**
+   * Get the raw Reddit data (for display purposes)
+   */
+  async getRedditPost(): Promise<RedditPost> {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tabs || tabs.length === 0 || !tabs[0].id) {
+      throw new Error('No active tab found');
+    }
+    
+    const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extractRedditData' });
+    
+    if (results && results.success) {
       return results.data;
     } else {
       throw new Error(results?.error || 'Failed to extract data');
@@ -63,16 +99,19 @@ export class RedditService {
   /**
    * Convert RedditPost to RedditData format for summarization
    */
-  private convertToSummaryFormat(post: RedditPost): RedditData {
+  private convertToSummaryFormat(data: ContentData | RedditPost): RedditData {
+    // Check if this is RedditPost with content property
+    const redditPost = 'content' in data ? data as RedditPost : null;
+    
     return {
-      title: post.title || '',
-      content: post.content || '',
-      author: post.author || '',
-      score: post.score || '0',
-      comments: post.comments.map(comment => ({
+      title: data.title || '',
+      content: redditPost?.content || '',
+      author: data.author || '',
+      score: redditPost?.score || '0',
+      comments: data.comments.map(comment => ({
         author: comment.author,
         content: comment.content,
-        score: comment.score
+        score: comment.score || 0
       }))
     };
   }
@@ -80,8 +119,8 @@ export class RedditService {
   /**
    * Summarize Reddit data
    */
-  async* summarizeData(post: RedditPost): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
-    const summaryData = this.convertToSummaryFormat(post);
+  async* summarizeData(data: ContentData): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
+    const summaryData = this.convertToSummaryFormat(data);
     yield* this.summaryService.streamSummary(summaryData);
   }
   
