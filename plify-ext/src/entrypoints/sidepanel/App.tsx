@@ -39,6 +39,10 @@ const App: React.FC = () => {
   const summaryServiceRef = useRef(new SummaryService());
   // Pass the shared SummaryService to RedditService
   const redditServiceRef = useRef(new RedditService(summaryServiceRef.current));
+  // Add ref for reasoning container
+  const reasoningContainerRef = useRef<HTMLDivElement>(null);
+  // Track if user has manually scrolled up
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
 
   const redditService = redditServiceRef.current;
   const summaryService = summaryServiceRef.current;
@@ -221,6 +225,32 @@ const App: React.FC = () => {
     }
   }, [isSummarizing]);
 
+  // Add scroll handler for reasoning container
+  const handleReasoningScroll = () => {
+    if (!reasoningContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = reasoningContainerRef.current;
+    // Consider user scrolled up if not at the bottom (with a small buffer)
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+    
+    setUserScrolledUp(!isAtBottom);
+  };
+
+  // Auto-scroll reasoning to bottom when content updates
+  useEffect(() => {
+    if (reasoning && showReasoning && reasoningContainerRef.current && !userScrolledUp) {
+      const container = reasoningContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [reasoning, showReasoning, userScrolledUp]);
+
+  // Reset userScrolledUp when reasoning is toggled
+  useEffect(() => {
+    if (showReasoning) {
+      setUserScrolledUp(false);
+    }
+  }, [showReasoning]);
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <Toaster />
@@ -338,7 +368,11 @@ const App: React.FC = () => {
                           }
                         </button>
                         {showReasoning && (
-                          <div className="p-3 bg-secondary/20 text-sm text-muted-foreground border-t border-border/50 max-h-[300px] overflow-y-auto">
+                          <div 
+                            ref={reasoningContainerRef}
+                            onScroll={handleReasoningScroll}
+                            className="p-3 bg-secondary/20 text-sm text-muted-foreground border-t border-border/50 max-h-[300px] overflow-y-auto"
+                          >
                             <ReactMarkdown
                               components={{
                                 p: ({ node, ...props }) => <p className="my-2" {...props} />,
@@ -368,37 +402,39 @@ const App: React.FC = () => {
                         )}
                       </div>
                     )}
-                    <div className="p-4">
-                      <div className="markdown text-card-foreground">
-                        <ReactMarkdown
-                          components={{
-                            ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
-                            ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
-                            li: ({ node, ...props }) => (
-                              <li
-                                className="mt-2"
-                                {...props}
-                              />
-                            ),
-                            h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
-                            blockquote: ({ node, ...props }) => (
-                              <blockquote
-                                className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
-                                {...props}
-                              />
-                            ),
-                            code: ({ node, ...props }: any) => {
-                              const isInline = !props.className?.includes('language-');
-                              return isInline ?
-                                <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
-                                <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
-                            }
-                          }}
-                        >
-                          {summary}
-                        </ReactMarkdown>
+                    {summary && (
+                      <div className="p-4">
+                        <div className="markdown text-card-foreground">
+                          <ReactMarkdown
+                            components={{
+                              ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
+                              ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
+                              li: ({ node, ...props }) => (
+                                <li
+                                  className="mt-2"
+                                  {...props}
+                                />
+                              ),
+                              h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
+                              blockquote: ({ node, ...props }) => (
+                                <blockquote
+                                  className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
+                                  {...props}
+                                />
+                              ),
+                              code: ({ node, ...props }: any) => {
+                                const isInline = !props.className?.includes('language-');
+                                return isInline ?
+                                  <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
+                                  <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
+                              }
+                            }}
+                          >
+                            {summary}
+                          </ReactMarkdown>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="flex justify-between items-center p-2 bg-muted/20">
                       {(isSummarizing || isLoading) && (
                         <span
