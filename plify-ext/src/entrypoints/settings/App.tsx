@@ -751,7 +751,7 @@ const App = () => {
   return (
     <>
       <div className="flex flex-col max-w-2xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">Web Insight Settings</h1>
+        <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <Card className="mb-6">
           <CardHeader>
