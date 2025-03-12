@@ -12,6 +12,7 @@ export default defineConfig({
     permissions: ['sidePanel', 'activeTab', 'storage'],
     host_permissions: [
       '*://*.reddit.com/*',
+      '*://*.youtube.com/*',
       // '<all_urls>'
       // Alternatively, specify only the domains you need:
       // 'https://*.openai.com/*',
