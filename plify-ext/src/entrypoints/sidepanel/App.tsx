@@ -36,7 +36,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 const App: React.FC = () => {
   const [contentData, setContentData] = useState<ContentData | null>(null);
-  const [siteSpecificData, setSiteSpecificData] = useState<RedditPost | YouTubeData | null>(null);
+  // const [siteSpecificData, setSiteSpecificData] = useState<RedditPost | YouTubeData | null>(null);
   const [currentSite, setCurrentSite] = useState<string>('unknown');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,20 +96,6 @@ const App: React.FC = () => {
     try {
       const data = await contentServiceRef.current.extractData();
       setContentData(data);
-
-      // Get site-specific data if available
-      if (currentSite === 'Reddit') {
-        // We already have the content data, so let's avoid making a second network request
-        // by treating this data as RedditPost
-        setSiteSpecificData(data as any); // Cast to any to avoid type issues
-      } else if (currentSite === 'YouTube') {
-        // const youtubeService = contentServiceRef.current as any;
-        // if (youtubeService.getYouTubeData) {
-        //   const youtubeData = await youtubeService.getYouTubeData();
-        //   setSiteSpecificData(youtubeData);
-        // }
-        setSiteSpecificData(data as any); // Cast to any to avoid type issues
-      }
 
       return data;
     } catch (err) {
@@ -171,18 +157,18 @@ const App: React.FC = () => {
           if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
-            
-            // Only unfold reasoning when it first appears and hasn't been handled yet
-            if (!reasoningStarted && !reasoningFolded) {
+            // Only unfold reasoning when first chunk arrives
+            if (!reasoningStarted) {
               setShowReasoning(true);
               reasoningStarted = true;
             }
-          } else if (chunk.type === 'content') {
+          }
+          if (chunk.type === 'content') {
             fullSummary += chunk.text;
             setSummary(fullSummary);
-            
-            // Only fold reasoning when first content chunk arrives and hasn't been handled yet
-            if (!contentStarted && reasoningStarted && !reasoningFolded) {
+            // Only fold reasoning when first chunk arrives and there is reasoning section
+            // Because some model don't generate reasoning content, or generate it in the content section
+            if (!contentStarted && reasoningStarted) {
               setShowReasoning(false);
               reasoningFolded = true;
               contentStarted = true;
@@ -266,14 +252,16 @@ const App: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (isSummarizing) {
-      const interval = setInterval(() => {
-        setEmojiPosition((prev) => (prev >= 100 ? 0 : prev + 5));
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [isSummarizing]);
+  // This effect creates an animation for the emoji position during summarization
+  // Updates the emoji position every 50ms, creating a smoother animation
+  // useEffect(() => {
+  //   if (isSummarizing) {
+  //     const interval = setInterval(() => {
+  //       setEmojiPosition((prev) => (prev >= 200 ? 0 : prev + 2));
+  //     }, 20);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [isSummarizing]);
 
   // Add scroll handler for reasoning container
   const handleReasoningScroll = () => {
@@ -300,41 +288,6 @@ const App: React.FC = () => {
       setUserScrolledUp(false);
     }
   }, [showReasoning]);
-
-  // Helper function to render site-specific content
-  // const renderSiteSpecificContent = () => {
-  //   if (!siteSpecificData) return null;
-
-  //   return (
-  //     <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
-  //       <div className="p-4">
-  //         {siteSpecificData.content && (
-  //           <div className="mb-4 text-base text-card-foreground">{siteSpecificData.content}</div>
-  //         )}
-
-  //         {siteSpecificData.comments && siteSpecificData.comments.length > 0 && (
-  //           <>
-  //             <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({siteSpecificData.comments.length})</h4>
-  //             <div className="space-y-3">
-  //               {siteSpecificData.comments.map((comment, index) => (
-  //                 <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
-  //                   <div className="flex justify-between text-sm mb-1">
-  //                     <span className="font-semibold">{comment.author}</span>
-  //                     <span className="text-muted-foreground">
-  //                       {comment.score !== undefined ? `Score: ${comment.score}` : ''}
-  //                       {comment.timestamp ? ` • ${comment.timestamp}` : ''}
-  //                     </span>
-  //                   </div>
-  //                   <div>{comment.content}</div>
-  //                 </div>
-  //               ))}
-  //             </div>
-  //           </>
-  //         )}
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
   // Helper function to render generic content data
   const renderContentData = () => {
@@ -566,7 +519,7 @@ const App: React.FC = () => {
                           className="inline-block text-xl"
                           style={{
                             verticalAlign: 'middle',
-                            animation: 'flyAcross 1.2s linear infinite',
+                            animation: 'flyAcross 1s linear infinite',
                             display: 'inline-block'
                           }}
                         >

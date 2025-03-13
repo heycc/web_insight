@@ -150,6 +150,14 @@
     transform: translateX(50px);
     opacity: 0;
   }
+  90% {
+    transform: translateX(45px);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(50px);
+    opacity: 0;
+  }
 } 
 
 /* Add gradient background for the header */
