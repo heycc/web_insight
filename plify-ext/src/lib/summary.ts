@@ -1,4 +1,4 @@
-export interface RedditData {
+export interface BodyAndCommentsData {
   title?: string;
   content?: string;
   author?: string;
@@ -6,7 +6,7 @@ export interface RedditData {
   comments?: Array<{
     author?: string;
     content?: string;
-    score?: number;
+    score?: string | number;
   }>;
 }
 
@@ -32,13 +32,13 @@ such as person's painpoint, desires, or valuable opinions, or from person with u
 I trust you to provide a clear and concise insight of the post and its top votes comments.`;
   }
 
-  formatPrompt(data: RedditData, language: string = 'en'): string {
+  formatPrompt(data: BodyAndCommentsData, language: string = 'en'): string {
     const title = data.title || 'No title';
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
       .slice(0, 50)
-      .map(c => `## [Author: ${c.author || 'unknown'}, Votes: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
+      .map(c => `## [Author: ${c.author || 'unknown'}, 👍: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
     // Determine response language instruction based on language setting
@@ -49,7 +49,7 @@ I trust you to provide a clear and concise insight of the post and its top votes
       languageInstruction = 'Remember to respond in Japanese, but the quoted original sentences should be in original language.';
     }
 
-    return `Please provide a clear and concise insight of this Reddit post and its top votes comments:
+    return `Please provide a clear and concise insight of this Reddit post and its top 👍 comments:
 
 You should read entire post and comments before summarizing, then group the comments into 5 ~ 8 opinions.
 
@@ -67,15 +67,15 @@ The Key points of some hot/top comments, group similar comments into one opinion
 You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
 List them as bullet points
 
-1. **grouped opinion xx** (author_name, author_name, Votes: 1000+)
+1. **grouped opinion xx** (author_name, author_name, 👍: 1000+)
 { here is summary of the opinion }
 >{ here is quoted original sentence }
 
-2. **grouped opinion xx** (author_name, Votes: 234+)
+2. **grouped opinion xx** (author_name, 👍: 234+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
-3. **grouped opinion xx** (author_name, Votes: 45+)
+3. **grouped opinion xx** (author_name, 👍: 45+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
@@ -143,7 +143,9 @@ ${commentsList}
     };
   }
 
-  async* streamSummary(data: RedditData): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
+  async* streamSummary(
+    data: BodyAndCommentsData
+  ): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
     // Create a new abort controller for this request
     this.abortController = new AbortController();
     const signal = this.abortController.signal;

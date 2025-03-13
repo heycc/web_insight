@@ -302,66 +302,76 @@ const App: React.FC = () => {
   }, [showReasoning]);
 
   // Helper function to render site-specific content
-  const renderSiteSpecificContent = () => {
-    if (!siteSpecificData) return null;
+  // const renderSiteSpecificContent = () => {
+  //   if (!siteSpecificData) return null;
 
-    if (currentSite === 'Reddit') {
-      const redditData = siteSpecificData as RedditPost;
-      return (
-        <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
-          <div className="p-4">
-            <div className="mb-4 text-base text-card-foreground">{redditData.content}</div>
+  //   return (
+  //     <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+  //       <div className="p-4">
+  //         {siteSpecificData.content && (
+  //           <div className="mb-4 text-base text-card-foreground">{siteSpecificData.content}</div>
+  //         )}
 
-            <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
-            <div className="space-y-3">
-              {redditData.comments.map((comment, index) => (
-                <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold">{comment.author}</span>
-                    <span className="text-muted-foreground">Score: {comment.score}</span>
-                  </div>
-                  <div>{comment.content}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    } else if (currentSite === 'YouTube') {
-      const youtubeData = siteSpecificData as YouTubeData;
-      return (
-        <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
-          <div className="p-4">
-            <div className="mb-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-semibold">{youtubeData.author}</span>
-                <span className="text-muted-foreground">Likes: {youtubeData.likes}</span>
-              </div>
-            </div>
+  //         {siteSpecificData.comments && siteSpecificData.comments.length > 0 && (
+  //           <>
+  //             <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({siteSpecificData.comments.length})</h4>
+  //             <div className="space-y-3">
+  //               {siteSpecificData.comments.map((comment, index) => (
+  //                 <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
+  //                   <div className="flex justify-between text-sm mb-1">
+  //                     <span className="font-semibold">{comment.author}</span>
+  //                     <span className="text-muted-foreground">
+  //                       {comment.score !== undefined ? `Score: ${comment.score}` : ''}
+  //                       {comment.timestamp ? ` • ${comment.timestamp}` : ''}
+  //                     </span>
+  //                   </div>
+  //                   <div>{comment.content}</div>
+  //                 </div>
+  //               ))}
+  //             </div>
+  //           </>
+  //         )}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
-            <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({youtubeData.comments.length})</h4>
-            <div className="space-y-3">
-              {youtubeData.comments.map((comment, index) => (
-                <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold">{comment.author}</span>
-                    <span className="text-muted-foreground">
-                      {comment.likes !== null ? `Likes: ${comment.likes}` : ''}
-                      {comment.timestamp ? ` • ${comment.timestamp}` : ''}
-                    </span>
-                  </div>
-                  <div>{comment.content}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
+  // Helper function to render generic content data
+  const renderContentData = () => {
+    if (!contentData) return null;
 
     return (
-      <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
-        No data extracted yet. Click Summarize to extract data.
+      <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+        <div className="p-4">
+          {contentData.content && (
+            <div className="mb-4 text-base text-card-foreground">{contentData.content}</div>
+          )}
+
+          {contentData.comments && contentData.comments.length > 0 && (
+            <>
+              <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({contentData.comments.length})</h4>
+              <div className="space-y-3">
+                {contentData.comments.map((comment, index) => (
+                  <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-semibold">{comment.author}</span>
+                      <span className="text-muted-foreground">
+                        {/* Display metadata excluding author and content */}
+                        {comment && Object.entries(comment)
+                          .filter(([key]) => key !== 'author' && key !== 'content')
+                          .map(([key, value]) => 
+                            <span key={key}>{`${key}: ${value}`} </span>
+                          )
+                        }
+                      </span>
+                    </div>
+                    <div>{comment.content}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     );
   };
@@ -633,7 +643,7 @@ const App: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="data">
-              {renderSiteSpecificContent()}
+              {renderContentData()}
             </TabsContent>
           </Tabs>
         </>
