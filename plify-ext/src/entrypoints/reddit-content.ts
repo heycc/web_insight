@@ -1,20 +1,18 @@
 import { createBaseContentScript } from '../lib/base-content-script';
-import { RedditPost, RedditComment } from '../lib/reddit-service';
-
-// Log that this script has been loaded
-console.log('[Reddit Content] Script is being evaluated');
+import { RedditPost } from '../lib/reddit-service';
+import { createLogger } from '../lib/utils';
 
 // Extract Reddit post and comment data
 function extractRedditData(): RedditPost {
-  console.log('[Reddit Content] Starting extractRedditData function');
-  
+  const logger = createLogger('Reddit Content');
+  logger.log('Starting extractRedditData');
+
+  // Extract the post content
   const postElement = document.querySelector('shreddit-post');
-  
-  let postContent: string;
-  
   const textBody = postElement?.querySelectorAll('[slot="text-body"] p');
   const hasMedia = postElement?.querySelector('[slot="post-media-container"]');
-  
+
+  let postContent: string;
   if (textBody && textBody.length > 0) {
     postContent = Array.from(textBody)
       .map(p => (p as HTMLElement).innerText)
@@ -24,7 +22,7 @@ function extractRedditData(): RedditPost {
   } else {
     postContent = '<no content>';
   }
-  
+
   const post: RedditPost = {
     title: postElement?.getAttribute('post-title') || null,
     content: postContent,
@@ -35,29 +33,28 @@ function extractRedditData(): RedditPost {
 
   // Extract comments
   const commentElements = document.querySelectorAll('shreddit-comment[depth="0"], shreddit-comment[depth="1"]');
-  
   commentElements.forEach((comment, index) => {
     try {
       const author = comment.getAttribute('author');
       const score = comment.getAttribute('score');
       const commentElement = comment.querySelector(':scope > [slot="comment"]');
-      
+
       // Validate required fields
       if (!author || !commentElement) {
-        console.log(`[Reddit Content] Skipping comment #${index}: missing author or comment element`);
+        logger.log(`Skipping comment #${index}: missing author or comment element`);
         return;
       }
-      
+
       // Skip AutoModerator and invalid authors
       if (author === "AutoModerator" || typeof author !== 'string') {
-        console.log(`[Reddit Content] Skipping comment #${index}: AutoModerator or invalid author`);
+        logger.log(`Skipping comment #${index}: AutoModerator or invalid author`);
         return;
       }
 
       // Parse and validate score
       const commentScore = score ? parseInt(score) : 0;
       if (isNaN(commentScore) || commentScore < 0) {
-        console.log(`[Reddit Content] Skipping comment #${index}: invalid score`);
+        logger.log(`Skipping comment #${index}: invalid score`);
         return;
       }
 
@@ -74,12 +71,12 @@ function extractRedditData(): RedditPost {
         score: commentScore
       });
     } catch (error: unknown) {
-      console.error(`[Reddit Content] Error processing comment #${index}:`, error instanceof Error ? error.message : String(error));
+      logger.error(`Error processing comment #${index}:`, error instanceof Error ? error.message : String(error));
       return;
     }
   });
-  
-  console.log(`[Reddit Content] Total comments extracted: ${post.comments.length}`);
+
+  logger.log(`Total comments extracted: ${post.comments.length}`);
   return post;
 }
 
@@ -90,4 +87,4 @@ const script = createBaseContentScript<RedditPost>({
   extractDataFunction: extractRedditData
 });
 
-export default script; 
+export default script;

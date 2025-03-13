@@ -1,5 +1,6 @@
 import { defineContentScript } from 'wxt/sandbox';
-// import { SiteDetector } from '../lib/content-service';
+import { ContentScriptAction, ExtractorFunction } from '../lib/base-content-script';
+import { createLogger } from '../lib/utils';
 
 /**
  * Main content script that detects the current site and coordinates with site-specific content scripts
@@ -10,7 +11,8 @@ export default defineContentScript({
     '*://*.youtube.com/*'
   ],
   main() {
-    console.log('[Plify Insight] Main content script loaded');
+    const logger = createLogger('Base Content');
+    logger.log('Main content script loaded');
     
     // Detect the current site
     const url = window.location.href;
@@ -25,25 +27,44 @@ export default defineContentScript({
       siteNameLowercase = 'youtube';
     }
 
-    // This code snippet is registering site information in the browser's global window object to share data between different parts of the browser extension.
-    // Register that we're loaded to ensure site-specific scripts know the site type
+    // Register site information in the window object
     window.__PLIFY_SITE_INFO = {
       siteName: siteName,
       siteNameLower: siteNameLowercase,
       url: url,
-      loadTime: new Date().toISOString()
+      loadTime: new Date().toISOString(),
+      siteSpecificLoaded: false,
+      extractorAvailable: false
     };
     
-    console.log('[Plify Insight] Registered site info in window object');
+    // Initialize the extractors object if it doesn't exist
+    window.__PLIFY_EXTRACTORS = window.__PLIFY_EXTRACTORS || {};
     
-    // Listen for general messages that aren't site-specific
+    logger.log('Registered site info in window object');
+    
+    // Listen for all messages and coordinate with site-specific scripts
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      console.log('[Plify Insight] Main content script received message:', request);
+      logger.log('Main content script received message:', request);
       
       try {
+        const action = request.action as ContentScriptAction;
+        
         // Handle ping to check if content script is loaded
-        if (request.action === 'ping') {
+        if (action === 'ping') {
           sendResponse({ 
+            success: true,
+            site: siteName,
+            siteInfo: window.__PLIFY_SITE_INFO,
+            // Include information about whether site-specific script is loaded
+            siteSpecificLoaded: window.__PLIFY_SITE_INFO?.siteSpecificLoaded || false,
+            extractorAvailable: window.__PLIFY_SITE_INFO?.extractorAvailable || false
+          });
+          return true; // Keep channel open for async response
+        }
+        
+        // Handle request to get the current site
+        if (action === 'getSite') {
+          sendResponse({
             success: true,
             site: siteName,
             siteInfo: window.__PLIFY_SITE_INFO
@@ -51,41 +72,72 @@ export default defineContentScript({
           return true; // Keep channel open for async response
         }
         
-        // Handle request to get the current site
-        if (request.action === 'getSite') {
-          sendResponse({
-            success: true,
-            site: siteName,
-            siteInfo: window.__PLIFY_SITE_INFO
-          });
-          return false; // No need to keep channel open. Why? 
-        }
-        
-        // If the request is specific to this site, try forwarding it explicitly
-        const isThisSiteRequest = 
-          request.action.toLowerCase().includes(siteNameLowercase) || 
-          request.action.toLowerCase().includes(`${siteNameLowercase}data`) ||
-          request.action.toLowerCase() === `extract.${siteNameLowercase}` ||
-          request.action.toLowerCase() === `get.${siteNameLowercase}`;
+        // Handle site-specific data extraction requests
+        const normalizedAction = action.toLowerCase();
+        if (normalizedAction.startsWith('extract.') || normalizedAction.startsWith('get.')) {
+          // Extract the site name from the action
+          const parts = normalizedAction.split('.');
+          if (parts.length !== 2) {
+            sendResponse({
+              success: false,
+              error: `Invalid action format: ${action}`,
+              site: siteName
+            });
+            return true;
+          }
           
-        if (isThisSiteRequest) {
-          // We'll let the site-specific content script handle this
-          // but log it for debugging
-          console.log(`[Plify Insight] Not handling action: ${request.action}, letting site-specific script handle it`);
-          return false; // Don't keep channel open, let the site-specific script handle it
+          const targetSite = parts[1];
+          
+          // Check if we have an extractor for this site
+          // Ensure extractors object exists
+          const extractors = window.__PLIFY_EXTRACTORS || {};
+          
+          if (!extractors[targetSite]) {
+            sendResponse({
+              success: false,
+              error: `No extractor available for site: ${targetSite}`,
+              site: siteName
+            });
+            return true;
+          }
+          
+          // Call the extractor function
+          try {
+            logger.log(`Calling extractor for ${targetSite}`);
+            const data = extractors[targetSite]();
+            sendResponse({
+              success: true,
+              data: data,
+              source: siteName
+            });
+          } catch (extractError) {
+            logger.error(`Error extracting data:`, extractError instanceof Error ? extractError.message : String(extractError));
+            sendResponse({
+              success: false,
+              error: extractError instanceof Error ? extractError.message : String(extractError),
+              source: siteName
+            });
+          }
+          return true; // Keep channel open for async response
         }
         
-        // For any other actions, let the site-specific scripts handle them
-        console.log(`[Plify Insight] Not handling action: ${request.action}, letting site-specific script handle it`);
-        return false; // Don't keep channel open, let the site-specific script handle it
+        // For any other actions, we don't handle them
+        logger.log(`Unknown action: ${action}`);
+        sendResponse({
+          success: false,
+          error: `Unknown action: ${action}`,
+          site: siteName
+        });
+        return true; // We've handled the response
       } catch (error: unknown) {
-        console.error('[Plify Insight] Error:', error instanceof Error ? error.message : String(error));
+        logger.error('Error:', error instanceof Error ? error.message : String(error));
         sendResponse({
           success: false,
           error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined
+          stack: error instanceof Error ? error.stack : undefined,
+          site: siteName
         });
-        return false; // Error already sent, no need to keep channel open
+        return true; // Error already sent, keep channel open for async response
       }
     });
   }
@@ -99,6 +151,11 @@ declare global {
       siteNameLower: string;
       url: string;
       loadTime: string;
+      siteSpecificLoaded?: boolean;
+      extractorAvailable?: boolean;
+    };
+    __PLIFY_EXTRACTORS?: {
+      [siteName: string]: ExtractorFunction;
     };
   }
 }

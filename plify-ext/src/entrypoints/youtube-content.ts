@@ -1,21 +1,22 @@
 import { createBaseContentScript } from '../lib/base-content-script';
-import { YouTubeData, YouTubeComment } from '../lib/youtube-service';
-
-// Log that this script has been loaded
-console.log('[YouTube Content] Script is being evaluated');
+import { YouTubeData } from '../lib/youtube-service';
+import { createLogger } from '../lib/utils';
 
 // Extract YouTube video and comment data
 function extractYouTubeData(): YouTubeData {
-  console.log('[YouTube Content] Starting extractYouTubeData function');
+  const logger = createLogger('YouTube Content');
+  logger.log('Starting extractYouTubeData');
   
   // Get video title
   const videoTitle = document.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent?.trim() || null;
   
   // Get video author/channel
-  const videoAuthor = document.querySelector('ytd-channel-name a')?.textContent?.trim() || null;
+  const videoAuthor = document.querySelector('ytd-channel-name a')?.textContent?.trim().replace(/^@/, '') || null;
   
   // Get video likes (YouTube doesn't show exact count, just formatted)
-  const videoLikes = document.querySelector('ytd-menu-renderer ytd-toggle-button-renderer:first-child yt-formatted-string')?.textContent?.trim() || null;
+  const videoLikes = document.querySelector(
+    'ytd-watch-metadata ytd-menu-renderer segmented-like-dislike-button-view-model like-button-view-model'
+  )?.textContent?.trim() || null;
   
   const data: YouTubeData = {
     title: videoTitle,
@@ -31,25 +32,20 @@ function extractYouTubeData(): YouTubeData {
     try {
       // Get comment author
       const authorElement = thread.querySelector('#header-author #author-text');
-      const author = authorElement?.textContent?.trim();
+      const author = authorElement?.textContent?.trim().replace(/^@/, '');
       
       // Get comment content
       const contentElement = thread.querySelector('#expander #content');
       const content = contentElement?.textContent?.trim();
       
       // Get comment likes
-      const likesElement = thread.querySelector('#action-buttons #like-count');
-      let likes: number | null = null;
+      const likesElement = thread.querySelector('ytd-comment-engagement-bar #toolbar #vote-count-middle');
+      let likes: string | null = null;
       if (likesElement?.textContent) {
         const likesText = likesElement.textContent.trim();
-        // Convert text like "1.2K" to number (approximate)
+        // Keep the original formatted text (like "1.2K")
         if (likesText) {
-          if (likesText.includes('K')) {
-            likes = parseFloat(likesText.replace('K', '')) * 1000;
-          } else {
-            likes = parseInt(likesText, 10);
-          }
-          if (isNaN(likes)) likes = null;
+          likes = likesText;
         }
       }
       
@@ -59,7 +55,7 @@ function extractYouTubeData(): YouTubeData {
       
       // Validate required fields
       if (!author || !content) {
-        console.log(`[YouTube Content] Skipping comment #${index}: missing author or content`);
+        logger.log(`Skipping comment #${index}: missing author or content`);
         return;
       }
 
@@ -71,12 +67,12 @@ function extractYouTubeData(): YouTubeData {
         timestamp
       });
     } catch (error: unknown) {
-      console.error('[YouTube Content] Error processing YouTube comment:', error instanceof Error ? error.message : String(error));
+      logger.error('Error processing YouTube comment:', error instanceof Error ? error.message : String(error));
       return;
     }
   });
   
-  console.log(`[YouTube Content] Total comments extracted: ${data.comments.length}`);
+  logger.log(`Total comments extracted: ${data.comments.length}`);
   return data;
 }
 
