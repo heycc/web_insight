@@ -44,57 +44,64 @@ I trust you to provide a clear and concise insight of the post and its top votes
       .join('\n') || 'No comments';
 
     // Determine response language instruction based on language setting
-    let languageInstruction = 'Remember to respond in English';
+    let languageInstruction = 'Respond in English';
     if (language === 'zh-CN') {
-      languageInstruction = 'Remember to respond in Simplified Chinese, but the quoted original sentences should be in original language.';
+      languageInstruction = '使用简体中文回答, 但引用的原文应该使用原文的语言.';
     } else if (language === 'ja') {
-      languageInstruction = 'Remember to respond in Japanese, but the quoted original sentences should be in original language.';
+      languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
     }
+    this.systemPrompt += `\n\n${languageInstruction}`;
 
     return `Please analyze this post and its top comments to provide insightful perspective:
 
 First, thoroughly read the entire post and all comments. Then identify the key themes, unique viewpoints, and underlying patterns.
 
-${languageInstruction}
-
 <instruction>
+
 Structure your analysis using this markdown format:
 
 ## Concise title describing the main point of discussion
 
-[Provide a neutral, objective description of the post's central argument or question without editorializing]
+Provide a neutral, objective description of the post's central argument or question without editorializing
 
-## Spectrum of Perspectives (5-8 distinct viewpoints)
+## Practical Viewpoints in Context (5-8 distinct viewpoints)
 
 Group similar comments into coherent perspectives, prioritizing those with significant engagement. For each perspective:
 
-1. **[Descriptive name for this viewpoint]** (u/username, u/username, 👍: X+)
-   [Present this perspective faithfully without bias]
-   >[Direct quote of **key phrases** or **distinctive language** that exemplifies this viewpoint]
-   
-   [Optional: Note any relevant expertise or unique background of commenters if mentioned]
+1. **Descriptive name for this viewpoint** (u/username, u/username, 👍: X+)
 
-2. **[Next perspective]** (u/username, 👍: X+)
-   [Continue with same format]
-   >[Direct quote]
+Present this perspective faithfully without bias
+
+Optional: Note any relevant expertise or unique background of commenters if mentioned
+
+> Direct quote of **key phrases** or *distinctive language** that exemplifies this viewpoint
+
+2. **Next perspective** (u/username, 👍: X+)
+
+Continue with same format
+
+> Direct quote
 
 ## Underlying Patterns or Blind Spots or Bias from your perspective
 
-[Identify what's NOT being discussed or considered in the comments]
-[Note any logical fallacies, emotional reactions, or groupthink evident in the discussion]
-[Highlight any nuance that's being overlooked by the majority]
+Identify what's NOT being discussed or considered in the comments
+
+Note any logical fallacies, emotional reactions, or groupthink evident in the discussion
+
+Highlight any nuance that's being overlooked by the majority
 
 Be short and concise.
 
 ## Critical Learning of this page from your perspective
 
-[Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization]
-[Explain what I as a observer could learn from this discussion that isn't immediately obvious]
+Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization
+
+Explain what you as a observer could learn from this discussion
 
 Present practical and actionable perspectives while avoiding overly formal discourse.
-Be short and concise.
 
-Remember to remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.
+Remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.
+
 </instruction>
 
 <page_context>
