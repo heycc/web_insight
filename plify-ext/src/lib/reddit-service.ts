@@ -1,4 +1,4 @@
-import { SummaryService, BodyAndCommentsData } from './summary';
+import { SummaryService } from './summary';
 import { ContentService, ContentData } from './content-service';
 import { createLogger } from './utils';
 
@@ -106,6 +106,7 @@ export class RedditService implements ContentService {
         
         // Convert RedditPost to ContentData
         return {
+          site: this.getSiteName(),
           title: redditPost.title,
           author: redditPost.author,
           content: redditPost.content,

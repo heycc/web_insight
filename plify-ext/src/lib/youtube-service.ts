@@ -113,6 +113,7 @@ export class YouTubeService implements ContentService {
         });
         
         return {
+          site: this.getSiteName(),
           title: youtubeData.title,
           content: '',
           author: youtubeData.author,
