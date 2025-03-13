@@ -82,66 +82,49 @@ export class RedditService implements ContentService {
       }
     }
     
-    // Try different action names to extract data
-    const actionNames = [
-      // New consistent naming convention
-      'extract.reddit',
-      'get.reddit',
+    // Use a fixed action name for extracting Reddit data
+    const action = 'extract.reddit';
+    
+    console.log(`[RedditService] Extracting data with action: ${action}`);
+    try {
+      // Add a timeout to the sendMessage call to prevent infinite waiting
+      const results = await Promise.race([
+        chrome.tabs.sendMessage(activeTab.id, { action, from: 'reddit-service' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout waiting for response to action: ${action}`)), 5000))
+      ]);
       
-      // Legacy naming conventions for backward compatibility
-      'extractRedditData',
-      'getRedditData',
-      'extractredditdata',
-      'getredditdata'
-    ];
-    
-    let lastError = null;
-    
-    // Try each action name until one works
-    for (const action of actionNames) {
-      console.log(`[RedditService] Trying to extract data with action: ${action}`);
-      try {
-        // Add a timeout to the sendMessage call to prevent infinite waiting
-        const results = await Promise.race([
-          chrome.tabs.sendMessage(activeTab.id, { action, from: 'reddit-service' }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout waiting for response to action: ${action}`)), 5000))
-        ]);
+      console.log(`[RedditService] Extract data response:`, results);
+      
+      if (results && results.success) {
+        console.log(`[RedditService] Successfully extracted data, source:`, results.source);
         
-        console.log(`[RedditService] Extract data response for action ${action}:`, results);
+        const redditPost = results.data as RedditPost;
+        console.log(`[RedditService] Extracted Reddit post:`, {
+          title: redditPost.title,
+          author: redditPost.author,
+          commentCount: redditPost.comments?.length || 0
+        });
         
-        if (results && results.success) {
-          console.log(`[RedditService] Successfully extracted data with action: ${action}, source:`, results.source);
-          
-          const redditPost = results.data as RedditPost;
-          console.log(`[RedditService] Extracted Reddit post:`, {
-            title: redditPost.title,
-            author: redditPost.author,
-            commentCount: redditPost.comments?.length || 0
-          });
-          
-          // Convert RedditPost to ContentData
-          return {
-            title: redditPost.title,
-            author: redditPost.author,
-            comments: redditPost.comments.map(comment => ({
-              author: comment.author,
-              content: comment.content,
-              score: comment.score
-            }))
-          };
-        } else {
-          lastError = results?.error || `Failed to extract data with action: ${action}`;
-          console.error(`[RedditService] ${lastError}`, results);
-        }
-      } catch (error) {
-        lastError = `Error with action ${action}: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(`[RedditService] ${lastError}`);
+        // Convert RedditPost to ContentData
+        return {
+          title: redditPost.title,
+          author: redditPost.author,
+          comments: redditPost.comments.map(comment => ({
+            author: comment.author,
+            content: comment.content,
+            score: comment.score
+          }))
+        };
+      } else {
+        const errorMessage = results?.error || `Failed to extract data with action: ${action}`;
+        console.error(`[RedditService] ${errorMessage}`, results);
+        throw new Error(errorMessage);
       }
+    } catch (error) {
+      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`[RedditService] ${errorMessage}`);
+      throw new Error(errorMessage);
     }
-    
-    // If we get here, all attempts failed
-    console.error(`[RedditService] All extraction attempts failed. Last error: ${lastError}`);
-    throw new Error(lastError || 'Failed to extract data after trying all action names');
   }
 
   /**
@@ -153,25 +136,22 @@ export class RedditService implements ContentService {
       throw new Error('No active tab found');
     }
     
-    // Try different action names
-    const actionNames = ['extract.reddit', 'extractRedditData'];
-    let lastError = null;
+    // Use a fixed action name
+    const action = 'extract.reddit';
     
-    for (const action of actionNames) {
-      try {
-        const results = await chrome.tabs.sendMessage(tabs[0].id, { action });
-        
-        if (results && results.success) {
-          return results.data;
-        } else {
-          lastError = results?.error || `Failed to extract data with action: ${action}`;
-        }
-      } catch (error) {
-        lastError = `Error with action ${action}: ${error instanceof Error ? error.message : String(error)}`;
+    try {
+      const results = await chrome.tabs.sendMessage(tabs[0].id, { action });
+      
+      if (results && results.success) {
+        return results.data;
+      } else {
+        const errorMessage = results?.error || `Failed to extract data with action: ${action}`;
+        throw new Error(errorMessage);
       }
+    } catch (error) {
+      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
+      throw new Error(errorMessage);
     }
-    
-    throw new Error(lastError || 'Failed to extract data');
   }
 
   /**
