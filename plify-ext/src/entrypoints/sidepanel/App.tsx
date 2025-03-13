@@ -1,25 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import {
   Settings,
-  Text,
-  Copy,
-  Check,
-  RefreshCw,
   Loader2,
   CircleStop,
   MessageSquareText,
-  ChevronDown,
-  ChevronUp
 } from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
 import { useToast } from "../../components/ui/use-toast";
 import { Toaster } from "../../components/ui/toaster";
 import { ContentServiceFactory, ContentService, ContentData } from '../../lib/content-service';
-import { RedditPost } from '../../lib/reddit-service';
-import { YouTubeData } from '../../lib/youtube-service';
+import SummaryView from '../../components/sidepanel/SummaryView';
+import ContentDataView from '../../components/sidepanel/ContentDataView';
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -36,7 +29,6 @@ window.addEventListener('unhandledrejection', (event) => {
 
 const App: React.FC = () => {
   const [contentData, setContentData] = useState<ContentData | null>(null);
-  // const [siteSpecificData, setSiteSpecificData] = useState<RedditPost | YouTubeData | null>(null);
   const [currentSite, setCurrentSite] = useState<string>('unknown');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,22 +54,88 @@ const App: React.FC = () => {
   const summaryService = summaryServiceRef.current;
 
   const [resultTab, setResultTab] = useState('summary');
-  const [emojiPosition, setEmojiPosition] = useState(0);
+
+  // Helper function to check and reinitialize content service if needed
+  const ensureCorrectContentService = async (): Promise<boolean> => {
+    try {
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tabs || tabs.length === 0) return false;
+      
+      const url = tabs[0].url || '';
+      
+      // If no content service exists, initialize it
+      if (!contentServiceRef.current) {
+        console.log('No content service, initializing...');
+        const service = await ContentServiceFactory.createService(summaryService);
+        contentServiceRef.current = service;
+        setCurrentSite(service.getSiteName());
+        return true;
+      }
+      
+      // Check if current service matches the current tab's site
+      const currentSiteName = contentServiceRef.current.getSiteName().toLowerCase();
+      
+      let needsReinitialization = false;
+      if (url.includes('reddit.com') && currentSiteName !== 'reddit') {
+        needsReinitialization = true;
+      } else if (url.includes('youtube.com') && currentSiteName !== 'youtube') {
+        needsReinitialization = true;
+      }
+      
+      // Reinitialize if needed
+      if (needsReinitialization) {
+        console.log('Site changed, reinitializing content service...');
+        const service = await ContentServiceFactory.createService(summaryService);
+        contentServiceRef.current = service;
+        setCurrentSite(service.getSiteName());
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking content service:', error);
+      return false;
+    }
+  };
 
   // Initialize the content service
   useEffect(() => {
     const initContentService = async () => {
       try {
-        const service = await ContentServiceFactory.createService(summaryService);
-        contentServiceRef.current = service;
-        setCurrentSite(service.getSiteName());
+        await ensureCorrectContentService();
       } catch (error) {
         console.error('Error initializing content service:', error);
         setError(error instanceof Error ? error.message : 'Failed to initialize content service');
       }
     };
 
+    // Initialize content service on component mount
     initContentService();
+
+    // Listen for tab updates (URL changes)
+    const handleTabUpdated = async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+      // Only process if URL changed and tab is active
+      if (changeInfo.url && tab.active) {
+        console.log(`Tab URL changed to: ${changeInfo.url}`);
+        await ensureCorrectContentService();
+      }
+    };
+
+    // Listen for tab activation changes
+    const handleTabActivated = async (activeInfo: chrome.tabs.TabActiveInfo) => {
+      console.log(`Tab activated: ${activeInfo.tabId}`);
+      await ensureCorrectContentService();
+    };
+
+    // Add event listeners
+    chrome.tabs.onUpdated.addListener(handleTabUpdated);
+    chrome.tabs.onActivated.addListener(handleTabActivated);
+
+    // Clean up event listeners on unmount
+    return () => {
+      chrome.tabs.onUpdated.removeListener(handleTabUpdated);
+      chrome.tabs.onActivated.removeListener(handleTabActivated);
+    };
   }, []);
 
   const openSettings = () => {
@@ -94,6 +152,9 @@ const App: React.FC = () => {
     setError(null);
 
     try {
+      // Ensure we have the correct content service for the current site
+      await ensureCorrectContentService();
+
       const data = await contentServiceRef.current.extractData();
       setContentData(data);
 
@@ -252,28 +313,6 @@ const App: React.FC = () => {
     }
   };
 
-  // This effect creates an animation for the emoji position during summarization
-  // Updates the emoji position every 50ms, creating a smoother animation
-  // useEffect(() => {
-  //   if (isSummarizing) {
-  //     const interval = setInterval(() => {
-  //       setEmojiPosition((prev) => (prev >= 200 ? 0 : prev + 2));
-  //     }, 20);
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [isSummarizing]);
-
-  // Add scroll handler for reasoning container
-  const handleReasoningScroll = () => {
-    if (!reasoningContainerRef.current) return;
-    
-    const { scrollTop, scrollHeight, clientHeight } = reasoningContainerRef.current;
-    // Consider user scrolled up if not at the bottom (with a small buffer)
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-    
-    setUserScrolledUp(!isAtBottom);
-  };
-
   // Auto-scroll reasoning to bottom when content updates
   useEffect(() => {
     if (reasoning && showReasoning && reasoningContainerRef.current && !userScrolledUp) {
@@ -288,46 +327,6 @@ const App: React.FC = () => {
       setUserScrolledUp(false);
     }
   }, [showReasoning]);
-
-  // Helper function to render generic content data
-  const renderContentData = () => {
-    if (!contentData) return null;
-
-    return (
-      <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
-        <div className="p-4">
-          {contentData.content && (
-            <div className="mb-4 text-base text-card-foreground">{contentData.content}</div>
-          )}
-
-          {contentData.comments && contentData.comments.length > 0 && (
-            <>
-              <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({contentData.comments.length})</h4>
-              <div className="space-y-3">
-                {contentData.comments.map((comment, index) => (
-                  <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-semibold">{comment.author}</span>
-                      <span className="text-muted-foreground">
-                        {/* Display metadata excluding author and content */}
-                        {comment && Object.entries(comment)
-                          .filter(([key]) => key !== 'author' && key !== 'content')
-                          .map(([key, value]) => 
-                            <span key={key}>{`${key}: ${value}`} </span>
-                          )
-                        }
-                      </span>
-                    </div>
-                    <div>{comment.content}</div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
@@ -426,158 +425,17 @@ const App: React.FC = () => {
                 </div>
               )}
               {(summary || reasoning) && (
-                <>
-                  <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
-                    {reasoning && (
-                      <div className="">
-                        <button
-                          onClick={() => setShowReasoning(!showReasoning)}
-                          className="w-full p-2 flex items-center justify-between bg-secondary/80 hover:bg-secondary transition-colors"
-                        >
-                          {/* <div className="flex flex-row items-center"> */}
-                            <span className="font-medium text-sm text-accent-foreground flex flex-row items-center">
-                              Model Reasoning
-                              {(isSummarizing && !summary) && <Loader2 className="h-4 w-4 ml-1 animate-spin text-accent-foreground" />}
-                            </span>
-                          {/* </div> */}
-                          {showReasoning ?
-                            <ChevronUp className="h-4 w-4" /> :
-                            <ChevronDown className="h-4 w-4" />
-                          }
-                        </button>
-                        {showReasoning && (
-                          <div 
-                            ref={reasoningContainerRef}
-                            onScroll={handleReasoningScroll}
-                            className="p-3 bg-secondary/20 text-sm text-muted-foreground border-t border-border/50 max-h-[300px] overflow-y-auto"
-                          >
-                            <ReactMarkdown
-                              components={{
-                                p: ({ node, ...props }) => <p className="my-2" {...props} />,
-                                ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
-                                ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
-                                li: ({ node, ...props }) => (
-                                  <li className="mt-1" {...props} />
-                                ),
-                                h2: ({ node, ...props }) => <h2 className="text-base font-semibold my-2 text-accent-foreground" {...props} />,
-                                blockquote: ({ node, ...props }) => (
-                                  <blockquote
-                                    className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
-                                    {...props}
-                                  />
-                                ),
-                                code: ({ node, ...props }: any) => {
-                                  const isInline = !props.className?.includes('language-');
-                                  return isInline ?
-                                    <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
-                                    <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
-                                }
-                              }}
-                            >
-                              {reasoning}
-                            </ReactMarkdown>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {summary && (
-                      <div className="p-4">
-                        <div className="markdown text-card-foreground">
-                          <ReactMarkdown
-                            components={{
-                              ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
-                              ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
-                              li: ({ node, ...props }) => (
-                                <li
-                                  className="mt-2"
-                                  {...props}
-                                />
-                              ),
-                              h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
-                              blockquote: ({ node, ...props }) => (
-                                <blockquote
-                                  className="border-l-4 border-accent pl-4 py-1 my-2 italic text-muted-foreground"
-                                  {...props}
-                                />
-                              ),
-                              code: ({ node, ...props }: any) => {
-                                const isInline = !props.className?.includes('language-');
-                                return isInline ?
-                                  <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
-                                  <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
-                              }
-                            }}
-                          >
-                            {summary}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center p-2 bg-muted/20">
-                      {(isSummarizing || isLoading) && (
-                        <span
-                          className="inline-block text-xl"
-                          style={{
-                            verticalAlign: 'middle',
-                            animation: 'flyAcross 1s linear infinite',
-                            display: 'inline-block'
-                          }}
-                        >
-                          🛬
-                        </span>
-                      )}
-                      <div className="flex ml-auto">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSummarize}
-                          className="text-muted-foreground hover:text-foreground mr-2"
-                          title="Regenerate"
-                          disabled={isLoading || isSummarizing}
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </Button>
-
-                        {reasoning ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopySummary(false)}
-                              className="text-muted-foreground hover:text-foreground mr-2"
-                              title="Copy summary only"
-                              disabled={isLoading || isSummarizing}
-                            >
-                              {copiedState.summary ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopySummary(true)}
-                              className="text-muted-foreground hover:text-foreground"
-                              title="Copy with reasoning"
-                              disabled={isLoading || isSummarizing}
-                            >
-                              {copiedState.withReasoning ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                              <span className="text-xs">+R</span>
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopySummary(false)}
-                            className="text-muted-foreground hover:text-foreground"
-                            title="Copy summary"
-                            disabled={isLoading || isSummarizing}
-                          >
-                            {copiedState.summary ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </>
+                <SummaryView
+                  summary={summary}
+                  reasoning={reasoning}
+                  showReasoning={showReasoning}
+                  isSummarizing={isSummarizing}
+                  isLoading={isLoading}
+                  copiedState={copiedState}
+                  onToggleReasoning={() => setShowReasoning(!showReasoning)}
+                  onCopy={handleCopySummary}
+                  onRegenerate={handleSummarize}
+                />
               )}
               {!(summary || reasoning || isSummarizing) && (
                 <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg card-shadow">
@@ -596,7 +454,7 @@ const App: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="data">
-              {renderContentData()}
+              <ContentDataView contentData={contentData} />
             </TabsContent>
           </Tabs>
         </>
