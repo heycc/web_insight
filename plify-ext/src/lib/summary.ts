@@ -3,6 +3,7 @@ export interface BodyAndCommentsData {
   content?: string;
   author?: string;
   score?: string | number;
+  site?: string;
   comments?: Array<{
     author?: string;
     content?: string;
@@ -25,14 +26,15 @@ export class SummaryService {
 
   constructor() {
     this.decoder = new TextDecoder();
-    this.systemPrompt = `You are a helpful assistant that give insight of Reddit posts and their comments.
+    this.systemPrompt = `You are a helpful assistant that give insight of page's content and comments.
 I'm too busy to read the original post and comments.
-But I want to know whether this post and comments have any information or perspectives helpful for me to develop my product,
+But I want to know whether this post and comments have any information or perspectives helpful to me,
 such as person's painpoint, desires, or valuable opinions, or from person with unique background.
 I trust you to provide a clear and concise insight of the post and its top votes comments.`;
   }
 
   formatPrompt(data: BodyAndCommentsData, language: string = 'en'): string {
+    const site = data.site || 'No site name';
     const title = data.title || 'No title';
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
@@ -49,60 +51,71 @@ I trust you to provide a clear and concise insight of the post and its top votes
       languageInstruction = 'Remember to respond in Japanese, but the quoted original sentences should be in original language.';
     }
 
-    return `Please provide a clear and concise insight of this Reddit post and its top 👍 comments:
+    return `Please analyze this post and its top comments to provide insightful perspective:
 
-You should read entire post and comments before summarizing, then group the comments into 5 ~ 8 opinions.
+First, thoroughly read the entire post and all comments. Then identify the key themes, unique viewpoints, and underlying patterns.
 
 ${languageInstruction}
 
 <instruction>
-Please structure the summary in the following markdown format:
+Structure your analysis using this markdown format:
 
-## { here goes the main point of the post }
+## Concise title describing the main point of discussion
 
-{ here goes the main point of the post }
+[Provide a neutral, objective description of the post's central argument or question without editorializing]
 
-## { here goes the main grouped points in comments }
-The Key points of some hot/top comments, group similar comments into one opinion, keep up to 5 ~ 8 opinions.
-You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
-List them as bullet points
+## Spectrum of Perspectives (5-8 distinct viewpoints)
 
-1. **grouped opinion xx** (author_name, author_name, 👍: 1000+)
-{ here is summary of the opinion }
->{ here is quoted original sentence }
+Group similar comments into coherent perspectives, prioritizing those with significant engagement. For each perspective:
 
-2. **grouped opinion xx** (author_name, 👍: 234+)
-{ here goes the summary of the opinion }
->{ here is quoted original sentence }
+1. **[Descriptive name for this viewpoint]** (u/username, u/username, 👍: X+)
+   [Present this perspective faithfully without bias]
+   >[Direct quote of **key phrases** or **distinctive language** that exemplifies this viewpoint]
+   
+   [Optional: Note any relevant expertise or unique background of commenters if mentioned]
 
-3. **grouped opinion xx** (author_name, 👍: 45+)
-{ here goes the summary of the opinion }
->{ here is quoted original sentence }
+2. **[Next perspective]** (u/username, 👍: X+)
+   [Continue with same format]
+   >[Direct quote]
 
-## { here goes the overall sentiment or conclusion }
+## Underlying Patterns or Blind Spots or Bias from your perspective
 
-{ here goes the overall sentiment or conclusion }
+[Identify what's NOT being discussed or considered in the comments]
+[Note any logical fallacies, emotional reactions, or groupthink evident in the discussion]
+[Highlight any nuance that's being overlooked by the majority]
 
+Be short and concise.
+
+## Critical Learning of this page from your perspective
+
+[Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization]
+[Explain what I as a observer could learn from this discussion that isn't immediately obvious]
+
+Present practical and actionable perspectives while avoiding overly formal discourse.
+Be short and concise.
+
+Remember to remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.
 </instruction>
 
-<reddit_post_context>
-# TITLE:
+<page_context>
+# Site:
+${site}
+
+# Page TITLE:
 ${title}
 
-# POST CONTENT:
+# CONTENT:
 ${postContent}
 
 # TOP COMMENTS (Up to 50):
 ${commentsList}
 
-</reddit_post_context>
+</page_context>
 `;
   }
 
   async getSettings(): Promise<ApiSettings> {
     const settings = await chrome.storage.local.get(['profiles', 'language']);
-    // console.debug('Fetched settings:', settings.profiles);
-    // console.debug('Fetched language:', settings.language);
     
     // Check if profiles array exists and has content
     if (!Array.isArray(settings.profiles) || settings.profiles.length === 0) {
