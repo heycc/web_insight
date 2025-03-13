@@ -1,10 +1,11 @@
 import { SummaryService } from './summary';
-import { ContentService, ContentData, ContentComment } from './content-service';
+import { ContentService, ContentData } from './content-service';
+import { createLogger } from './utils';
 
 export interface YouTubeComment {
   author: string;
   content: string;
-  likes: number | null;
+  likes: string | null;
   timestamp: string | null;
 }
 
@@ -17,10 +18,12 @@ export interface YouTubeData {
 
 export class YouTubeService implements ContentService {
   private summaryService: SummaryService;
+  private logger;
 
   constructor(summaryService?: SummaryService) {
     // Use the provided SummaryService or create a new one
     this.summaryService = summaryService || new SummaryService();
+    this.logger = createLogger('YouTube Service');
   }
 
   /**
@@ -34,52 +37,101 @@ export class YouTubeService implements ContentService {
    * Extract YouTube data from the current tab
    */
   async extractData(): Promise<ContentData> {
-    console.log('[YoutubeService] Starting extractData method');    // Get the current active tab
+    this.logger.log('[YoutubeService] Starting extractData method');    
+    // Get the current active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0) {
+      this.logger.error('No active tab found');
       throw new Error('No active tab found');
     }
     
     const activeTab = tabs[0];
+    this.logger.log(`Active tab URL: ${activeTab.url}`);
     
     // Check if we're on a YouTube site
     if (!activeTab.url?.includes('youtube.com')) {
+      this.logger.error('Not a YouTube page');
       throw new Error('Not a YouTube page');
     }
     
     // Check if we're on a YouTube video page
     if (!activeTab.url?.includes('youtube.com/watch')) {
+      this.logger.error('Not a YouTube video page');
       throw new Error('Please navigate to a YouTube video page to use this feature');
     }
     
     if (!activeTab.id) {
+      this.logger.error('Tab ID is undefined');
       throw new Error('Tab ID is undefined');
     }
     
     // First check if content script is loaded by sending a ping
     try {
-      await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
+      this.logger.log(`Sending ping to tab ${activeTab.id}`);
+      const pingResponse = await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
+      this.logger.log(`Ping response:`, pingResponse);
     } catch (error) {
-      throw new Error('Content script not loaded. Please refresh the YouTube page.');
+      this.logger.error('Ping failed:', error);
+      
+      // Try to reload the content script
+      this.logger.log('Attempting to reload content script...');
+      try {
+        // This will execute the content script again if it's not already loaded
+        await chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          files: ['content.js', 'youtube-content.js']
+        });
+        this.logger.log('Content script reloaded');
+        
+        // Try ping again
+        await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
+      } catch (reloadError) {
+        this.logger.error('Failed to reload content script:', reloadError);
+        throw new Error('Content script not loaded. Please refresh the YouTube page.');
+      }
     }
     
-    // Execute script to extract data
-    const results = await chrome.tabs.sendMessage(activeTab.id, { action: 'extract.youtube' });
+    // Use a fixed action name for extracting YouTube data
+    const action = 'extract.youtube';
     
-    if (results && results.success) {
-      // Convert YouTubeData to ContentData
-      const youtubeData = results.data as YouTubeData;
-      return {
-        title: youtubeData.title,
-        author: youtubeData.author,
-        comments: youtubeData.comments.map(comment => ({
-          author: comment.author,
-          content: comment.content,
-          score: comment.likes
-        }))
-      };
-    } else {
-      throw new Error(results?.error || 'Failed to extract data');
+    // Execute script to extract data
+    this.logger.log(`Extracting YouTube data with action: ${action}`);
+    try {
+      // Add a timeout to the sendMessage call to prevent infinite waiting
+      const results = await Promise.race([
+        chrome.tabs.sendMessage(activeTab.id, { action, from: 'youtube-service' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout waiting for response to action: ${action}`)), 5000))
+      ]);
+
+      if (results && results.success) {
+        // Convert YouTubeData to ContentData
+        const youtubeData = results.data as YouTubeData;
+        this.logger.log(`Extracted YouTube data:`, {
+          title: youtubeData.title,
+          author: youtubeData.author,
+          commentCount: youtubeData.comments?.length || 0
+        });
+        
+        return {
+          title: youtubeData.title,
+          content: '',
+          author: youtubeData.author,
+          score: youtubeData.likes,
+          comments: youtubeData.comments.map(comment => ({
+            author: comment.author,
+            content: comment.content,
+            score: comment.likes
+          }))
+        };
+      } else {
+        const errorMessage = results?.error || `Failed to extract data with action: ${action}`;
+        this.logger.error(errorMessage, results);
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -89,15 +141,25 @@ export class YouTubeService implements ContentService {
   async getYouTubeData(): Promise<YouTubeData> {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0 || !tabs[0].id) {
+      this.logger.error('No active tab found');
       throw new Error('No active tab found');
     }
     
-    const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extract.youtube' });
-    
-    if (results && results.success) {
-      return results.data;
-    } else {
-      throw new Error(results?.error || 'Failed to extract data');
+    try {
+      const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extract.youtube' });
+      
+      if (results && results.success) {
+        this.logger.log('Successfully retrieved YouTube data');
+        return results.data;
+      } else {
+        const errorMessage = results?.error || 'Failed to extract data';
+        this.logger.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 

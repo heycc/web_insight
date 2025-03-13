@@ -3,14 +3,16 @@ import { SummaryService } from './summary';
 // Generic content data interface that can be extended by specific site implementations
 export interface ContentData {
   title: string | null;
+  content: string | null;
   author: string | null;
+  score: string | null;
   comments: ContentComment[];
 }
 
 export interface ContentComment {
   author: string;
   content: string;
-  score: number | null;
+  score: string | null;
 }
 
 // Base content service interface

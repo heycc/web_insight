@@ -1,10 +1,11 @@
-import { SummaryService, RedditData } from './summary';
-import { ContentService, ContentData, ContentComment } from './content-service';
+import { SummaryService, BodyAndCommentsData } from './summary';
+import { ContentService, ContentData } from './content-service';
+import { createLogger } from './utils';
 
 export interface RedditComment {
   author: string;
   content: string;
-  score: number;
+  score: string | number;
 }
 
 export interface RedditPost {
@@ -17,10 +18,12 @@ export interface RedditPost {
 
 export class RedditService implements ContentService {
   private summaryService: SummaryService;
+  private logger;
 
   constructor(summaryService?: SummaryService) {
     // Use the provided SummaryService or create a new one
     this.summaryService = summaryService || new SummaryService();
+    this.logger = createLogger('Reddit Service');
   }
 
   /**
@@ -34,58 +37,58 @@ export class RedditService implements ContentService {
    * Extract Reddit data from the current tab
    */
   async extractData(): Promise<ContentData> {
-    console.log('[RedditService] Starting extractData method');
+    this.logger.log('Starting extractData method');
     // Get the current active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0) {
-      console.error('[RedditService] No active tab found');
+      this.logger.error('No active tab found');
       throw new Error('No active tab found');
     }
     
     const activeTab = tabs[0];
-    console.log(`[RedditService] Active tab URL: ${activeTab.url}`);
+    this.logger.log(`Active tab URL: ${activeTab.url}`);
     
     // Check if we're on a Reddit page
     if (!activeTab.url?.includes('reddit.com')) {
-      console.error('[RedditService] Not a Reddit page');
+      this.logger.error('Not a Reddit page');
       throw new Error('Not a Reddit page');
     }
     
     if (!activeTab.id) {
-      console.error('[RedditService] Tab ID is undefined');
+      this.logger.error('Tab ID is undefined');
       throw new Error('Tab ID is undefined');
     }
     
     // First check if content script is loaded by sending a ping
     try {
-      console.log(`[RedditService] Sending ping to tab ${activeTab.id}`);
+      this.logger.log(`Sending ping to tab ${activeTab.id}`);
       const pingResponse = await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
-      console.log(`[RedditService] Ping response:`, pingResponse);
+      this.logger.log(`Ping response:`, pingResponse);
     } catch (error) {
-      console.error('[RedditService] Ping failed:', error);
+      this.logger.error('Ping failed:', error);
       
       // Try to reload the content script
-      console.log('[RedditService] Attempting to reload content script...');
+      this.logger.log('Attempting to reload content script...');
       try {
         // This will execute the content script again if it's not already loaded
         await chrome.scripting.executeScript({
           target: { tabId: activeTab.id },
           files: ['content.js', 'reddit-content.js']
         });
-        console.log('[RedditService] Content script reloaded');
+        this.logger.log('Content script reloaded');
         
         // Try ping again
         await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
       } catch (reloadError) {
-        console.error('[RedditService] Failed to reload content script:', reloadError);
-        throw new Error('Content script not loaded. Please refresh the Reddit page.');
+        this.logger.error('Failed to reload content script:', reloadError);
+        throw new Error('Content script not loaded. Please refresh the page.');
       }
     }
     
     // Use a fixed action name for extracting Reddit data
     const action = 'extract.reddit';
     
-    console.log(`[RedditService] Extracting data with action: ${action}`);
+    this.logger.log(`Extracting data with action: ${action}`);
     try {
       // Add a timeout to the sendMessage call to prevent infinite waiting
       const results = await Promise.race([
@@ -93,13 +96,9 @@ export class RedditService implements ContentService {
         new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout waiting for response to action: ${action}`)), 5000))
       ]);
       
-      console.log(`[RedditService] Extract data response:`, results);
-      
-      if (results && results.success) {
-        console.log(`[RedditService] Successfully extracted data, source:`, results.source);
-        
+      if (results && results.success) {       
         const redditPost = results.data as RedditPost;
-        console.log(`[RedditService] Extracted Reddit post:`, {
+        this.logger.log(`Extracted Reddit post:`, {
           title: redditPost.title,
           author: redditPost.author,
           commentCount: redditPost.comments?.length || 0
@@ -109,20 +108,22 @@ export class RedditService implements ContentService {
         return {
           title: redditPost.title,
           author: redditPost.author,
+          content: redditPost.content,
+          score: redditPost.score,
           comments: redditPost.comments.map(comment => ({
             author: comment.author,
             content: comment.content,
-            score: comment.score
+            score: comment.score as string
           }))
         };
       } else {
         const errorMessage = results?.error || `Failed to extract data with action: ${action}`;
-        console.error(`[RedditService] ${errorMessage}`, results);
+        this.logger.error(`${errorMessage}`, results);
         throw new Error(errorMessage);
       }
     } catch (error) {
       const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
-      console.error(`[RedditService] ${errorMessage}`);
+      this.logger.error(`${errorMessage}`);
       throw new Error(errorMessage);
     }
   }
@@ -157,7 +158,7 @@ export class RedditService implements ContentService {
   /**
    * Convert RedditPost to RedditData format for summarization
    */
-  private convertToSummaryFormat(data: ContentData | RedditPost): RedditData {
+  private convertToSummaryFormat(data: ContentData | RedditPost) {
     // Check if this is RedditPost with content property
     const redditPost = 'content' in data ? data as RedditPost : null;
     
