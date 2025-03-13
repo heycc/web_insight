@@ -1,121 +1,85 @@
 import { defineContentScript } from 'wxt/sandbox';
+// import { SiteDetector } from '../lib/content-service';
 
+/**
+ * Main content script that detects the current site and coordinates with site-specific content scripts
+ */
 export default defineContentScript({
-  matches: ['*://*.reddit.com/*'],
+  matches: [
+    '*://*.reddit.com/*',
+    '*://*.youtube.com/*'
+  ],
   main() {
-    console.log('[Reddit Insight] Content script loaded');
+    console.log('[Plify Insight] Main content script loaded');
     
-    // Extract Reddit post and comment data
-    function extractRedditData() {
-      const postElement = document.querySelector('shreddit-post');
-      let postContent: string;
-      
-      const textBody = postElement?.querySelectorAll('[slot="text-body"] p');
-      const hasMedia = postElement?.querySelector('[slot="post-media-container"]');
-      
-      if (textBody && textBody.length > 0) {
-        postContent = Array.from(textBody)
-          .map(p => (p as HTMLElement).innerText)
-          .join('\n\n');
-      } else if (hasMedia) {
-        postContent = '<hint: author post a media, no text>';
-      } else {
-        postContent = '<no content>';
-      }
-      
-      interface RedditPost {
-        title: string | null;
-        content: string;
-        author: string | null;
-        score: string | null;
-        comments: RedditComment[];
-      }
-      
-      interface RedditComment {
-        author: string;
-        content: string;
-        score: number;
-      }
-      
-      const post: RedditPost = {
-        title: postElement?.getAttribute('post-title') || null,
-        content: postContent,
-        author: postElement?.getAttribute('author') || null,
-        score: postElement?.getAttribute('score') || null,
-        comments: []
-      };
-
-      // Extract comments
-      const commentElements = document.querySelectorAll('shreddit-comment[depth="0"], shreddit-comment[depth="1"]');
-      commentElements.forEach(comment => {
-        try {
-          const author = comment.getAttribute('author');
-          const score = comment.getAttribute('score');
-          const commentElement = comment.querySelector(':scope > [slot="comment"]');
-          
-          // Validate required fields
-          if (!author || !commentElement) {
-            return;
-          }
-          
-          // Skip AutoModerator and invalid authors
-          if (author === "AutoModerator" || typeof author !== 'string') {
-            return;
-          }
-
-          // Parse and validate score
-          const commentScore = score ? parseInt(score) : 0;
-          if (isNaN(commentScore) || commentScore < 0) {
-            return;
-          }
-
-          // Extract comment content
-          const commentContent = Array.from(commentElement.querySelectorAll('p'))
-            .map(p => (p as HTMLElement).innerText?.trim() || '')
-            .filter(Boolean)
-            .join('\n\n');
-
-          // Add valid comment to post
-          post.comments.push({
-            author: author,
-            content: commentContent,
-            score: commentScore
-          });
-        } catch (error: unknown) {
-          console.error('Error processing comment:', error instanceof Error ? error.message : String(error));
-          return;
-        }
-      });
-      console.log('[Reddit Insight] Data:', post);
-      return post;
+    // Detect the current site
+    const url = window.location.href;
+    let siteName = 'Unknown';
+    let siteNameLowercase = 'unknown';
+    
+    if (url.includes('reddit.com')) {
+      siteName = 'Reddit';
+      siteNameLowercase = 'reddit';
+    } else if (url.includes('youtube.com')) {
+      siteName = 'YouTube';
+      siteNameLowercase = 'youtube';
     }
 
-    // Listen for messages from popup or background
+    // This code snippet is registering site information in the browser's global window object to share data between different parts of the browser extension.
+    // Register that we're loaded to ensure site-specific scripts know the site type
+    window.__PLIFY_SITE_INFO = {
+      siteName: siteName,
+      siteNameLower: siteNameLowercase,
+      url: url,
+      loadTime: new Date().toISOString()
+    };
+    
+    console.log('[Plify Insight] Registered site info in window object');
+    
+    // Listen for general messages that aren't site-specific
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      console.log('[Plify Insight] Main content script received message:', request);
+      
       try {
         // Handle ping to check if content script is loaded
         if (request.action === 'ping') {
-          sendResponse({ success: true });
-          return true; // No need to keep channel open for ping
+          sendResponse({ 
+            success: true,
+            site: siteName,
+            siteInfo: window.__PLIFY_SITE_INFO
+          });
+          return true; // Keep channel open for async response
         }
         
-        if (request.action === 'getRedditData' || request.action === 'extractRedditData') {
-          const data = extractRedditData();
+        // Handle request to get the current site
+        if (request.action === 'getSite') {
           sendResponse({
             success: true,
-            data: data
+            site: siteName,
+            siteInfo: window.__PLIFY_SITE_INFO
           });
-          return false; // Data is sent synchronously, no need to keep channel open
+          return false; // No need to keep channel open. Why? 
         }
         
-        // If we reach here, we didn't handle the action
-        sendResponse({ 
-          success: false, 
-          error: `Unknown action: ${request.action}` 
-        });
-        return false; // No need to keep channel open
+        // If the request is specific to this site, try forwarding it explicitly
+        const isThisSiteRequest = 
+          request.action.toLowerCase().includes(siteNameLowercase) || 
+          request.action.toLowerCase().includes(`${siteNameLowercase}data`) ||
+          request.action.toLowerCase() === `extract.${siteNameLowercase}` ||
+          request.action.toLowerCase() === `get.${siteNameLowercase}`;
+          
+        if (isThisSiteRequest) {
+          // We'll let the site-specific content script handle this
+          // but log it for debugging
+          console.log(`[Plify Insight] Not handling action: ${request.action}, letting site-specific script handle it`);
+          return false; // Don't keep channel open, let the site-specific script handle it
+        }
+        
+        // For any other actions, let the site-specific scripts handle them
+        console.log(`[Plify Insight] Not handling action: ${request.action}, letting site-specific script handle it`);
+        return false; // Don't keep channel open, let the site-specific script handle it
       } catch (error: unknown) {
-        console.error('Reddit Insight Error:', error instanceof Error ? error.message : String(error));
+        console.error('[Plify Insight] Error:', error instanceof Error ? error.message : String(error));
         sendResponse({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -124,5 +88,17 @@ export default defineContentScript({
         return false; // Error already sent, no need to keep channel open
       }
     });
-  },
+  }
 });
+
+// Add type definitions for window object
+declare global {
+  interface Window {
+    __PLIFY_SITE_INFO?: {
+      siteName: string;
+      siteNameLower: string;
+      url: string;
+      loadTime: string;
+    };
+  }
+}

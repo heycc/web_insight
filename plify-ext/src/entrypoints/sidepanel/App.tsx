@@ -2,11 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
-import { RedditService, RedditPost } from '../../lib/reddit-service';
-import { Settings, Text, Copy, Check, RefreshCw, Loader2, CircleStop, MessageSquareText, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Settings,
+  Text,
+  Copy,
+  Check,
+  RefreshCw,
+  Loader2,
+  CircleStop,
+  MessageSquareText,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
 import { useToast } from "../../components/ui/use-toast";
 import { Toaster } from "../../components/ui/toaster";
+import { ContentServiceFactory, ContentService, ContentData } from '../../lib/content-service';
+import { RedditPost } from '../../lib/reddit-service';
+import { YouTubeData } from '../../lib/youtube-service';
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -22,7 +35,9 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const App: React.FC = () => {
-  const [redditData, setRedditData] = useState<RedditPost | null>(null);
+  const [contentData, setContentData] = useState<ContentData | null>(null);
+  const [siteSpecificData, setSiteSpecificData] = useState<RedditPost | YouTubeData | null>(null);
+  const [currentSite, setCurrentSite] = useState<string>('unknown');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>('');
@@ -37,52 +52,99 @@ const App: React.FC = () => {
 
   // Create a single shared instance of SummaryService
   const summaryServiceRef = useRef(new SummaryService());
-  // Pass the shared SummaryService to RedditService
-  const redditServiceRef = useRef(new RedditService(summaryServiceRef.current));
+  // Create a ref for the content service
+  const contentServiceRef = useRef<ContentService | null>(null);
   // Add ref for reasoning container
   const reasoningContainerRef = useRef<HTMLDivElement>(null);
   // Track if user has manually scrolled up
   const [userScrolledUp, setUserScrolledUp] = useState(false);
 
-  const redditService = redditServiceRef.current;
   const summaryService = summaryServiceRef.current;
 
   const [resultTab, setResultTab] = useState('summary');
   const [emojiPosition, setEmojiPosition] = useState(0);
 
+  // Initialize the content service
+  useEffect(() => {
+    const initContentService = async () => {
+      try {
+        const service = await ContentServiceFactory.createService(summaryService);
+        contentServiceRef.current = service;
+        setCurrentSite(service.getSiteName());
+      } catch (error) {
+        console.error('Error initializing content service:', error);
+        setError(error instanceof Error ? error.message : 'Failed to initialize content service');
+      }
+    };
+
+    initContentService();
+  }, []);
+
   const openSettings = () => {
     chrome.runtime.openOptionsPage();
   };
 
-  const extractRedditData = async () => {
+  const extractContentData = async () => {
+    if (!contentServiceRef.current) {
+      setError('Content service not initialized');
+      return null;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await redditService.extractData();
-      setRedditData(data);
+      const data = await contentServiceRef.current.extractData();
+      setContentData(data);
+
+      // Get site-specific data if available
+      if (currentSite === 'Reddit') {
+        // We already have the content data, so let's avoid making a second network request
+        // by treating this data as RedditPost
+        setSiteSpecificData(data as any); // Cast to any to avoid type issues
+      } else if (currentSite === 'YouTube') {
+        // const youtubeService = contentServiceRef.current as any;
+        // if (youtubeService.getYouTubeData) {
+        //   const youtubeData = await youtubeService.getYouTubeData();
+        //   setSiteSpecificData(youtubeData);
+        // }
+        setSiteSpecificData(data as any); // Cast to any to avoid type issues
+      }
+
       return data;
     } catch (err) {
-      console.error('Error extracting Reddit data:', err);
+      console.error(`Error extracting ${currentSite} data:`, err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
+      
+      // Display a more user-friendly message for specific errors
+      if (errorMessage.includes('Please navigate to a YouTube video page')) {
+        setError('[BUG] Please navigate to a YouTube video page to use this feature');
+        toast({
+          title: "Not a video page",
+          description: "This feature only works on YouTube video pages. Please navigate to a video.",
+          variant: "destructive",
+        });
+      } else {
+        setError(errorMessage);
+      }
+      
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const summarizeRedditData = async (data: RedditPost | null = null) => {
-    const dataToSummarize = data || redditData;
+  const summarizeContentData = async (data: ContentData | null = null) => {
+    if (!contentServiceRef.current) {
+      setError('Content service not initialized');
+      return;
+    }
+
+    const dataToSummarize = data || contentData;
 
     if (!dataToSummarize) {
-      const errorMessage = 'No Reddit data to summarize. Please extract data first.';
+      const errorMessage = `No ${currentSite} data to summarize. Please extract data first.`;
       setError(errorMessage);
-      // toast({
-      //   variant: "destructive",
-      //   title: "Summarization Error",
-      //   description: errorMessage,
-      // });
       return;
     }
 
@@ -105,7 +167,7 @@ const App: React.FC = () => {
         let contentStarted = false;
         let reasoningFolded = false;
 
-        for await (const chunk of redditService.summarizeData(dataToSummarize)) {
+        for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize)) {
           if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
@@ -150,14 +212,9 @@ const App: React.FC = () => {
         setSummary(fullSummary);
       }
     } catch (err) {
-      console.error('Error summarizing Reddit data:', err);
+      console.error('Error summarizing data:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during summarization';
       setError(errorMessage);
-      // toast({
-      //   variant: "destructive",
-      //   title: "Summarization Error",
-      //   description: errorMessage,
-      // });
     } finally {
       console.log('Summarization finished (finally block)');
       setIsSummarizing(false);
@@ -167,9 +224,9 @@ const App: React.FC = () => {
   const handleSummarize = async () => {
     // First extract data, then summarize
     setIsLoading(true);
-    const extractedData = await extractRedditData();
+    const extractedData = await extractContentData();
     if (extractedData) {
-      await summarizeRedditData(extractedData);
+      await summarizeContentData(extractedData);
     }
   };
 
@@ -196,23 +253,16 @@ const App: React.FC = () => {
   };
 
   const handleStopSummarization = () => {
-    if (isSummarizing) {
+    if (isSummarizing && contentServiceRef.current) {
       console.log('User stopping summarization...');
       try {
-        summaryService.abortStream();
+        contentServiceRef.current.stopSummarization();
       } catch (error) {
         // Silently catch the AbortError - this is expected
         console.log('Abort operation completed with expected abort error');
-        // if (!(error instanceof Error && error.name === 'AbortError')) {
-        //   toast({
-        //     variant: "destructive",
-        //     title: "Error stopping summarization",
-        //     description: error instanceof Error ? error.message : 'An unknown error occurred',
-        //   });
-        // }
       }
       // We don't immediately set isSummarizing to false here
-      // Let the summarizeRedditData catch block handle it
+      // Let the summarizeContentData catch block handle it
     }
   };
 
@@ -251,11 +301,76 @@ const App: React.FC = () => {
     }
   }, [showReasoning]);
 
+  // Helper function to render site-specific content
+  const renderSiteSpecificContent = () => {
+    if (!siteSpecificData) return null;
+
+    if (currentSite === 'Reddit') {
+      const redditData = siteSpecificData as RedditPost;
+      return (
+        <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+          <div className="p-4">
+            <div className="mb-4 text-base text-card-foreground">{redditData.content}</div>
+
+            <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
+            <div className="space-y-3">
+              {redditData.comments.map((comment, index) => (
+                <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-semibold">{comment.author}</span>
+                    <span className="text-muted-foreground">Score: {comment.score}</span>
+                  </div>
+                  <div>{comment.content}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    } else if (currentSite === 'YouTube') {
+      const youtubeData = siteSpecificData as YouTubeData;
+      return (
+        <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+          <div className="p-4">
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="font-semibold">{youtubeData.author}</span>
+                <span className="text-muted-foreground">Likes: {youtubeData.likes}</span>
+              </div>
+            </div>
+
+            <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({youtubeData.comments.length})</h4>
+            <div className="space-y-3">
+              {youtubeData.comments.map((comment, index) => (
+                <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-semibold">{comment.author}</span>
+                    <span className="text-muted-foreground">
+                      {comment.likes !== null ? `Likes: ${comment.likes}` : ''}
+                      {comment.timestamp ? ` • ${comment.timestamp}` : ''}
+                    </span>
+                  </div>
+                  <div>{comment.content}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
+        No data extracted yet. Click Summarize to extract data.
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <Toaster />
       <div className="flex justify-between items-center mb-4 p-1">
-        <h2 className="text-xl font-bold text-gradient">Reddit Insight</h2>
+        <h2 className="text-xl font-bold text-gradient">{currentSite} Insight</h2>
         <div className="flex items-center gap-2">
           {isSummarizing && (
             <Button
@@ -297,17 +412,17 @@ const App: React.FC = () => {
       </div>
 
       {/* Welcome message on first load */}
-      {!summary && !redditData && (
+      {!summary && !contentData && (
         <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground bg-card rounded-lg card-shadow">
           <div className="mb-4">
             <MessageSquareText className="h-12 w-12 opacity-50" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Welcome to Reddit Insight</h3>
+          <h3 className="text-lg font-semibold mb-2">Welcome to Web Insight</h3>
           <p className="mb-2">
-            Navigate to any Reddit post and click "Summarize" to get started.
+            Navigate to any {currentSite !== 'unknown' ? currentSite : 'supported'} page and click "Summarize" to get started.
           </p>
           <p className="text-sm opacity-75">
-            The extension will analyze the post content and comments to generate an insightful summary.
+            The extension will analyze the content and comments to generate an insightful summary.
           </p>
         </div>
       )}
@@ -319,12 +434,12 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Summary or Reddit data */}
-      {(summary || redditData) && (
+      {/* Summary or content data */}
+      {(summary || contentData) && (
         <>
-          {redditData && (
+          {contentData && (
             <div className="mb-3 mx-2 flex flex-col gap-4">
-              <h3 className="text-base font-semibold">{redditData.title || 'Untitled Post'}</h3>
+              <h3 className="text-base font-semibold">{contentData.title || 'Untitled Post'}</h3>
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
@@ -518,30 +633,7 @@ const App: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="data">
-              {redditData ? (
-                <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
-                  <div className="p-4">
-                    <div className="mb-4 text-base text-card-foreground">{redditData.content}</div>
-
-                    <h4 className="font-semibold mb-2 text-accent-foreground">Comments ({redditData.comments.length})</h4>
-                    <div className="space-y-3">
-                      {redditData.comments.map((comment, index) => (
-                        <div key={index} className="border-l-2 border-accent pl-3 hover:bg-accent/10 rounded-r-md transition-colors">
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="font-semibold">{comment.author}</span>
-                            <span className="text-muted-foreground">Score: {comment.score}</span>
-                          </div>
-                          <div>{comment.content}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 text-center text-muted-foreground bg-card rounded-lg card-shadow">
-                  No data extracted yet. Click Summarize to extract data.
-                </div>
-              )}
+              {renderSiteSpecificContent()}
             </TabsContent>
           </Tabs>
         </>

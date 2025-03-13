@@ -9,7 +9,7 @@ export default defineConfig({
   manifest: {
     name: 'Plify AI Insight',
     description: 'Get AI insights from webpages with Plify - works privately in your browser using your own API keys.',
-    permissions: ['sidePanel', 'activeTab', 'storage'],
+    permissions: ['sidePanel', 'activeTab', 'storage', 'scripting'],
     host_permissions: [
       '*://*.reddit.com/*',
       '*://*.youtube.com/*',
@@ -25,6 +25,21 @@ export default defineConfig({
     options_ui: {
       page: 'settings.html',
       open_in_tab: true
-    }
+    },
+    // Explicitly register all content scripts to ensure they're injected
+    content_scripts: [
+      {
+        matches: ['*://*.reddit.com/*', '*://*.youtube.com/*'],
+        js: ['content-scripts/content.js']
+      },
+      {
+        matches: ['*://*.reddit.com/*'],
+        js: ['reddit-content.js']
+      },
+      {
+        matches: ['*://*.youtube.com/*'],
+        js: ['youtube-content.js']
+      }
+    ]
   }
 });

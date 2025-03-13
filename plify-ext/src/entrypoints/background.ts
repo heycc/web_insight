@@ -22,7 +22,7 @@ export default defineBackground(() => {
       sendResponse({ success: true });
     }
     
-    // We no longer need to handle extractRedditData here as the sidepanel
+    // We no longer need to handle extractRedditData or extractYouTubeData here as the sidepanel
     // will communicate directly with the content script
     
     return true; // Keep message channel open for async response

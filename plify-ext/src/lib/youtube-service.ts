@@ -34,7 +34,7 @@ export class YouTubeService implements ContentService {
    * Extract YouTube data from the current tab
    */
   async extractData(): Promise<ContentData> {
-    // Get the current active tab
+    console.log('[YoutubeService] Starting extractData method');    // Get the current active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0) {
       throw new Error('No active tab found');
@@ -42,9 +42,14 @@ export class YouTubeService implements ContentService {
     
     const activeTab = tabs[0];
     
+    // Check if we're on a YouTube site
+    if (!activeTab.url?.includes('youtube.com')) {
+      throw new Error('Not a YouTube page');
+    }
+    
     // Check if we're on a YouTube video page
     if (!activeTab.url?.includes('youtube.com/watch')) {
-      throw new Error('Not a YouTube video page');
+      throw new Error('Please navigate to a YouTube video page to use this feature');
     }
     
     if (!activeTab.id) {
@@ -59,7 +64,7 @@ export class YouTubeService implements ContentService {
     }
     
     // Execute script to extract data
-    const results = await chrome.tabs.sendMessage(activeTab.id, { action: 'extractYouTubeData' });
+    const results = await chrome.tabs.sendMessage(activeTab.id, { action: 'extract.youtube' });
     
     if (results && results.success) {
       // Convert YouTubeData to ContentData
@@ -87,7 +92,7 @@ export class YouTubeService implements ContentService {
       throw new Error('No active tab found');
     }
     
-    const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extractYouTubeData' });
+    const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extract.youtube' });
     
     if (results && results.success) {
       return results.data;
