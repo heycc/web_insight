@@ -66,7 +66,7 @@ At last, provide your own perspective.
 
 <Provide a neutral, objective description of the post's central argument or question without editorializing>
 
-## <Practical Viewpoints(5-8 distinct viewpoints)>
+## <Practical Viewpoints (4-6 distinct viewpoints)>
 
 <Group similar comments into coherent perspectives, prioritizing those with significant engagement, sorted by number of 👍. For each perspective:>
 
@@ -76,7 +76,7 @@ At last, provide your own perspective.
 
 Optional: Note any relevant expertise or unique background of commenters if mentioned
 
-> <Direct quote of **key phrases** or *distinctive language** that exemplifies this viewpoint>
+> <Direct quote of **key words** or *distinctive expressions** that exemplifies this viewpoint.">
 
 2. <**Next perspective** (u/username, 👍 X+)>
 
@@ -88,13 +88,13 @@ Optional: Note any relevant expertise or unique background of commenters if ment
 
 <these are my own perspective>
 
-** <If any,the underlying Groupthink or Bias or Shallowness> **
+** If any,the underlying Groupthink or Bias or Shallowness **
 
 <Note any logical fallacies, emotional reactions, groupthink, or shallowness in the discussion>
 <Highlight any nuance that's being overlooked by the majority>
 <Be short and concise>
 
-** <the critical learning from comments> **
+** the critical learning from context **
 
 <Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization>
 <Explain what you as a observer could learn from this discussion>

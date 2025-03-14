@@ -13,6 +13,8 @@ import { Toaster } from "../../components/ui/toaster";
 import { ContentServiceFactory, ContentService, ContentData } from '../../lib/content-service';
 import SummaryView from '../../components/sidepanel/SummaryView';
 import ContentDataView from '../../components/sidepanel/ContentDataView';
+import WelcomeMessage from '../../components/sidepanel/WelcomeMessage';
+import Header from '../../components/sidepanel/Header';
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -60,9 +62,9 @@ const App: React.FC = () => {
     try {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tabs || tabs.length === 0) return false;
-      
+
       const url = tabs[0].url || '';
-      
+
       // If no content service exists, initialize it
       if (!contentServiceRef.current) {
         console.log('No content service, initializing...');
@@ -71,17 +73,17 @@ const App: React.FC = () => {
         setCurrentSite(service.getSiteName());
         return true;
       }
-      
+
       // Check if current service matches the current tab's site
       const currentSiteName = contentServiceRef.current.getSiteName().toLowerCase();
-      
+
       let needsReinitialization = false;
       if (url.includes('reddit.com') && currentSiteName !== 'reddit') {
         needsReinitialization = true;
       } else if (url.includes('youtube.com') && currentSiteName !== 'youtube') {
         needsReinitialization = true;
       }
-      
+
       // Reinitialize if needed
       if (needsReinitialization) {
         console.log('Site changed, reinitializing content service...');
@@ -90,7 +92,7 @@ const App: React.FC = () => {
         setCurrentSite(service.getSiteName());
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Error checking content service:', error);
@@ -162,7 +164,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(`Error extracting ${currentSite} data:`, err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      
+
       // Display a more user-friendly message for specific errors
       if (errorMessage.includes('Please navigate to a YouTube video page')) {
         setError('[BUG] Please navigate to a YouTube video page to use this feature');
@@ -174,7 +176,7 @@ const App: React.FC = () => {
       } else {
         setError(errorMessage);
       }
-      
+
       return null;
     } finally {
       setIsLoading(false);
@@ -209,7 +211,7 @@ const App: React.FC = () => {
       try {
         // Log to confirm we're starting the stream
         console.log('Starting summarization stream...');
-        
+
         let reasoningStarted = false;
         let contentStarted = false;
         let reasoningFolded = false;
@@ -331,69 +333,25 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
       <Toaster />
-      <div className="flex justify-between items-center mb-4 p-1">
-        <h2 className="text-xl font-bold text-gradient">{currentSite} Insight</h2>
-        <div className="flex items-center gap-2">
-          {isSummarizing && (
-            <Button
-              onClick={handleStopSummarization}
-              variant="ghost"
-              size="default"
-              className="text-destructive hover:bg-primary/20 hover:text-destructive"
-              title="Stop Generating"
-            >
-              <CircleStop className="!w-6 !h-6" />
-            </Button>
-          )}
-          <Button
-            onClick={handleSummarize}
-            disabled={isLoading || isSummarizing}
-            className="shadow-md hover:shadow-lg transition-all"
-            variant="default"
-            size="sm"
-          >
-            {isLoading || isSummarizing ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {isLoading ? 'Extracting' : 'Summarizing'}
-              </span>
-            ) : (
-              'Summarize'
-            )}
-          </Button>
-          <Button
-            onClick={openSettings}
-            variant="ghost"
-            size="default"
-            className="flex items-center hover:bg-primary/20 p-2"
-            title="Configure LLM Provider"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Welcome message on first load */}
-      {!summary && !contentData && (
-        <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground bg-card rounded-lg card-shadow">
-          <div className="mb-4">
-            <MessageSquareText className="h-12 w-12 opacity-50" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">Welcome to Web Insight</h3>
-          <p className="mb-2">
-            Navigate to any {currentSite !== 'unknown' ? currentSite : 'supported'} page and click "Summarize" to get started.
-          </p>
-          <p className="text-sm opacity-75">
-            The extension will analyze the content and comments to generate an insightful summary.
-          </p>
-        </div>
-      )}
+      <Header 
+        currentSite={currentSite}
+        isLoading={isLoading}
+        isSummarizing={isSummarizing}
+        onSummarize={handleSummarize}
+        onStopSummarization={handleStopSummarization}
+        onOpenSettings={openSettings}
+      />
 
       {/* Error message */}
       {error && (
         <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm">
           {error}
         </div>
+      )}
+
+      {/* Welcome message on first load */}
+      {!summary && !contentData && (
+        <WelcomeMessage currentSite={currentSite} />
       )}
 
       {/* Summary or content data */}

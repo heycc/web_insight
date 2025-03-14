@@ -89,7 +89,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             >
               <ReactMarkdown
                 components={{
-                  p: ({ node, ...props }) => <p className="my-2" {...props} />,
+                  strong: ({ node, ...props }) => <strong className="my-2" {...props} />,
                   ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
                   ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
                   li: ({ node, ...props }) => (
