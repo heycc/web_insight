@@ -13,8 +13,13 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ currentSite }) => {
       </div>
       {/* <h3 className="text-xl font-bold mb-3">Welcome to Plify AI Insight</h3>*/}
       <p className="mb-4 text-lg">
-        Get AI-powered insights from {currentSite !== 'unknown' ? currentSite : 'Reddit & YouTube'} using your preferred LLM Service
+        Get insights when you are exploring
       </p>
+      {currentSite === 'unknown' && (
+        <p className="mb-4 text-lg">
+          Currently supports Reddit & YouTube
+        </p>
+      )}
       
       <div className="grid grid-cols-2 gap-4 w-full mb-4">
         <div className="flex flex-col items-center p-3 bg-secondary/30 rounded-lg">
@@ -23,11 +28,11 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ currentSite }) => {
         </div>
         <div className="flex flex-col items-center p-3 bg-secondary/30 rounded-lg">
           <ShieldCheck className="h-6 w-6 text-primary mb-2" />
-          <p className="text-sm">Private and secure with your preferred LLM Service</p>
+          <p className="text-sm">Secure with your preferred LLM Service</p>
         </div>
       </div>
       
-      <p className="text-base font-medium mt-2">
+      <p className="text-base mt-2">
         Click "Summarize" on any {currentSite !== 'unknown' ? currentSite : 'supported'} page to get started!
       </p>
     </div>

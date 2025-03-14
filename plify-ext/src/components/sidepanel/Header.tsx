@@ -21,7 +21,9 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <div className="flex justify-between items-center mb-4 p-1">
-      <h2 className="text-xl font-bold text-gradient">{currentSite} Insight</h2>
+      <h2 className="text-xl font-bold text-gradient">
+        {currentSite === 'unknown' ? 'Site Not Supported' : `${currentSite} Insight`}
+      </h2>
       <div className="flex items-center gap-2">
         {isSummarizing && (
           <Button
@@ -36,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
         <Button
           onClick={onSummarize}
-          disabled={isLoading || isSummarizing}
+          disabled={isLoading || isSummarizing || currentSite === 'unknown'}
           className="shadow-md hover:shadow-lg transition-all"
           variant="default"
           size="sm"

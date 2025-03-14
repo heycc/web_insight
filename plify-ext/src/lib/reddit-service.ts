@@ -50,8 +50,8 @@ export class RedditService implements ContentService {
     
     // Check if we're on a Reddit page
     if (!activeTab.url?.includes('reddit.com')) {
-      this.logger.error('Not a Reddit page');
-      throw new Error('Not a Reddit page');
+      this.logger.error('Current Site is not supported');
+      throw new Error('Current Site is not supported');
     }
     
     if (!activeTab.id) {
