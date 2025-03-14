@@ -121,6 +121,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
           <div className="markdown text-card-foreground">
             <ReactMarkdown
               components={{
+                p: ({ node, ...props }) => <p className="my-2" {...props} />,
                 ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
                 li: ({ node, ...props }) => (

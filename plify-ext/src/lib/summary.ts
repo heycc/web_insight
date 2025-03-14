@@ -66,11 +66,11 @@ At last, provide your own perspective.
 
 <Provide a neutral, objective description of the post's central argument or question without editorializing>
 
-## <Practical Viewpoints in Context (5-8 distinct viewpoints)>
+## <Practical Viewpoints(5-8 distinct viewpoints)>
 
-<Group similar comments into coherent perspectives, prioritizing those with significant engagement. For each perspective:>
+<Group similar comments into coherent perspectives, prioritizing those with significant engagement, sorted by number of 👍. For each perspective:>
 
-1. <**Descriptive name for this viewpoint** (u/username, u/username, 👍: X+)>
+1. <**Descriptive name for this viewpoint** (u/username, u/username, 👍 X+)>
 
 <Present this perspective faithfully without bias>
 
@@ -78,17 +78,17 @@ Optional: Note any relevant expertise or unique background of commenters if ment
 
 > <Direct quote of **key phrases** or *distinctive language** that exemplifies this viewpoint>
 
-2. <**Next perspective** (u/username, 👍: X+)>
+2. <**Next perspective** (u/username, 👍 X+)>
 
 <Continue with same format>
 
 > <Direct quote>
 
-## <your perspective>
+## <my perspective>
 
-<now provide your own perspective>
+<these are my own perspective>
 
-** <the underlying Groupthink or Bias or Shallowness> **
+** <If any,the underlying Groupthink or Bias or Shallowness> **
 
 <Note any logical fallacies, emotional reactions, groupthink, or shallowness in the discussion>
 <Highlight any nuance that's being overlooked by the majority>
