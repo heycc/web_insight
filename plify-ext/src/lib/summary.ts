@@ -50,57 +50,56 @@ I trust you to provide a clear and concise insight of the post and its top votes
     } else if (language === 'ja') {
       languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
     }
-    this.systemPrompt += `\n\n${languageInstruction}`;
+    // this.systemPrompt += `\n\n${languageInstruction}`;
 
-    return `Please analyze this post and its top comments to provide insightful perspective:
-
-First, thoroughly read the entire post and all comments. Then identify the key themes, unique viewpoints, and underlying patterns.
+    return `Please analyze this post and its top comments to provide insightful perspective.
+First, thoroughly read the entire post and all comments.
+Then identify the key themes, unique viewpoints, and underlying patterns.
+At last, provide your own perspective.
 
 <instruction>
+- Structure your analysis using following markdown format.
+- All text inside <> tags are instructions and not part of the response text.
+- ${languageInstruction}
 
-Structure your analysis using this markdown format:
+## <Concise title describing the main point of discussion>
 
-## Concise title describing the main point of discussion
+<Provide a neutral, objective description of the post's central argument or question without editorializing>
 
-Provide a neutral, objective description of the post's central argument or question without editorializing
+## <Practical Viewpoints in Context (5-8 distinct viewpoints)>
 
-## Practical Viewpoints in Context (5-8 distinct viewpoints)
+<Group similar comments into coherent perspectives, prioritizing those with significant engagement. For each perspective:>
 
-Group similar comments into coherent perspectives, prioritizing those with significant engagement. For each perspective:
+1. <**Descriptive name for this viewpoint** (u/username, u/username, 👍: X+)>
 
-1. **Descriptive name for this viewpoint** (u/username, u/username, 👍: X+)
-
-Present this perspective faithfully without bias
+<Present this perspective faithfully without bias>
 
 Optional: Note any relevant expertise or unique background of commenters if mentioned
 
-> Direct quote of **key phrases** or *distinctive language** that exemplifies this viewpoint
+> <Direct quote of **key phrases** or *distinctive language** that exemplifies this viewpoint>
 
-2. **Next perspective** (u/username, 👍: X+)
+2. <**Next perspective** (u/username, 👍: X+)>
 
-Continue with same format
+<Continue with same format>
 
-> Direct quote
+> <Direct quote>
 
-## Underlying Patterns or Blind Spots or Bias from your perspective
+## <your perspective>
 
-Identify what's NOT being discussed or considered in the comments
+<now provide your own perspective>
 
-Note any logical fallacies, emotional reactions, or groupthink evident in the discussion
+** <the underlying Groupthink or Bias or Shallowness> **
 
-Highlight any nuance that's being overlooked by the majority
+<Note any logical fallacies, emotional reactions, groupthink, or shallowness in the discussion>
+<Highlight any nuance that's being overlooked by the majority>
+<Be short and concise>
 
-Be short and concise.
+** <the critical learning from comments> **
 
-## Critical Learning of this page from your perspective
-
-Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization
-
-Explain what you as a observer could learn from this discussion
-
-Present practical and actionable perspectives while avoiding overly formal discourse.
-
-Remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.
+<Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization>
+<Explain what you as a observer could learn from this discussion>
+<Present practical and actionable perspectives while avoiding overly formal discourse>
+<Remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.>
 
 </instruction>
 
@@ -192,7 +191,7 @@ ${commentsList}
           content: prompt
         }
       ],
-      temperature: 0.5,
+      temperature: 0.2,
       stream: true
     };
 
