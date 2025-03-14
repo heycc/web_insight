@@ -7,26 +7,36 @@ export default defineConfig({
   srcDir: 'src',
   outDir: 'dist',
   manifest: {
-    name: 'Plify AI Insight',
-    description: 'Get AI insights from webpages with Plify - works privately in your browser using your own API keys.',
+    name: 'Plify AI Insights - Reddit & YouTube Summarizer',
+    short_name: 'Plify AI Insights',
+    version: '0.2.2',
+    description: 'Get AI-powered insights from Reddit, YouTube, and more. Works privately in your browser with your own API keys.',
     permissions: ['sidePanel', 'activeTab', 'storage', 'scripting'],
     host_permissions: [
       '*://*.reddit.com/*',
       '*://*.youtube.com/*',
-      // '<all_urls>'
-      // Alternatively, specify only the domains you need:
-      // 'https://*.openai.com/*',
-      // 'https://api.anthropic.com/*',
-      // Add other API domains as needed
+      // '*://*.ycombinator.com/*',
+      // Add more sites as needed
     ],
     action: {
-      default_title: 'Open Plify AI Insights'
+      default_title: 'Plify AI Insights',
+      default_icon: {
+        '16': 'icon/16.png',
+        '32': 'icon/32.png',
+        '48': 'icon/48.png',
+        '128': 'icon/128.png'
+      }
+    },
+    icons: {
+      '16': 'icon/16.png',
+      '32': 'icon/32.png',
+      '48': 'icon/48.png',
+      '128': 'icon/128.png'
     },
     options_ui: {
       page: 'settings.html',
       open_in_tab: true
     },
-    // Explicitly register all content scripts to ensure they're injected
     content_scripts: [
       {
         matches: ['*://*.reddit.com/*', '*://*.youtube.com/*'],
@@ -40,6 +50,18 @@ export default defineConfig({
         matches: ['*://*.youtube.com/*'],
         js: ['youtube-content.js']
       }
-    ]
+      // },
+      // {
+      //   matches: ['*://*.ycombinator.com/*'],
+      //   js: ['hackernews-content.js']
+      // }
+    ],
+    side_panel: {
+      default_path: 'sidepanel.html'
+    },
+    web_accessible_resources: [{
+      resources: ['icons/*', '*.css'],
+      matches: ['*://*.reddit.com/*', '*://*.youtube.com/*']
+    }]
   }
 });
