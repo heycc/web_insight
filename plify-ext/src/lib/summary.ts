@@ -70,7 +70,6 @@ OUTPUT EXAMPLE:
 
 OpenAI asserts that restricting AI training on copyrighted materials under fair use doctrine would end the AI development race, framing this access ...
 
-
 ## Practical Viewpoints
 
 1. **Open-Source Reciprocity Mandate** (username, username1, 👍 522+)

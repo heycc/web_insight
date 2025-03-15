@@ -131,6 +131,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                   />
                 ),
                 h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
+                h3: ({ node, ...props }) => <h3 className="text-base font-semibold my-2 text-accent-foreground" {...props} />,
                 blockquote: ({ node, ...props }) => (
                   <blockquote
                     className="border-l-4 border-accent pl-4 italic text-muted-foreground"
