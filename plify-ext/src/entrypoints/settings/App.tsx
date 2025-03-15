@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -18,12 +18,13 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "../../components/ui/form";
+import { Slider } from "../../components/ui/slider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -64,6 +65,7 @@ interface Profile {
   api_endpoint: string;
   api_key: string;
   model_name: string;
+  temperature: number;
 }
 
 interface Settings {
@@ -78,7 +80,8 @@ const DEFAULT_PROFILE: Profile = {
   provider_type: ProviderType.OAI_COMPATIBLE,
   api_endpoint: '',
   api_key: '',
-  model_name: ''
+  model_name: '',
+  temperature: 0.6
 };
 
 // Define the form schema with Zod
@@ -87,7 +90,8 @@ const profileFormSchema = z.object({
   provider_type: z.string(),
   api_endpoint: z.string().url("Please enter a valid URL"),
   api_key: z.string().min(1, "API key is required").max(100, "API key must be less than 100 characters"),
-  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters")
+  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters"),
+  temperature: z.number().min(0.1, "Temperature must be at least 0.1").max(1.5, "Temperature must be at most 1.5")
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -117,6 +121,7 @@ const App = () => {
       api_endpoint: '',
       api_key: '',
       model_name: '',
+      temperature: 0.6,
     }
   });
 
@@ -133,6 +138,7 @@ const App = () => {
         api_endpoint: activeProfile.api_endpoint,
         api_key: activeProfile.api_key,
         model_name: activeProfile.model_name || '',
+        temperature: activeProfile.temperature ?? 0.6,
       });
 
       // Always reset customModelInput to false when profile changes
@@ -243,7 +249,8 @@ const App = () => {
       provider_type: data.provider_type,
       api_endpoint: data.api_endpoint,
       api_key: data.api_key,
-      model_name: data.model_name
+      model_name: data.model_name,
+      temperature: data.temperature
     };
 
     // Log the updated profile to verify model_name is being set correctly
@@ -461,12 +468,12 @@ const App = () => {
 
     return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 mb-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-2">
           <FormField
             control={form.control}
             name="profile_name"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='space-y-1'>
                 <FormLabel>Profile Name</FormLabel>
                 <FormControl>
                   <Input
@@ -484,7 +491,7 @@ const App = () => {
             control={form.control}
             name="provider_type"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='space-y-1'>
                 <FormLabel>Provider Type</FormLabel>
                 <Select
                   onValueChange={(value) => {
@@ -516,7 +523,7 @@ const App = () => {
             control={form.control}
             name="api_endpoint"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='space-y-1'>
                 <FormLabel>API Endpoint</FormLabel>
                 <FormControl>
                   <Input
@@ -551,7 +558,7 @@ const App = () => {
             control={form.control}
             name="api_key"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='space-y-1'>
                 <FormLabel>API Key</FormLabel>
                 <div className="flex items-center">
                   <FormControl>
@@ -606,7 +613,7 @@ const App = () => {
             control={form.control}
             name="model_name"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='space-y-1'>
                 <FormLabel>Model Name</FormLabel>
                 {!isEditing && (
                   <div className="flex items-center">
@@ -708,6 +715,56 @@ const App = () => {
                     </Button>
                   </div>
                 )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="temperature"
+            render={({ field }) => (
+              <FormItem className='space-y-0'>
+                <FormLabel>Temperature</FormLabel>
+                <div className="flex flex-col">
+                  <div className="flex items-center space-x-4">
+                    <FormControl>
+                      <Slider
+                        min={0.1}
+                        max={1.5}
+                        step={0.1}
+                        value={[field.value]}
+                        onValueChange={(values: number[]) => {
+                          field.onChange(values[0]);
+                        }}
+                        disabled={!isEditing}
+                        className="flex-grow bg-gray-100"
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0.1}
+                        max={1.5}
+                        step={0.1}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          if (!isNaN(value)) {
+                            // Clamp value between 0.1 and 1.5
+                            const clampedValue = Math.min(Math.max(value, 0.1), 1.5);
+                            field.onChange(clampedValue);
+                          }
+                        }}
+                        disabled={!isEditing}
+                        className="w-16 text-center"
+                      />
+                    </FormControl>
+                  </div>
+                </div>
+                <FormDescription>
+                  Controls randomness, lower values are more deterministic, range [0.1, 1.5]
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

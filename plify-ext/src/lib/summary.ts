@@ -19,6 +19,7 @@ export interface ApiSettings {
   apiEndpoint: string;
   model: string;
   language: string;
+  temperature: number;
 }
 
 export class SummaryService {
@@ -92,7 +93,7 @@ Accuses OpenAI of advocating for unilateral copyright exceptions to benefit thei
 
 **Overlooked nuance**: Few comments engage with the legal specifics of fair use doctrine (e.g., transformative use, market impact) or ...
 
-**Emotional framing**: Dismissive terms like “steal” oversimplify the legal gray ...
+**Emotional framing**: Dismissive terms like "steal" oversimplify the legal gray ...
 
 **Critical Learning**
 
@@ -153,13 +154,17 @@ ${commentsList}
 
     // Get language setting, default to 'en' if not found
     const language = settings.language || 'en';
+    
+    // Get temperature setting, default to 0.6 if not found
+    const temperature = activeProfile.temperature !== undefined ? activeProfile.temperature : 0.6;
 
     return {
       provider: activeProfile.provider_type,
       apiKey: activeProfile.api_key,
       apiEndpoint: activeProfile.api_endpoint,
       model: activeProfile.model_name,
-      language: language
+      language: language,
+      temperature: temperature
     };
   }
 
@@ -192,7 +197,7 @@ ${commentsList}
           content: prompt
         }
       ],
-      temperature: 0.6,
+      temperature: settings.temperature,
       stream: true
     };
 
