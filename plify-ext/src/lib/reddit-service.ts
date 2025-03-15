@@ -54,6 +54,13 @@ export class RedditService implements ContentService {
       this.logger.error('Current Site is not supported');
       throw new Error('Current Site is not supported');
     }
+
+    // Check if we're on a Reddit post page using regex
+    const redditPostRegex = /reddit\.com\/r\/[^\/]+\/comments\/[^\/]+/;
+    if (!activeTab.url || !redditPostRegex.test(activeTab.url)) {
+      this.logger.error('Not a Reddit post page');
+      throw new Error('Please navigate to a Reddit post page to use this feature. (e.g. https://www.reddit.com/r/AskReddit/comments/xxx/xxx/)');
+    }
     
     if (!activeTab.id) {
       this.logger.error('Tab ID is undefined');

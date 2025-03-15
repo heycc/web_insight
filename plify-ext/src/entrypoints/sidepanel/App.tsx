@@ -174,16 +174,17 @@ const App: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
 
       // Display a more user-friendly message for specific errors
-      if (errorMessage.includes('Please navigate to a YouTube video page')) {
-        setError('[BUG] Please navigate to a YouTube video page to use this feature');
-        toast({
-          title: "Not a video page",
-          description: "This feature only works on YouTube video pages. Please navigate to a video.",
-          variant: "destructive",
-        });
-      } else {
-        setError(errorMessage);
-      }
+      // if (errorMessage.includes('Please navigate to a YouTube video page')) {
+      //   setError('[BUG] Please navigate to a YouTube video page to use this feature');
+      //   toast({
+      //     title: "Not a video page",
+      //     description: "This feature only works on YouTube video pages. Please navigate to a video.",
+      //     variant: "destructive",
+      //   });
+      // } else {
+      //   setError(errorMessage);
+      // }
+      setError(errorMessage);
 
       return null;
     } finally {

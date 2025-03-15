@@ -58,7 +58,7 @@ export class YouTubeService implements ContentService {
     // Check if we're on a YouTube video page
     if (!activeTab.url?.includes('youtube.com/watch')) {
       this.logger.error('Not a YouTube video page');
-      throw new Error('Please navigate to a YouTube video page to use this feature');
+      throw new Error('Please navigate to a YouTube video page to use this feature. (e.g. https://www.youtube.com/watch?v=xxx)');
     }
     
     if (!activeTab.id) {
