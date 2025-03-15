@@ -80,7 +80,7 @@ const App: React.FC = () => {
 
       // Always update current site to match the content service
       const currentSiteLower = contentServiceRef.current.getSiteName().toLowerCase();
-      setCurrentSite(contentServiceRef.current.getSiteName().toLowerCase());
+      setCurrentSite(contentServiceRef.current.getSiteName());
 
       let needsReinitialization = false;
       if (url.includes('reddit.com') && currentSiteLower !== 'reddit') {
@@ -354,7 +354,7 @@ const App: React.FC = () => {
 
       {/* Error message */}
       {error && (
-        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm">
+        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
           {error}
         </div>
       )}

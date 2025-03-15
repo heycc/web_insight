@@ -29,11 +29,7 @@ export class SummaryService {
 
   constructor() {
     this.decoder = new TextDecoder();
-    this.systemPrompt = `You are a helpful assistant that give insight of page's content and comments.
-I'm too busy to read the original post and comments.
-But I want to know whether this post and comments have any information or perspectives helpful to me,
-such as person's painpoint, desires, or valuable opinions, or from person with unique background.
-I trust you to provide a clear and concise insight of the post and its top votes comments.`;
+    this.systemPrompt = "You are a helpful assistant that give insight of a web page's content and comments.";
     this.logger = createLogger('Summary Service');
   }
 
@@ -54,60 +50,61 @@ I trust you to provide a clear and concise insight of the post and its top votes
     } else if (language === 'ja') {
       languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
     }
-    // this.systemPrompt += `\n\n${languageInstruction}`;
 
     return `Please analyze this post and its top comments to provide insightful perspective.
-First, thoroughly read the entire post and all comments.
-Then identify the key themes, unique viewpoints, and underlying patterns.
-At last, provide your own perspective.
 
-<instruction>
-- Structure your analysis using following markdown format.
-- All text inside <> tags are instructions and not part of the response text.
-- ${languageInstruction}
+<INSTRUCTIONS>
+1. Firstly, thoroughly read the entire post and all comments.
+2. Secondly, group similar comments into coherent viewpoints up to 6 ~ 10 viewpoints, prioritizing those with significant engagement and substantive comments, ordered by number of 👍.
+3. Thirdly, provide your own perspective, including potential groupthink, bias, or shallowness, and what can we learn from this discussion.
 
-## <Concise title describing the main point of discussion>
+OUTPUT REQUIREMENTS:
+- Structure your output in markdown format, see example below.
+- LANGUAGE REQUIREMENT: ${languageInstruction}
+- BE CONCISE.
 
-<Provide a neutral, objective description of the post's central argument or question without editorializing>
+OUTPUT EXAMPLE:
 
-## <Practical Viewpoints (4-6 distinct viewpoints)>
+## OpenAI's Copyright Fair Use Debate and Corporate Accountability
 
-<Group similar comments into coherent perspectives, prioritizing those with significant engagement, sorted by number of 👍. For each perspective:>
+OpenAI asserts that restricting AI training on copyrighted materials under fair use doctrine would end the AI development race, framing this access ...
 
-1. <**Descriptive name for this viewpoint** (u/username, u/username, 👍 X+)>
 
-<Present this perspective faithfully without bias>
+## Practical Viewpoints
 
-Optional: Note any relevant expertise or unique background of commenters if mentioned
+1. **Open-Source Reciprocity Mandate** (username, username1, 👍 522+)
 
-> <Direct quote of **key words** or *distinctive expressions** that exemplifies this viewpoint.">
+Argues that AI models trained on copyrighted works should be open-sourced and non-commercial to prevent ...
 
-2. <**Next perspective** (u/username, 👍 X+)>
+> "If LLM's need copyrighted works, the model ... should be open sourced ... you can't make money on it as your proprietary only."
 
-<Continue with same format>
+2. **Corporate Hypocrisy Critique** (username1, username2, 👍 210+)
 
-> <Direct quote>
+Accuses OpenAI of advocating for unilateral copyright exceptions to benefit their business ...
 
-## <my perspective>
+> "Company that needs to steal content to survive criticizes intellectual property."
 
-<these are my own perspective>
+3. ...
 
-** If any,the underlying Groupthink or Bias or Shallowness **
+## My Perspectives
 
-<Note any logical fallacies, emotional reactions, groupthink, or shallowness in the discussion>
-<Highlight any nuance that's being overlooked by the majority>
-<Be short and concise>
+**Potential Groupthink / Bias / Shallowness**
 
-** the critical learning from context **
+**Overlooked nuance**: Few comments engage with the legal specifics of fair use doctrine (e.g., transformative use, market impact) or ...
 
-<Identify the strongest arguments, provide an instructive analysis that goes beyond simple summarization>
-<Explain what you as a observer could learn from this discussion>
-<Present practical and actionable perspectives while avoiding overly formal discourse>
-<Remain faithful to the original content while providing deeper insight than what's immediately apparent from a casual reading.>
+**Emotional framing**: Dismissive terms like “steal” oversimplify the legal gray ...
 
-</instruction>
+**Critical Learning**
 
-<page_context>
+1. **Reciprocity as a viable compromise**: The open-source mandate addresses ethical concerns but ...
+
+2. ...
+
+Strongest arguments highlight the need for symmetry ... and what can we learn from this discussion is...
+
+</INSTRUCTIONS>
+
+<PAGE_CONTEXT>
 # Site:
 ${site}
 
@@ -120,7 +117,7 @@ ${postContent}
 # TOP COMMENTS (Up to 50):
 ${commentsList}
 
-</page_context>
+</PAGE_CONTEXT>
 `;
   }
 
@@ -195,7 +192,7 @@ ${commentsList}
           content: prompt
         }
       ],
-      temperature: 0.2,
+      temperature: 0.6,
       stream: true
     };
 
