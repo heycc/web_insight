@@ -7,10 +7,10 @@ export default defineConfig({
   srcDir: 'src',
   outDir: 'dist',
   manifest: {
-    name: 'Plify AI Insights - Reddit & YouTube Summarizer',
-    short_name: 'Plify AI Insights',
+    name: 'Plify AI Insight - Reddit & YouTube Summarizer',
+    short_name: 'Plify AI Insight',
     version: '0.2.2',
-    description: 'Get AI-powered insights from Reddit, YouTube, and more. Works privately in your browser with your own API keys.',
+    description: 'Get AI-powered insight from Reddit, YouTube, and more. Works privately in your browser with your own API keys.',
     permissions: ['sidePanel', 'activeTab', 'storage', 'scripting'],
     host_permissions: [
       '*://*.reddit.com/*',
@@ -19,7 +19,7 @@ export default defineConfig({
       // Add more sites as needed
     ],
     action: {
-      default_title: 'Plify AI Insights',
+      default_title: 'Plify AI Insight',
       default_icon: {
         '16': 'icon/16.png',
         '32': 'icon/32.png',
