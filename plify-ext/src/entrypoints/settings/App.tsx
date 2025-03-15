@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Toaster } from "../../components/ui/toaster";
 import { useToast } from "../../components/ui/use-toast";
+import { createLogger } from "../../lib/utils";
 
 enum ProviderType {
   OAI_COMPATIBLE = 'oai_compatible',
@@ -50,9 +51,6 @@ const DEFAULT_API_ENDPOINTS: Record<ProviderType, string> = {
 enum ModelName {
   GPT_4 = 'gpt-4o',
   GPT_35_TURBO = 'gpt-4o-mini',
-  // CLAUDE_3_OPUS = 'claude-3-opus',
-  // CLAUDE_3_SONNET = 'claude-3-sonnet',
-  // GEMINI_PRO = 'gemini-pro',
   DEEPSEEK_R1 = 'deepseek-r1',
   DEEPSEEK_V3 = 'deepseek-v3',
   QWEN_LONG = 'qwen-max',
@@ -108,6 +106,7 @@ const App = () => {
   const [customModelInput, setCustomModelInput] = useState<boolean>(false);
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = useState(false);
   const { toast } = useToast();
+  const logger = createLogger('Settings');
 
   // Initialize the form
   const form = useForm<ProfileFormValues>({
@@ -145,7 +144,7 @@ const App = () => {
     try {
       setIsLoading(true);
       const result = await chrome.storage.local.get(['profiles', 'theme', 'language']);
-      console.log('Loaded from storage:', result);
+      logger.log('Loaded from storage:', result);
 
       if (result.profiles && result.profiles.length > 0) {
         // Ensure model_name is properly set for each profile
@@ -170,7 +169,7 @@ const App = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      logger.error('Error loading settings:', error);
     } finally {
       setIsLoading(false);
     }
@@ -185,7 +184,7 @@ const App = () => {
         language: settings.language
       };
 
-      console.log('Saving settings:', settingsToSave.profiles);
+      logger.log('Saving settings:', settingsToSave.profiles);
       await chrome.storage.local.set(settingsToSave);
       toast({
         title: "Settings saved successfully!",
@@ -193,7 +192,7 @@ const App = () => {
         variant: "default",
       });
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error saving settings:', error);
       toast({
         title: "Failed to save settings",
         description: "There was an error saving your settings. Please try again later.",
@@ -248,7 +247,7 @@ const App = () => {
     };
 
     // Log the updated profile to verify model_name is being set correctly
-    console.log('Updated profile before saving:', updatedProfile);
+    logger.log('Updated profile before saving:', updatedProfile);
 
     let updatedProfiles: Profile[] = [];
 

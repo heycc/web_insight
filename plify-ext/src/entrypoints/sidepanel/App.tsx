@@ -15,6 +15,7 @@ import SummaryView from '../../components/sidepanel/SummaryView';
 import ContentDataView from '../../components/sidepanel/ContentDataView';
 import WelcomeMessage from '../../components/sidepanel/WelcomeMessage';
 import Header from '../../components/sidepanel/Header';
+import { createLogger } from '../../lib/utils';
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -30,6 +31,9 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const App: React.FC = () => {
+  // Create a logger for the sidepanel
+  const logger = createLogger('Sidepanel');
+
   const [contentData, setContentData] = useState<ContentData | null>(null);
   const [currentSite, setCurrentSite] = useState<string>('unknown');
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +71,7 @@ const App: React.FC = () => {
 
       // If no content service exists, initialize it
       if (!contentServiceRef.current) {
-        console.log('No content service, initializing...');
+        logger.log('No content service, initializing...');
         const service = await ContentServiceFactory.createService(summaryService);
         contentServiceRef.current = service;
         setCurrentSite(service.getSiteName());
@@ -90,13 +94,13 @@ const App: React.FC = () => {
         const service = await ContentServiceFactory.createService(summaryService);
         contentServiceRef.current = service;
         setCurrentSite(service.getSiteName());
-        console.log('Site changed, reinitializing content service...', service.getSiteName());
+        logger.log('Site changed, reinitializing content service...', service.getSiteName());
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('Error checking content service:', error);
+      logger.error('Error checking content service:', error);
       return false;
     }
   };
@@ -107,7 +111,7 @@ const App: React.FC = () => {
       try {
         await ensureCorrectContentService();
       } catch (error) {
-        console.error('Error initializing content service:', error);
+        logger.error('Error initializing content service:', error);
         setError(error instanceof Error ? error.message : 'Failed to initialize content service');
       }
     };
@@ -119,17 +123,17 @@ const App: React.FC = () => {
     const handleTabUpdated = async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
       // Only process if URL changed and tab is active
       if (changeInfo.url && tab.active) {
-        console.log(`Tab URL changed to: ${changeInfo.url}`);
+        logger.log(`Tab URL changed to: ${changeInfo.url}`);
         await ensureCorrectContentService();
       }
     };
 
     // Listen for tab activation changes
     const handleTabActivated = async (activeInfo: chrome.tabs.TabActiveInfo) => {
-      console.log(`Tab activated: ${activeInfo.tabId}`);
+      logger.log(`Tab activated: ${activeInfo.tabId}`);
       // Always reinitialize content service when tab activation changes
       const service = await ContentServiceFactory.createService(summaryService);
-      console.log('Tab changed, reinitializing content service...', service.getSiteName());
+      logger.log('Tab changed, reinitializing content service...', service.getSiteName());
       contentServiceRef.current = service;
       setCurrentSite(service.getSiteName());
       
@@ -168,7 +172,7 @@ const App: React.FC = () => {
 
       return data;
     } catch (err) {
-      console.error(`Error extracting ${currentSite} data:`, err);
+      logger.error(`Error extracting ${currentSite} data:`, err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
 
       // Display a more user-friendly message for specific errors
@@ -216,7 +220,7 @@ const App: React.FC = () => {
       // Use the streaming API to get the summary in chunks
       try {
         // Log to confirm we're starting the stream
-        console.log('Starting summarization stream...');
+        logger.log('Starting summarization stream...');
 
         let reasoningStarted = false;
         let contentStarted = false;
@@ -245,15 +249,15 @@ const App: React.FC = () => {
           }
         }
       } catch (err) {
-        console.log('Caught error during summarization:', err);
+        logger.log('Caught error during summarization:', err);
 
         // Check if this was an abort error
         if (err instanceof Error && err.name === 'AbortError') {
-          console.log('Confirmed abort error');
+          logger.log('Confirmed abort error');
           aborted = true;
         } else if (isSummarizing) {
           // If we're still in summarizing state, assume it was an abort
-          console.log('Assuming abort based on state');
+          logger.log('Assuming abort based on state');
           aborted = true;
         } else {
           // Re-throw if it wasn't an abort
@@ -267,11 +271,11 @@ const App: React.FC = () => {
         setSummary(fullSummary);
       }
     } catch (err) {
-      console.error('Error summarizing data:', err);
+      logger.error('Error summarizing data:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during summarization';
       setError(errorMessage);
     } finally {
-      console.log('Summarization finished (finally block)');
+      logger.log('Summarization finished (finally block)');
       setIsSummarizing(false);
     }
   };
@@ -309,12 +313,12 @@ const App: React.FC = () => {
 
   const handleStopSummarization = () => {
     if (isSummarizing && contentServiceRef.current) {
-      console.log('User stopping summarization...');
+      logger.log('User stopping summarization...');
       try {
         contentServiceRef.current.stopSummarization();
       } catch (error) {
         // Silently catch the AbortError - this is expected
-        console.log('Abort operation completed with expected abort error');
+        logger.log('Abort operation completed with expected abort error');
       }
       // We don't immediately set isSummarizing to false here
       // Let the summarizeContentData catch block handle it

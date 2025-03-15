@@ -1,3 +1,5 @@
+import { createLogger } from './utils';
+
 export interface BodyAndCommentsData {
   title?: string;
   content?: string;
@@ -23,6 +25,7 @@ export class SummaryService {
   private decoder: TextDecoder;
   private systemPrompt: string;
   private abortController: AbortController | null = null;
+  private logger;
 
   constructor() {
     this.decoder = new TextDecoder();
@@ -31,6 +34,7 @@ I'm too busy to read the original post and comments.
 But I want to know whether this post and comments have any information or perspectives helpful to me,
 such as person's painpoint, desires, or valuable opinions, or from person with unique background.
 I trust you to provide a clear and concise insight of the post and its top votes comments.`;
+    this.logger = createLogger('Summary Service');
   }
 
   formatPrompt(data: BodyAndCommentsData, language: string = 'en'): string {
@@ -125,7 +129,7 @@ ${commentsList}
     
     // Check if profiles array exists and has content
     if (!Array.isArray(settings.profiles) || settings.profiles.length === 0) {
-      console.error('Missing required settings:', {
+      this.logger.error('Missing required settings:', {
         hasProfiles: !!settings.profiles,
         profilesType: typeof settings.profiles,
         isArray: Array.isArray(settings.profiles),
@@ -136,10 +140,10 @@ ${commentsList}
 
     // Always use the first profile
     const activeProfile = settings.profiles[0];
-    console.log('Using first profile: [', activeProfile.profile_name, ']');
+    this.logger.log('Using first profile: [' + activeProfile.profile_name + ']');
 
     if (!activeProfile || !activeProfile.provider_type || !activeProfile.api_key || !activeProfile.api_endpoint || !activeProfile.model_name) {
-      console.error('Missing required profile fields:', {
+      this.logger.error('Missing required profile fields:', {
         hasActiveProfile: !!activeProfile,
         provider_type: activeProfile?.provider_type,
         hasApiKey: !!activeProfile?.api_key,
@@ -214,7 +218,7 @@ ${commentsList}
       while (true) {
         // Check if aborted before reading the next chunk
         if (signal.aborted) {
-          console.log('Abort detected in the stream loop');
+          this.logger.log('Abort detected in the stream loop');
           break;
         }
         
@@ -227,14 +231,14 @@ ${commentsList}
         for (const line of lines) {
           // Check abort signal again to exit as soon as possible
           if (signal.aborted) {
-            console.log('Abort detected while processing chunk');
+            this.logger.log('Abort detected while processing chunk');
             return;
           }
           
           if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
             if (data === '[DONE]') {
-              console.log('Stream done:', data);
+              this.logger.log('Stream done:', data);
               return;
             }
   
@@ -268,7 +272,7 @@ ${commentsList}
     } catch (error: unknown) {
       // Properly type the error
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Stream aborted by user');
+        this.logger.log('Stream aborted by user');
       } else {
         throw error;
       }
@@ -282,7 +286,7 @@ ${commentsList}
           response.body.cancel();
         }
       } catch (e) {
-        console.warn('Error cleaning up stream resources:', e);
+        this.logger.warn('Error cleaning up stream resources:', e);
       }
       this.abortController = null;
     }
@@ -291,12 +295,12 @@ ${commentsList}
   // Add a method to abort the stream
   abortStream(): void {
     if (this.abortController) {
-      console.log('Aborting stream...');
+      this.logger.log('Aborting stream...');
       // Simply abort - the global handler will catch the error
       this.abortController.abort();
       this.abortController = null;
     } else {
-      console.warn('No active abort controller to abort');
+      this.logger.warn('No active abort controller to abort');
     }
   }
 } 
