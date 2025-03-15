@@ -2,10 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import { Button } from '../../components/ui/button';
 import {
-  Settings,
   Loader2,
-  CircleStop,
-  MessageSquareText,
+  ExternalLink
 } from 'lucide-react';
 import { SummaryService } from '../../lib/summary';
 import { useToast } from "../../components/ui/use-toast";
@@ -368,8 +366,13 @@ const App: React.FC = () => {
       {(summary || contentData) && (
         <>
           {contentData && (
-            <div className="mb-3 mx-2 flex flex-col gap-4">
-              <h3 className="text-base font-semibold">{contentData.title || 'Untitled Post'}</h3>
+            <div className="mb-3 mx-2 flex flex-row gap-2">
+              <h3 className="text-lg font-semibold hover:underline">
+                <a href={contentData.url || ''} target="_blank" rel="noopener noreferrer">
+                  {contentData.title || 'Untitled Post'}
+                  <ExternalLink className="h-4 w-4 text-blue-500 ml-4 inline" />
+                </a>
+              </h3>
             </div>
           )}
           <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
@@ -380,7 +383,7 @@ const App: React.FC = () => {
 
             <TabsContent value="summary">
               {(isLoading || isSummarizing) && !(summary || reasoning) && (
-                <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg card-shadow">
+                <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg">
                   <div className="mb-4">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                   </div>
@@ -406,7 +409,7 @@ const App: React.FC = () => {
                 />
               )}
               {!(summary || reasoning || isSummarizing) && (
-                <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg card-shadow">
+                <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg">
                   Click to generate summary
                   <div className="flex justify-center mb-4">
                     <Button

@@ -3,6 +3,7 @@ import { SummaryService } from './summary';
 // Generic content data interface that can be extended by specific site implementations
 export interface ContentData {
   site: string;
+  url: string;
   title: string | null;
   content: string | null;
   author: string | null;
@@ -37,7 +38,7 @@ export class SiteDetector {
 
     if (url.includes('reddit.com')) {
       return 'reddit';
-    } else if (url.includes('youtube.com')) {
+    } else if (url.includes('youtube.com')) {     
       return 'youtube';
     } else {
       return 'unknown';

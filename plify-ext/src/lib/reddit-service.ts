@@ -10,6 +10,7 @@ export interface RedditComment {
 
 export interface RedditPost {
   title: string | null;
+  url: string | null;
   content: string;
   author: string | null;
   score: string | null;
@@ -107,6 +108,7 @@ export class RedditService implements ContentService {
         // Convert RedditPost to ContentData
         return {
           site: this.getSiteName(),
+          url: activeTab.url,
           title: redditPost.title,
           author: redditPost.author,
           content: redditPost.content,
@@ -165,6 +167,7 @@ export class RedditService implements ContentService {
     
     return {
       title: data.title || '',
+      url: data.url || '',
       content: redditPost?.content || '',
       author: data.author || '',
       score: redditPost?.score || '0',

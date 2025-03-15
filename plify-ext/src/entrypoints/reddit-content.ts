@@ -25,6 +25,7 @@ function extractRedditData(): RedditPost {
 
   const post: RedditPost = {
     title: postElement?.getAttribute('post-title') || null,
+    url: window.location.href || null,
     content: postContent,
     author: postElement?.getAttribute('author') || null,
     score: postElement?.getAttribute('score') || null,

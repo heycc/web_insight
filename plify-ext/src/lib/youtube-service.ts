@@ -11,6 +11,7 @@ export interface YouTubeComment {
 
 export interface YouTubeData {
   title: string | null;
+  url: string | null;
   author: string | null;
   likes: string | null;
   comments: YouTubeComment[];
@@ -114,6 +115,7 @@ export class YouTubeService implements ContentService {
         
         return {
           site: this.getSiteName(),
+          url: activeTab.url,
           title: youtubeData.title,
           content: '',
           author: youtubeData.author,
@@ -173,6 +175,7 @@ export class YouTubeService implements ContentService {
     
     return {
       title: data.title || '',
+      url: data.url || '',
       content: '', // YouTube videos don't have text content like Reddit posts
       author: data.author || '',
       score: youtubeData?.likes || '0',

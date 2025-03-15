@@ -20,6 +20,7 @@ function extractYouTubeData(): YouTubeData {
   
   const data: YouTubeData = {
     title: videoTitle,
+    url: window.location.href || null,
     author: videoAuthor,
     likes: videoLikes,
     comments: []
