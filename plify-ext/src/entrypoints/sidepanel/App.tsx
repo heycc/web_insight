@@ -74,22 +74,23 @@ const App: React.FC = () => {
         return true;
       }
 
-      // Check if current service matches the current tab's site
-      const currentSiteName = contentServiceRef.current.getSiteName().toLowerCase();
+      // Always update current site to match the content service
+      const currentSiteLower = contentServiceRef.current.getSiteName().toLowerCase();
+      setCurrentSite(contentServiceRef.current.getSiteName().toLowerCase());
 
       let needsReinitialization = false;
-      if (url.includes('reddit.com') && currentSiteName !== 'reddit') {
+      if (url.includes('reddit.com') && currentSiteLower !== 'reddit') {
         needsReinitialization = true;
-      } else if (url.includes('youtube.com') && currentSiteName !== 'youtube') {
+      } else if (url.includes('youtube.com') && currentSiteLower !== 'youtube') {
         needsReinitialization = true;
       }
 
       // Reinitialize if needed
       if (needsReinitialization) {
-        console.log('Site changed, reinitializing content service...');
         const service = await ContentServiceFactory.createService(summaryService);
         contentServiceRef.current = service;
         setCurrentSite(service.getSiteName());
+        console.log('Site changed, reinitializing content service...', service.getSiteName());
         return true;
       }
 
@@ -126,7 +127,12 @@ const App: React.FC = () => {
     // Listen for tab activation changes
     const handleTabActivated = async (activeInfo: chrome.tabs.TabActiveInfo) => {
       console.log(`Tab activated: ${activeInfo.tabId}`);
-      await ensureCorrectContentService();
+      // Always reinitialize content service when tab activation changes
+      const service = await ContentServiceFactory.createService(summaryService);
+      console.log('Tab changed, reinitializing content service...', service.getSiteName());
+      contentServiceRef.current = service;
+      setCurrentSite(service.getSiteName());
+      
     };
 
     // Add event listeners

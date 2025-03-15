@@ -34,10 +34,10 @@ export class SiteDetector {
     }
     
     const url = tabs[0].url || '';
-    
+
     if (url.includes('reddit.com')) {
       return 'reddit';
-    } else if (url.includes('youtube.com/watch')) {
+    } else if (url.includes('youtube.com')) {
       return 'youtube';
     } else {
       return 'unknown';
