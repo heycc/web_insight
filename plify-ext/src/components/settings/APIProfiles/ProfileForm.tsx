@@ -88,7 +88,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="profile_name"
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>Profile Name</FormLabel>
+              <FormLabel className="text-base font-normal">Profile Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Name this profile"
@@ -106,7 +106,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="provider_type"
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>Provider Type</FormLabel>
+              <FormLabel className="text-base font-normal">Provider Type</FormLabel>
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
@@ -138,7 +138,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="api_endpoint"
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>API Endpoint</FormLabel>
+              <FormLabel className="text-base font-normal">API Endpoint</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter api endpoint, usually ending with /v1"
@@ -173,7 +173,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="api_key"
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>API Key</FormLabel>
+              <FormLabel className="text-base font-normal">API Key</FormLabel>
               <div className="flex items-center">
                 <FormControl>
                   <Input
@@ -228,7 +228,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="model_name"
           render={({ field }) => (
             <FormItem className='space-y-1'>
-              <FormLabel>Model Name</FormLabel>
+              <FormLabel className="text-base font-normal">Model Name</FormLabel>
               {!isEditing && (
                 <div className="flex items-center">
                   <div className="flex-grow">
@@ -339,7 +339,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           name="temperature"
           render={({ field }) => (
             <FormItem className='space-y-0'>
-              <FormLabel>Temperature</FormLabel>
+              <FormLabel className="text-base font-normal">Temperature</FormLabel>
               <div className="flex flex-col">
                 <div className="flex items-center space-x-4">
                   <FormControl>
