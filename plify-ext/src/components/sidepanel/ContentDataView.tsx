@@ -9,7 +9,7 @@ const ContentDataView: React.FC<ContentDataViewProps> = ({ contentData }) => {
   if (!contentData) return null;
 
   return (
-    <div className="shadow-sm overflow-hidden card-shadow bg-card rounded-lg">
+    <div className="shadow-sm overflow-hidden bg-card rounded-lg">
       <div className="p-4">
         {contentData.content && (
           <div className="mb-4 text-base text-card-foreground">{contentData.content}</div>

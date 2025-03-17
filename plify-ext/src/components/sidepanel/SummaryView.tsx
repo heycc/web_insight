@@ -65,7 +65,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   }, [showReasoning]);
 
   return (
-    <div className="rounded-lg shadow-sm overflow-hidden card-shadow bg-card">
+    <div className="rounded-lg shadow-sm overflow-hidden bg-card">
       {reasoning && (
         <div className="">
           <button

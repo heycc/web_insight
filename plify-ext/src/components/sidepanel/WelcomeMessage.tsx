@@ -7,7 +7,7 @@ interface WelcomeMessageProps {
 
 const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ currentSite }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center bg-card rounded-lg card-shadow border border-primary/20 animate-fadeIn">
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-card rounded-lg border border-primary/20 animate-fadeIn">
       <div className="mb-6 bg-primary/10 p-4 rounded-full">
         <MessageSquareText className="h-14 w-14 text-primary" />
       </div>
