@@ -49,4 +49,18 @@ export const DEFAULT_API_ENDPOINTS: Record<ProviderType, string> = {
   [ProviderType.ANTHROPIC]: 'https://api.anthropic.com',
   [ProviderType.GEMINI]: 'https://generativelanguage.googleapis.com',
   [ProviderType.LMSTUDIO]: 'http://127.0.0.1:1234/v1'
-}; 
+};
+
+// Add shared form schema for profile form
+import * as z from "zod";
+
+export const profileFormSchema = z.object({
+  profile_name: z.string().min(4, "Profile name is required").max(32, "Profile name must be less than 32 characters"),
+  provider_type: z.string(),
+  api_endpoint: z.string().url("Please enter a valid URL"),
+  api_key: z.string().min(1, "API key is required").max(100, "API key must be less than 100 characters"),
+  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters"),
+  temperature: z.number().min(0.1, "Temperature must be at least 0.1").max(1.5, "Temperature must be at most 1.5")
+});
+
+export type ProfileFormValues = z.infer<typeof profileFormSchema>; 

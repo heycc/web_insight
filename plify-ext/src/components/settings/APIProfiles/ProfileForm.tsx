@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Eye, EyeOff, Copy } from 'lucide-react';
@@ -21,21 +21,15 @@ import {
 import { Slider } from "../../ui/slider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useToast } from "../../ui/use-toast";
-import { Profile, ProviderType, ModelName, DEFAULT_API_ENDPOINTS } from '../types';
-
-// Define the form schema with Zod
-const profileFormSchema = z.object({
-  profile_name: z.string().min(4, "Profile name is required").max(32, "Profile name must be less than 32 characters"),
-  provider_type: z.string(),
-  api_endpoint: z.string().url("Please enter a valid URL"),
-  api_key: z.string().min(1, "API key is required").max(100, "API key must be less than 100 characters"),
-  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters"),
-  temperature: z.number().min(0.1, "Temperature must be at least 0.1").max(1.5, "Temperature must be at most 1.5")
-});
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+import { 
+  Profile, 
+  ProviderType, 
+  ModelName, 
+  DEFAULT_API_ENDPOINTS,
+  profileFormSchema,
+  ProfileFormValues
+} from '../types';
 
 interface ProfileFormProps {
   activeProfile: Profile | null;
@@ -68,7 +62,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   });
 
   // Reset form when active profile changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeProfile) {
       form.reset({
         profile_name: activeProfile.profile_name,

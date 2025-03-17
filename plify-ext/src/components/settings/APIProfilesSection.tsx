@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { ProfileSelector, ProfileForm, NoProfiles } from './APIProfiles';
-import { Profile } from './types';
-import { useToast } from "../../components/ui/use-toast";
+import { Profile, ProfileFormValues } from './types';
 
 interface APIProfilesSectionProps {
   profiles: Profile[];
@@ -13,7 +11,7 @@ interface APIProfilesSectionProps {
   onEditProfile: () => void;
   onDeleteProfile: () => void;
   onMoveToTop: (profile: Profile) => void;
-  onProfileFormSubmit: (data: any) => void;
+  onProfileFormSubmit: (data: ProfileFormValues) => void;
   onProfileCancel: () => void;
 }
 
@@ -30,11 +28,9 @@ const APIProfilesSection: React.FC<APIProfilesSectionProps> = ({
   onProfileCancel
 }) => {
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>API Profiles</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="mb-6">
+      <h2 className="text-xl mb-4">API Profiles</h2>
+      <div className="space-y-4">
         {/* Case 1: No profiles configured */}
         {profiles.length === 0 && !isEditing && (
           <NoProfiles onAddNewProfile={onAddNewProfile} />
@@ -70,8 +66,8 @@ const APIProfilesSection: React.FC<APIProfilesSectionProps> = ({
             onCancel={onProfileCancel}
           />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -13,7 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../ui/popover";
-import { useToast } from "../../ui/use-toast";
 import { Profile } from '../types';
 
 interface ProfileSelectorProps {
@@ -36,7 +35,6 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   onMoveToTop
 }) => {
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = React.useState(false);
-  const { toast } = useToast();
 
   return (
     <div className="mb-4 flex flex-col gap-1">

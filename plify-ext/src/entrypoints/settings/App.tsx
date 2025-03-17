@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Toaster } from "../../components/ui/toaster";
 import { useToast } from "../../components/ui/use-toast";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 
 import { createLogger } from "../../lib/utils";
 import { 
@@ -17,7 +13,8 @@ import {
   Profile,
   Settings,
   ProviderType,
-  Language
+  Language,
+  ProfileFormValues
 } from '../../components/settings/types';
 
 const DEFAULT_PROFILE: Profile = {
@@ -30,18 +27,6 @@ const DEFAULT_PROFILE: Profile = {
   temperature: 0.6
 };
 
-// Define the form schema with Zod
-const profileFormSchema = z.object({
-  profile_name: z.string().min(4, "Profile name is required").max(32, "Profile name must be less than 32 characters"),
-  provider_type: z.string(),
-  api_endpoint: z.string().url("Please enter a valid URL"),
-  api_key: z.string().min(1, "API key is required").max(100, "API key must be less than 100 characters"),
-  model_name: z.string().min(1, "Model name is required").max(100, "Model name must be less than 100 characters"),
-  temperature: z.number().min(0.1, "Temperature must be at least 0.1").max(1.5, "Temperature must be at most 1.5")
-});
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
 const App = () => {
   const [settings, setSettings] = useState<Settings>({
     profiles: [],
@@ -52,45 +37,14 @@ const App = () => {
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("profiles");
 
-  const [customModelInput, setCustomModelInput] = useState<boolean>(false);
-  const [isDeletePopoverOpen, setIsDeletePopoverOpen] = useState(false);
   const { toast } = useToast();
   const logger = createLogger('Settings');
-
-  // Initialize the form
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      profile_name: '',
-      provider_type: ProviderType.OAI_COMPATIBLE,
-      api_endpoint: '',
-      api_key: '',
-      model_name: '',
-      temperature: 0.6,
-    }
-  });
 
   useEffect(() => {
     loadSettings();
   }, []);
-
-  // Reset form when active profile changes
-  useEffect(() => {
-    if (activeProfile) {
-      form.reset({
-        profile_name: activeProfile.profile_name,
-        provider_type: activeProfile.provider_type,
-        api_endpoint: activeProfile.api_endpoint,
-        api_key: activeProfile.api_key,
-        model_name: activeProfile.model_name || '',
-        temperature: activeProfile.temperature ?? 0.6,
-      });
-
-      // Always reset customModelInput to false when profile changes
-      setCustomModelInput(false);
-    }
-  }, [activeProfile, form]);
 
   const loadSettings = async () => {
     try {
@@ -138,11 +92,6 @@ const App = () => {
 
       logger.log('Saving settings:', settingsToSave.profiles);
       await chrome.storage.local.set(settingsToSave);
-      toast({
-        title: "Settings saved successfully!",
-        description: "Your settings have been saved.",
-        variant: "default",
-      });
     } catch (error) {
       logger.error('Error saving settings:', error);
       toast({
@@ -183,7 +132,6 @@ const App = () => {
 
     setActiveProfile(newProfile);
     setIsEditing(true);
-    setCustomModelInput(false);
   };
 
   const handleProfileFormSubmit = (data: ProfileFormValues) => {
@@ -264,9 +212,6 @@ const App = () => {
         profiles: updatedProfiles
       };
     });
-
-    // Close the popover after deletion
-    setIsDeletePopoverOpen(false);
   };
 
   const moveProfileToTop = (profile: Profile) => {
@@ -289,7 +234,7 @@ const App = () => {
       });
 
       toast({
-        title: "Profile set as favorite",
+        // title: "Profile set as favorite",
         description: `${profile.profile_name} is now your top profile.`,
         variant: "default",
       });
@@ -314,29 +259,62 @@ const App = () => {
 
   return (
     <>
-      <div className="flex flex-col max-w-3xl mx-auto p-4">
+      <div className="flex flex-col max-w-4xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <PrivacyNotice />
 
-        <APIProfilesSection 
-          profiles={settings.profiles}
-          activeProfile={activeProfile}
-          isEditing={isEditing}
-          onProfileChange={setActiveProfile}
-          onAddNewProfile={addNewProfile}
-          onEditProfile={editProfile}
-          onDeleteProfile={deleteProfile}
-          onMoveToTop={moveProfileToTop}
-          onProfileFormSubmit={handleProfileFormSubmit}
-          onProfileCancel={handleProfileCancel}
-        />
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab} 
+          className="w-full mb-4"
+          data-orientation="vertical"
+        >
+          <div className="flex flex-row space-x-6">
+            {/* Left side tabs */}
+            <TabsList className="flex flex-col h-auto w-40 space-y-2 justify-start bg-white">
+              <TabsTrigger 
+                value="profiles" 
+                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+              >
+                API Profiles
+              </TabsTrigger>
+              <TabsTrigger 
+                value="general" 
+                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+              >
+                General
+              </TabsTrigger>
+            </TabsList>
 
-        <LanguagePreference 
-          language={settings.language}
-          onSaveSettings={handleSaveLanguage}
-        />
+            {/* Right side content */}
+            <div className="flex-1">
+              <TabsContent value="profiles" className="mt-0 ml-0">
+                <APIProfilesSection 
+                  profiles={settings.profiles}
+                  activeProfile={activeProfile}
+                  isEditing={isEditing}
+                  onProfileChange={setActiveProfile}
+                  onAddNewProfile={addNewProfile}
+                  onEditProfile={editProfile}
+                  onDeleteProfile={deleteProfile}
+                  onMoveToTop={moveProfileToTop}
+                  onProfileFormSubmit={handleProfileFormSubmit}
+                  onProfileCancel={handleProfileCancel}
+                />
+              </TabsContent>
+
+              <TabsContent value="general" className="mt-0 ml-0">
+                <LanguagePreference 
+                  language={settings.language}
+                  onSaveSettings={handleSaveLanguage}
+                />
+              </TabsContent>
+            </div>
+          </div>
+        </Tabs>
       </div>
+
       <Toaster />
     </>
   );
