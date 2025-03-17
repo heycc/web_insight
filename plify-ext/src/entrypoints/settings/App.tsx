@@ -4,19 +4,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../../components/ui/select';
 import { Toaster } from "../../components/ui/toaster";
 import { useToast } from "../../components/ui/use-toast";
 
 import { createLogger } from "../../lib/utils";
-import { ProfileSelector, ProfileForm, NoProfiles } from '../../components/settings';
-import { Profile, Settings, ProviderType } from '../../components/settings/types';
+import { 
+  APIProfilesSection, 
+  LanguagePreference, 
+  PrivacyNotice 
+} from '../../components/settings';
+import { 
+  Profile,
+  Settings,
+  ProviderType,
+  Language
+} from '../../components/settings/types';
 
 const DEFAULT_PROFILE: Profile = {
   index: 0,
@@ -44,7 +46,7 @@ const App = () => {
   const [settings, setSettings] = useState<Settings>({
     profiles: [],
     theme: 'system',
-    language: 'en',
+    language: Language.EN,
   });
 
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
@@ -151,24 +153,24 @@ const App = () => {
     }
   };
 
-  const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /*
+   * This function handles language preference changes from the LanguagePreference component.
+   * We update the local state immediately to reflect the change in the UI,
+   * and also persist the change to storage to ensure it's available across sessions.
+   * The language setting is maintained at the App level because it affects the entire application
+   * and needs to be accessible to multiple components.
+   */
+  const handleSaveLanguage = (newLanguage: Language) => {
     setSettings(prev => ({
       ...prev,
-      theme: e.target.value as 'light' | 'dark' | 'system'
-    }));
-  };
-
-  const handleLanguageChange = (value: string) => {
-    setSettings(prev => ({
-      ...prev,
-      language: value as 'en' | 'zh-CN' | 'ja'
+      language: newLanguage
     }));
 
     // Save the updated language setting immediately
     saveSettings({
       profiles: settings.profiles,
       theme: settings.theme,
-      language: value as 'en' | 'zh-CN' | 'ja'
+      language: newLanguage
     });
   };
 
@@ -315,83 +317,25 @@ const App = () => {
       <div className="flex flex-col max-w-3xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-          <h3 className="text-blue-800 text-xl mb-1">Privacy Notice</h3>
-          <p className="text-sm text-blue-700">
-            All settings, including your API keys, are stored locally in your browser and are never sent to our servers.
-            Your credentials remain private and secure on your device.
-          </p>
-        </div>
+        <PrivacyNotice />
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>API Profiles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Case 1: No profiles configured */}
-            {settings.profiles.length === 0 && !isEditing && (
-              <NoProfiles onAddNewProfile={addNewProfile} />
-            )}
+        <APIProfilesSection 
+          profiles={settings.profiles}
+          activeProfile={activeProfile}
+          isEditing={isEditing}
+          onProfileChange={setActiveProfile}
+          onAddNewProfile={addNewProfile}
+          onEditProfile={editProfile}
+          onDeleteProfile={deleteProfile}
+          onMoveToTop={moveProfileToTop}
+          onProfileFormSubmit={handleProfileFormSubmit}
+          onProfileCancel={handleProfileCancel}
+        />
 
-            {/* Case 2: Has profiles and not editing */}
-            {settings.profiles.length > 0 && !isEditing && activeProfile && (
-              <>
-                <ProfileSelector 
-                  activeProfile={activeProfile}
-                  profiles={settings.profiles}
-                  onProfileChange={setActiveProfile}
-                  onAddNewProfile={addNewProfile}
-                  onEditProfile={editProfile}
-                  onDeleteProfile={deleteProfile}
-                  onMoveToTop={moveProfileToTop}
-                />
-                <ProfileForm 
-                  activeProfile={activeProfile}
-                  isEditing={false}
-                  onSubmit={handleProfileFormSubmit}
-                  onCancel={handleProfileCancel}
-                />
-              </>
-            )}
-
-            {/* Case 3: Is editing (either existing profile or new profile) */}
-            {isEditing && (
-              <ProfileForm 
-                activeProfile={activeProfile}
-                isEditing={true}
-                onSubmit={handleProfileFormSubmit}
-                onCancel={handleProfileCancel}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="font-medium">Language</div>
-              <Select
-                onValueChange={handleLanguageChange}
-                value={settings.language}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="zh-CN">简体中文 (Simplified Chinese)</SelectItem>
-                  <SelectItem value="ja">日本語 (Japanese)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-muted-foreground">
-                Preferred language for the response.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <LanguagePreference 
+          language={settings.language}
+          onSaveSettings={handleSaveLanguage}
+        />
       </div>
       <Toaster />
     </>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
 import { Eye, EyeOff, Copy } from 'lucide-react';
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '../../components/ui/select';
+} from "../../ui/select";
 import {
   Form,
   FormControl,
@@ -17,13 +17,13 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "../../components/ui/form";
-import { Slider } from "../../components/ui/slider";
+} from "../../ui/form";
+import { Slider } from "../../ui/slider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "../../components/ui/use-toast";
-import { Profile, ProviderType, ModelName, DEFAULT_API_ENDPOINTS } from './types';
+import { useToast } from "../../ui/use-toast";
+import { Profile, ProviderType, ModelName, DEFAULT_API_ENDPOINTS } from '../types';
 
 // Define the form schema with Zod
 const profileFormSchema = z.object({

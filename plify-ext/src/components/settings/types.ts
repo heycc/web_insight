@@ -14,6 +14,18 @@ export enum ModelName {
   QWEN_LONG = 'qwen-max',
 }
 
+export enum Language {
+  EN = 'en',
+  ZH_CN = 'zh-CN',
+  JA = 'ja'
+}
+
+export const LANGUAGE_LABELS: Record<Language, string> = {
+  [Language.EN]: 'English',
+  [Language.ZH_CN]: '简体中文 (Simplified Chinese)',
+  [Language.JA]: '日本語 (Japanese)'
+};
+
 export interface Profile {
   index: number;
   profile_name: string;
@@ -27,7 +39,7 @@ export interface Profile {
 export interface Settings {
   profiles: Profile[];
   theme: 'light' | 'dark' | 'system';
-  language: 'en' | 'zh-CN' | 'ja';
+  language: Language;
 }
 
 // Add default API endpoints for each provider type

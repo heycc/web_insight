@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '../../components/ui/button';
+import { Button } from '../../ui/button';
 import { Plus, Pencil, Trash2, ArrowUpToLine } from 'lucide-react';
 import {
   Select,
@@ -7,14 +7,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '../../components/ui/select';
+} from '../../ui/select';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../../components/ui/popover";
-import { useToast } from "../../components/ui/use-toast";
-import { Profile } from './types';
+} from "../../ui/popover";
+import { useToast } from "../../ui/use-toast";
+import { Profile } from '../types';
 
 interface ProfileSelectorProps {
   activeProfile: Profile;
