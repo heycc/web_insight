@@ -38,7 +38,7 @@ export interface Profile {
 
 export interface Prompt {
   id: string;
-  title: string;
+  command: string;
   content: string;
   createdAt: Date;
   updatedAt: Date;

@@ -283,7 +283,7 @@ const App = () => {
       });
       
       toast({
-        description: `Prompt "${prompt.title}" has been saved.`,
+        description: `Prompt "${prompt.command}" has been saved.`,
         variant: "default",
       });
       
