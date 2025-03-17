@@ -312,7 +312,7 @@ const App = () => {
 
   return (
     <>
-      <div className="flex flex-col max-w-2xl mx-auto p-4">
+      <div className="flex flex-col max-w-3xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">

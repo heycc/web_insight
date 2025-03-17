@@ -52,9 +52,9 @@ export class SummaryService {
       languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
     }
 
-    return `Please analyze this post and its top comments to provide insightful perspective.
+    return `<INSTRUCTIONS>
+Please analyze this post and its top N comments to provide insightful perspective.
 
-<INSTRUCTIONS>
 1. Firstly, thoroughly read the entire post and all comments.
 2. Secondly, group similar comments into coherent viewpoints up to 6 ~ 10 viewpoints, prioritizing those with significant engagement and substantive comments, ordered by number of 👍.
 3. Thirdly, provide your own perspective, including potential groupthink, bias, or shallowness, and what can we learn from this discussion.
