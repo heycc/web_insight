@@ -36,10 +36,19 @@ export interface Profile {
   temperature: number;
 }
 
+export interface Prompt {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Settings {
   profiles: Profile[];
   theme: 'light' | 'dark' | 'system';
   language: Language;
+  prompts: Prompt[];
 }
 
 // Add default API endpoints for each provider type

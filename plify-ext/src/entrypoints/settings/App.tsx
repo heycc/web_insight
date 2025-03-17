@@ -7,14 +7,16 @@ import { createLogger } from "../../lib/utils";
 import { 
   APIProfilesSection, 
   LanguagePreference, 
-  PrivacyNotice 
+  PrivacyNotice,
+  Prompts
 } from '../../components/settings';
 import { 
   Profile,
   Settings,
   ProviderType,
   Language,
-  ProfileFormValues
+  ProfileFormValues,
+  Prompt
 } from '../../components/settings/types';
 
 const DEFAULT_PROFILE: Profile = {
@@ -32,6 +34,7 @@ const App = () => {
     profiles: [],
     theme: 'system',
     language: Language.EN,
+    prompts: []
   });
 
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
@@ -49,7 +52,7 @@ const App = () => {
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const result = await chrome.storage.local.get(['profiles', 'theme', 'language']);
+      const result = await chrome.storage.local.get(['profiles', 'theme', 'language', 'prompts']);
       logger.log('Loaded from storage:', result);
 
       if (result.profiles && result.profiles.length > 0) {
@@ -62,7 +65,8 @@ const App = () => {
         setSettings({
           profiles: validatedProfiles,
           theme: result.theme || 'system',
-          language: result.language || 'en'
+          language: result.language || 'en',
+          prompts: result.prompts || []
         });
         // Set the first profile as active
         setActiveProfile(validatedProfiles[0]);
@@ -71,7 +75,8 @@ const App = () => {
         setSettings({
           profiles: [],
           theme: result.theme || 'system',
-          language: result.language || 'en'
+          language: result.language || 'en',
+          prompts: result.prompts || []
         });
       }
     } catch (error) {
@@ -87,10 +92,11 @@ const App = () => {
       const settingsToSave = currentSettings || {
         profiles: settings.profiles,
         theme: settings.theme,
-        language: settings.language
+        language: settings.language,
+        prompts: settings.prompts
       };
 
-      logger.log('Saving settings:', settingsToSave.profiles);
+      logger.log('Saving settings:', settingsToSave);
       await chrome.storage.local.set(settingsToSave);
     } catch (error) {
       logger.error('Error saving settings:', error);
@@ -119,7 +125,8 @@ const App = () => {
     saveSettings({
       profiles: settings.profiles,
       theme: settings.theme,
-      language: newLanguage
+      language: newLanguage,
+      prompts: settings.prompts
     });
   };
 
@@ -177,7 +184,8 @@ const App = () => {
     saveSettings({
       profiles: updatedProfiles,
       theme: settings.theme,
-      language: settings.language
+      language: settings.language,
+      prompts: settings.prompts
     });
   };
 
@@ -204,7 +212,8 @@ const App = () => {
       saveSettings({
         profiles: updatedProfiles,
         theme: prev.theme,
-        language: prev.language
+        language: prev.language,
+        prompts: prev.prompts
       });
 
       return {
@@ -230,7 +239,8 @@ const App = () => {
       saveSettings({
         profiles: updatedProfiles,
         theme: settings.theme,
-        language: settings.language
+        language: settings.language,
+        prompts: settings.prompts
       });
 
       toast({
@@ -247,6 +257,65 @@ const App = () => {
     if (settings.profiles.length > 0 && !settings.profiles.find(p => p.index === activeProfile?.index)) {
       setActiveProfile(settings.profiles[0]);
     }
+  };
+
+  const handleSavePrompt = (prompt: Prompt) => {
+    setSettings(prev => {
+      // Check if this prompt already exists
+      const existingPromptIndex = prev.prompts.findIndex(p => p.id === prompt.id);
+      let updatedPrompts: Prompt[];
+      
+      if (existingPromptIndex >= 0) {
+        // Update existing prompt
+        updatedPrompts = [...prev.prompts];
+        updatedPrompts[existingPromptIndex] = prompt;
+      } else {
+        // Add new prompt
+        updatedPrompts = [...prev.prompts, prompt];
+      }
+      
+      // Save the updated prompts to storage
+      saveSettings({
+        profiles: prev.profiles,
+        theme: prev.theme,
+        language: prev.language,
+        prompts: updatedPrompts
+      });
+      
+      toast({
+        description: `Prompt "${prompt.title}" has been saved.`,
+        variant: "default",
+      });
+      
+      return {
+        ...prev,
+        prompts: updatedPrompts
+      };
+    });
+  };
+
+  const handleDeletePrompt = (promptId: string) => {
+    setSettings(prev => {
+      const updatedPrompts = prev.prompts.filter(p => p.id !== promptId);
+      
+      // Save the updated prompts to storage
+      saveSettings({
+        profiles: prev.profiles,
+        theme: prev.theme,
+        language: prev.language,
+        prompts: updatedPrompts
+      });
+      
+      toast({
+        description: "Prompt has been deleted.",
+        variant: "default",
+      });
+      
+      return {
+        ...prev,
+        prompts: updatedPrompts
+      };
+    });
   };
 
   if (isLoading) {
@@ -280,6 +349,12 @@ const App = () => {
                 API Profiles
               </TabsTrigger>
               <TabsTrigger 
+                value="prompts" 
+                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+              >
+                Prompts
+              </TabsTrigger>
+              <TabsTrigger 
                 value="general" 
                 className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
               >
@@ -301,6 +376,14 @@ const App = () => {
                   onMoveToTop={moveProfileToTop}
                   onProfileFormSubmit={handleProfileFormSubmit}
                   onProfileCancel={handleProfileCancel}
+                />
+              </TabsContent>
+
+              <TabsContent value="prompts" className="mt-0 ml-0">
+                <Prompts 
+                  prompts={settings.prompts}
+                  onSavePrompt={handleSavePrompt}
+                  onDeletePrompt={handleDeletePrompt}
                 />
               </TabsContent>
 
