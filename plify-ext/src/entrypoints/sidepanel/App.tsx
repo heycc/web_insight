@@ -44,6 +44,8 @@ const App: React.FC = () => {
     summary: false,
     withReasoning: false
   });
+  // Store the content of the currently selected prompt
+  const [currentPromptContent, setCurrentPromptContent] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   // Create a single shared instance of SummaryService
@@ -192,7 +194,14 @@ const App: React.FC = () => {
     }
   };
 
-  const summarizeContentData = async (data: ContentData | null = null) => {
+  // Handle prompt selection from the Header component
+  const handleSelectPrompt = (promptContent: string | undefined) => {
+    // Store the selected prompt content for use in summarization
+    setCurrentPromptContent(promptContent);
+    logger.log('Selected prompt content updated:', promptContent ? 'custom prompt' : 'default');
+  };
+
+  const summarizeContentData = async (data: ContentData | null = null, customPrompt?: string) => {
     if (!contentServiceRef.current) {
       setError('Content service not initialized');
       return;
@@ -225,7 +234,7 @@ const App: React.FC = () => {
         let contentStarted = false;
         let reasoningFolded = false;
 
-        for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize)) {
+        for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize, customPrompt)) {
           if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
@@ -279,13 +288,23 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSummarize = async () => {
+  // Handle summarize button click with optional custom prompt content
+  const handleSummarize = async (promptContent?: string) => {
+    // Use either the provided prompt content or the one stored in state
+    const promptToUse = promptContent !== undefined ? promptContent : currentPromptContent;
+    
     // First extract data, then summarize
     setIsLoading(true);
     const extractedData = await extractContentData();
     if (extractedData) {
-      await summarizeContentData(extractedData);
+      await summarizeContentData(extractedData, promptToUse);
     }
+  };
+
+  // Regenerate the summary using the stored prompt content
+  const handleRegenerate = async () => {
+    // Use the stored prompt content when regenerating
+    await handleSummarize(currentPromptContent);
   };
 
   const handleCopySummary = (includeReasoning: boolean = false) => {
@@ -349,6 +368,7 @@ const App: React.FC = () => {
         onSummarize={handleSummarize}
         onStopSummarization={handleStopSummarization}
         onOpenSettings={openSettings}
+        onSelectPrompt={handleSelectPrompt}
       />
 
       {/* Error message */}
@@ -406,7 +426,7 @@ const App: React.FC = () => {
                   copiedState={copiedState}
                   onToggleReasoning={() => setShowReasoning(!showReasoning)}
                   onCopy={handleCopySummary}
-                  onRegenerate={handleSummarize}
+                  onRegenerate={handleRegenerate}
                 />
               )}
               {!(summary || reasoning || isSummarizing) && (
@@ -414,7 +434,7 @@ const App: React.FC = () => {
                   Click to generate summary
                   <div className="flex justify-center mb-4">
                     <Button
-                      onClick={handleSummarize}
+                      onClick={() => handleSummarize()}
                       className=""
                       variant="outline"
                     >
