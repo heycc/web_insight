@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
-import { Settings, Loader2, CircleStop, ChevronDown } from 'lucide-react';
+import { Settings, Loader2, CircleStop, Send } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "../ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover";
 import { Prompt } from '../settings/types';
 
 /**
@@ -49,24 +43,40 @@ const Header: React.FC<HeaderProps> = ({
   onSelectPrompt,
 }) => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [selectedPromptId, setSelectedPromptId] = useState<string>('default');
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [selectedPromptId, setSelectedPromptId] = useState<string>('');
+  const [loadError, setLoadError] = useState<boolean>(false);
+  // Add a ref to track if we've done the initial prompt selection
+  const initializedRef = useRef(false);
 
   // Load prompts from storage
   useEffect(() => {
     const loadPrompts = async () => {
-      const result = await chrome.storage.local.get(['prompts']);
-      if (result.prompts && Array.isArray(result.prompts) && result.prompts.length > 0) {
-        setPrompts(result.prompts);
+      try {
+        const result = await chrome.storage.local.get(['prompts']);
+        if (result.prompts && Array.isArray(result.prompts) && result.prompts.length > 0) {
+          setPrompts(result.prompts);
+          setSelectedPromptId(result.prompts[0].id);
+
+          // Initialize with the first prompt - only if we haven't already
+          if (onSelectPrompt && !initializedRef.current) {
+            onSelectPrompt(result.prompts[0].content);
+            initializedRef.current = true;
+          }
+        } else {
+          setLoadError(true);
+        }
+      } catch (error) {
+        console.error("Error loading prompts:", error);
+        setLoadError(true);
       }
     };
-    
+
     loadPrompts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Get the currently selected prompt content
   const getSelectedPromptContent = (): string | undefined => {
-    if (selectedPromptId === 'default') return undefined;
     const selectedPrompt = prompts.find(p => p.id === selectedPromptId);
     return selectedPrompt?.content;
   };
@@ -74,13 +84,10 @@ const Header: React.FC<HeaderProps> = ({
   // Handle prompt selection change
   const handlePromptSelect = (promptId: string) => {
     setSelectedPromptId(promptId);
-    
+
     // Notify parent component about the prompt content change
     if (onSelectPrompt) {
-      const promptContent = promptId === 'default' 
-        ? undefined 
-        : prompts.find(p => p.id === promptId)?.content;
-      
+      const promptContent = prompts.find(p => p.id === promptId)?.content;
       onSelectPrompt(promptContent);
     }
   };
@@ -89,86 +96,79 @@ const Header: React.FC<HeaderProps> = ({
   const handleSummarize = () => {
     const promptContent = getSelectedPromptContent();
     onSummarize(promptContent);
-    setPopoverOpen(false);
   };
 
   return (
     <div className="flex justify-between items-center mb-4 p-1">
-      <h2 className="text-xl font-bold text-gradient">
-        {currentSite === 'unknown' ? 'Site Not Supported' : `${currentSite} Insight`}
-      </h2>
-      <div className="flex items-center gap-2">
-        {isSummarizing && (
-          <Button
-            onClick={onStopSummarization}
-            variant="ghost"
-            size="default"
-            className="text-destructive hover:bg-primary/20 hover:text-destructive"
-            title="Stop Generating"
-          >
-            <CircleStop className="!w-6 !h-6" />
-          </Button>
-        )}
-        
-        <div className="flex">
-          <Button
-            onClick={handleSummarize}
-            disabled={isLoading || isSummarizing || currentSite === 'unknown'}
-            className="shadow-md hover:shadow-lg transition-all rounded-r-none"
-            variant="default"
-            size="sm"
-          >
-            {isLoading || isSummarizing ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {isLoading ? 'Extracting' : 'Summarizing'}
-              </span>
-            ) : (
-              selectedPromptId === 'default' ? 'Summarize' : prompts.find(p => p.id === selectedPromptId)?.command || 'Summarize'
-            )}
-          </Button>
-          
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                disabled={isLoading || isSummarizing || currentSite === 'unknown'}
-                className="px-2 rounded-l-none border-l border-primary-foreground/20"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-0" align="end">
-              <div className="p-2">
-                <Select
-                  value={selectedPromptId}
-                  onValueChange={handlePromptSelect}
-                >
-                  <SelectTrigger className="w-full mb-2">
-                    <SelectValue placeholder="Select a prompt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    {prompts.map((prompt) => (
-                      <SelectItem key={prompt.id} value={prompt.id}>
-                        {prompt.command}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Button 
-                  className="w-full"
-                  onClick={handleSummarize}
-                >
-                  Apply
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+      {loadError && (
+        <div className="text-sm text-destructive p-1 ml-2">
+          No prompts found. Please add one in settings.
         </div>
-        
+      )}
+      {!loadError && (
+        <div className="flex items-center gap-2">
+          {isSummarizing && (
+            <Button
+              onClick={onStopSummarization}
+              variant="ghost"
+              size="default"
+              className="text-destructive hover:bg-primary/20 hover:text-destructive"
+              title="Stop Generating"
+            >
+              <CircleStop className="!w-6 !h-6" />
+            </Button>
+          )}
+          <div className="flex">
+            <Button
+              onClick={handleSummarize}
+              disabled={isLoading || isSummarizing || currentSite === 'unknown' || loadError || prompts.length === 0}
+              className="shadow-md hover:shadow-lg transition-all rounded-l-full"
+              variant="default"
+              size="sm"
+            >
+              {isLoading || isSummarizing ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {isLoading ? 'Extracting' : 'Summarizing'}
+                </span>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  {prompts.find(p => p.id === selectedPromptId)?.command || 'Summarize'}
+                </>
+              )}
+            </Button>
+            <div className="h-9 w-1 bg-border"></div>
+            {!loadError && (
+              <Select
+                value={selectedPromptId}
+                onValueChange={(value) => {
+                  handlePromptSelect(value);
+                  // Blur the select element to remove focus after selection
+                  document.activeElement instanceof HTMLElement && document.activeElement.blur();
+                }}
+                disabled={isLoading || isSummarizing || loadError || prompts.length === 0}
+              >
+                <SelectTrigger
+                  className="shadow-md hover:shadow-lg transition-all rounded-r-full border-none h-9 bg-primary text-primary-foreground"
+                >
+                </SelectTrigger>
+                <SelectContent>
+                  {prompts.map((prompt) => (
+                    <SelectItem key={prompt.id} value={prompt.id}>
+                      {prompt.command}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <h2 className="text-xl font-bold text-gradient">
+          {currentSite === 'unknown' ? 'Site Not Supported' : `${currentSite} Insight`}
+        </h2>
         <Button
           onClick={onOpenSettings}
           variant="ghost"
