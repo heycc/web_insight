@@ -34,7 +34,7 @@ export class SummaryService {
     this.logger = createLogger('Summary Service');
   }
 
-  formatPrompt(data: BodyAndCommentsData, language: string = 'en'): string {
+  formatPrompt(data: BodyAndCommentsData, language: string = 'en', customPrompt?: string): string {
     const site = data.site || 'No site name';
     const title = data.title || 'No title';
     const postContent = data.content || 'No content';
@@ -44,6 +44,39 @@ export class SummaryService {
       .map(c => `## [Author: ${c.author || 'unknown'}, 👍: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
+    // If custom prompt is provided, use it instead of the default template
+    if (customPrompt) {
+      // Determine response language instruction based on language setting
+      let languageInstruction = 'Respond in English';
+      if (language === 'zh-CN') {
+        languageInstruction = '使用简体中文回答, 但引用的原文应该使用原文的语言.';
+      } else if (language === 'ja') {
+        languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
+      }
+
+      // Replace language placeholder if present in custom prompt
+      const promptWithLanguage = customPrompt.replace('${languageInstruction}', languageInstruction);
+
+      // Create the entire prompt with custom instructions
+      return `${promptWithLanguage}
+
+<PAGE_CONTEXT>
+# Site:
+${site}
+
+# Page TITLE:
+${title}
+
+# CONTENT:
+${postContent}
+
+# TOP COMMENTS (Up to 50):
+${commentsList}
+
+</PAGE_CONTEXT>`;
+    }
+
+    // Default prompt format if no custom prompt is provided
     // Determine response language instruction based on language setting
     let languageInstruction = 'Respond in English';
     if (language === 'zh-CN') {
@@ -168,14 +201,15 @@ ${commentsList}
   }
 
   async* streamSummary(
-    data: BodyAndCommentsData
+    data: BodyAndCommentsData,
+    customPrompt?: string
   ): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
     // Create a new abort controller for this request
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
     
     const settings = await this.getSettings();
-    const prompt = this.formatPrompt(data, settings.language);
+    const prompt = this.formatPrompt(data, settings.language, customPrompt);
 
     // Determine the API endpoint and parameters based on provider type
     let endpoint = settings.apiEndpoint;

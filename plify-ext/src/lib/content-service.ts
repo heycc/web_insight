@@ -20,7 +20,7 @@ export interface ContentComment {
 // Base content service interface
 export interface ContentService {
   extractData(): Promise<ContentData>;
-  summarizeData(data: ContentData): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown>;
+  summarizeData(data: ContentData, customPrompt?: string): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown>;
   stopSummarization(): void;
   getSummaryService(): SummaryService;
   getSiteName(): string;

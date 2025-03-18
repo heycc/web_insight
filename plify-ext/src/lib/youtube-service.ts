@@ -191,9 +191,9 @@ export class YouTubeService implements ContentService {
   /**
    * Summarize YouTube data
    */
-  async* summarizeData(data: ContentData): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
+  async* summarizeData(data: ContentData, customPrompt?: string): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
     const summaryData = this.convertToSummaryFormat(data);
-    yield* this.summaryService.streamSummary(summaryData);
+    yield* this.summaryService.streamSummary(summaryData, customPrompt);
   }
   
   /**
