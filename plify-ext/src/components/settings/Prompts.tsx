@@ -30,6 +30,19 @@ import {
   PopoverTrigger,
 } from "../ui/popover";
 
+/**
+ * Prompts Management Component
+ * 
+ * This component manages the creation, editing, and deletion of prompt templates in the settings page.
+ * It is used in the options/settings page for managing prompt library.
+ * 
+ * The prompts created and managed here are loaded by the Header.tsx component in the sidepanel,
+ * which allows users to select a prompt when summarizing content.
+ * 
+ * While this component handles prompt management (CRUD operations),
+ * the Header.tsx component only handles prompt selection for use in summarization.
+ */
+
 // Define the Zod schema for prompt validation
 const promptFormSchema = z.object({
   command: z.string()
@@ -50,21 +63,42 @@ interface PromptsProps {
   onDeletePrompt: (promptId: string) => void;
 }
 
-// Component for the prompt selector
-const PromptSelector: React.FC<{
+/**
+ * Prompt Editor Selector Component
+ * 
+ * This component provides a UI for selecting, adding, and deleting prompts.
+ * It displays a dropdown menu of available prompts and action buttons for
+ * prompt management.
+ * 
+ * @param prompts - Array of available prompt templates
+ * @param selectedPromptId - ID of the currently selected prompt
+ * @param onSelectPrompt - Callback when user selects a prompt
+ * @param onAddPrompt - Callback when user clicks the add button
+ * @param onDeletePrompt - Callback when user confirms prompt deletion
+ */
+const PromptEditorSelector: React.FC<{
   prompts: Prompt[];
   selectedPromptId: string | null;
-  onSelectPrompt: (promptId: string) => void;
+  onSelectPrompt: (promptContent: string | undefined) => void;
   onAddPrompt: () => void;
   onDeletePrompt: (promptId: string) => void;
 }> = ({ prompts, selectedPromptId, onSelectPrompt, onAddPrompt, onDeletePrompt }) => {
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = useState(false);
 
+  // Handle selection change in the dropdown
+  const handleSelectorChange = (promptId: string) => {
+    // Find the selected prompt
+    const selectedPrompt = prompts.find(p => p.id === promptId);
+    
+    // Pass the prompt content (or undefined for default)
+    onSelectPrompt(promptId === 'default' ? undefined : selectedPrompt?.content);
+  };
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex-1 mr-4">
         <Select 
-          onValueChange={onSelectPrompt} 
+          onValueChange={handleSelectorChange} 
           value={selectedPromptId || (prompts.length > 0 ? prompts[0].id : "")}
           defaultValue={prompts.length > 0 ? prompts[0].id : ""}
         >
@@ -290,10 +324,16 @@ const Prompts: React.FC<PromptsProps> = ({
     });
   };
 
-  const handleSelectPrompt = (promptId: string) => {
+  // Handle prompt content change - maps a content to its corresponding prompt ID
+  const handlePromptContentChange = (promptContent: string | undefined) => {
+    // Find the prompt ID that corresponds to this content
+    const promptId = promptContent === undefined 
+      ? 'default' 
+      : prompts.find(p => p.content === promptContent)?.id || 'default';
+    
     // Only update if selecting a different prompt
     if (promptId !== selectedPromptId) {
-      setSelectedPromptId(promptId);
+      setSelectedPromptId(promptId || null);
       setIsAdding(false);
       // Form will be updated by the useEffect hook
     }
@@ -389,10 +429,10 @@ const Prompts: React.FC<PromptsProps> = ({
       <h2 className="text-xl mb-4">Prompts Library</h2>
 
       {prompts.length > 0 && !isAdding && (
-        <PromptSelector
+        <PromptEditorSelector
           prompts={prompts}
           selectedPromptId={selectedPromptId}
-          onSelectPrompt={handleSelectPrompt}
+          onSelectPrompt={handlePromptContentChange}
           onAddPrompt={handleAddPrompt}
           onDeletePrompt={handleDeletePrompt}
         />
