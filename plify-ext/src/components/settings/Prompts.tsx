@@ -34,7 +34,7 @@ import {
 const promptFormSchema = z.object({
   command: z.string()
     .min(1, "command is required")
-    .regex(/^\/[a-zA-Z0-9]+$/, "command must start with '/' and contain only letters and numbers")
+    .regex(/^\/[a-zA-Z0-9_]+$/, "command must start with '/' and contain only letters and numbers")
     .max(32, "command must be 32 characters or less")
     .refine(val => val.startsWith('/'), {
       message: "command must start with '/'",
