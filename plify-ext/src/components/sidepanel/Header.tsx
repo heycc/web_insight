@@ -99,81 +99,93 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center mb-4 p-1">
+    <div className="flex justify-between items-center p-2">
+      {/* Error message when no prompts are found */}
       {loadError && (
         <div className="text-sm text-destructive p-1 ml-2">
           No prompts found. Please add one in settings.
         </div>
       )}
-      {!loadError && (
-        <div className="flex items-center gap-2">
-          {isSummarizing && (
+
+      {/* Left side: Action buttons and prompt selector */}
+      <div className="flex items-center gap-1">
+        <div className="flex">
+          {/* Main action button */}
+          <Button
+            onClick={handleSummarize}
+            disabled={isLoading || isSummarizing || currentSite === 'unknown' || loadError || prompts.length === 0}
+            className="shadow-md hover:shadow-lg transition-all rounded-l-full text-primary-foreground"
+            variant="default"
+            size="sm"
+          >
+            {isLoading || isSummarizing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {/* Loading indicator */}
+              </span>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                {/* Display command name with truncation if needed */}
+                {(() => {
+                  const command = prompts.find(p => p.id === selectedPromptId)?.command || 'Summarize';
+                  return command.length > 16 ? command.substring(0, 16) + '...' : command;
+                })()}
+              </>
+            )}
+          </Button>
+          {/* <div className="h-9 w-1 bg-border" /> */}
+          <Select
+            value={selectedPromptId}
+            onValueChange={(value) => {
+              handlePromptSelect(value);
+              // Blur the select element to remove focus after selection
+              document.activeElement instanceof HTMLElement && document.activeElement.blur();
+            }}
+            disabled={isLoading || isSummarizing || loadError || prompts.length === 0}
+          >
+            <SelectTrigger
+              className="shadow-md hover:shadow-lg transition-all rounded-r-full border-none h-9 bg-primary text-primary-foreground focus:ring-0 focus:ring-offset-0 [&>svg]:text-primary-foreground [&>svg]:opacity-100"
+            >
+            </SelectTrigger>
+            <SelectContent>
+              {prompts.map((prompt) => (
+                <SelectItem key={prompt.id} value={prompt.id}>
+                  {prompt.command}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+        </div>
+
+        {/* Stop button - only shown during summarization */}
+        {isSummarizing && (
+          <div className="flex justify-center mt-1">
             <Button
               onClick={onStopSummarization}
-              variant="ghost"
+              variant="outline"
               size="default"
-              className="text-destructive hover:bg-primary/20 hover:text-destructive"
+              className="rounded-full text-destructive hover:text-destructive"
               title="Stop Generating"
             >
               <CircleStop className="!w-6 !h-6" />
+              Stop
             </Button>
-          )}
-          <div className="flex">
-            <Button
-              onClick={handleSummarize}
-              disabled={isLoading || isSummarizing || currentSite === 'unknown' || loadError || prompts.length === 0}
-              className="shadow-md hover:shadow-lg transition-all rounded-l-full"
-              variant="default"
-              size="sm"
-            >
-              {isLoading || isSummarizing ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {isLoading ? 'Extracting' : 'Summarizing'}
-                </span>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  {prompts.find(p => p.id === selectedPromptId)?.command || 'Summarize'}
-                </>
-              )}
-            </Button>
-            <div className="h-9 w-1 bg-border"></div>
-            {!loadError && (
-              <Select
-                value={selectedPromptId}
-                onValueChange={(value) => {
-                  handlePromptSelect(value);
-                  // Blur the select element to remove focus after selection
-                  document.activeElement instanceof HTMLElement && document.activeElement.blur();
-                }}
-                disabled={isLoading || isSummarizing || loadError || prompts.length === 0}
-              >
-                <SelectTrigger
-                  className="shadow-md hover:shadow-lg transition-all rounded-r-full border-none h-9 bg-primary text-primary-foreground"
-                >
-                </SelectTrigger>
-                <SelectContent>
-                  {prompts.map((prompt) => (
-                    <SelectItem key={prompt.id} value={prompt.id}>
-                      {prompt.command}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
-        </div>
-      )}
-      <div className="flex items-center gap-2">
-        <h2 className="text-xl font-bold text-gradient">
+        )}
+      </div>
+
+      {/* Right side: Site title and settings button */}
+      <div className="flex items-center">
+        <h2 className="text-lg font-bold text-gradient">
           {currentSite === 'unknown' ? 'Site Not Supported' : `${currentSite} Insight`}
         </h2>
         <Button
           onClick={onOpenSettings}
           variant="ghost"
           size="default"
-          className="flex items-center hover:bg-primary/20 p-2"
+          className="flex items-center hover:bg-primary/20 py-0 px-2"
           title="Configure LLM Provider"
         >
           <Settings className="w-4 h-4" />
