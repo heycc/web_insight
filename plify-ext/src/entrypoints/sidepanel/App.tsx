@@ -44,6 +44,8 @@ const App: React.FC = () => {
     summary: false,
     withReasoning: false
   });
+  // Add state for header shadow
+  const [hasScrolled, setHasScrolled] = useState(false);
   // Store the content of the currently selected prompt
   const [currentPromptContent, setCurrentPromptContent] = useState<string | undefined>(undefined);
   const { toast } = useToast();
@@ -346,18 +348,36 @@ const App: React.FC = () => {
     }
   }, [showReasoning]);
 
+  // Add scroll event listener to apply shadow when scrolled
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 0) {
+        setHasScrolled(true);
+      } else {
+        setHasScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto p-0 mt-1 bg-background">
       <Toaster />
-      <Header 
-        currentSite={currentSite}
-        isLoading={isLoading}
-        isSummarizing={isSummarizing}
-        onSummarize={handleSummarize}
-        onStopSummarization={handleStopSummarization}
-        onOpenSettings={openSettings}
-        onSelectPrompt={handleSelectPrompt}
-      />
+      <div className={`sticky top-0 z-10 bg-background transition-shadow duration-200 ${hasScrolled ? 'shadow-md' : ''}`}>
+        <Header 
+          currentSite={currentSite}
+          isLoading={isLoading}
+          isSummarizing={isSummarizing}
+          onSummarize={handleSummarize}
+          onStopSummarization={handleStopSummarization}
+          onOpenSettings={openSettings}
+          onSelectPrompt={handleSelectPrompt}
+        />
+      </div>
 
       {/* Error message */}
       {error && (
