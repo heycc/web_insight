@@ -208,7 +208,7 @@ const PromptForm: React.FC<{
               <FormControl>
                 <Textarea
                   placeholder="Enter your prompt template here..."
-                  className="min-h-[360px]"
+                  className="min-h-[360px] bg-muted"
                   {...field}
                 />
               </FormControl>
