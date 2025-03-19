@@ -8,6 +8,7 @@ import {
   SelectTrigger,
 } from "../ui/select";
 import { Prompt } from '../settings/types';
+import { cn } from '@/lib/utils';
 
 /**
  * Header Component for the Sidepanel
@@ -108,13 +109,18 @@ const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Left side: Action buttons and prompt selector */}
-      <div className="flex items-center gap-1">
-        <div className="flex">
+      <div className="flex items-center gap-2">
+        <div className="flex gap-0.5">
           {/* Main action button */}
           <Button
             onClick={handleSummarize}
             disabled={isLoading || isSummarizing || currentSite === 'unknown' || loadError || prompts.length === 0}
-            className="shadow-md hover:shadow-lg transition-all rounded-l-full text-primary-foreground"
+            className={cn(
+              "shadow-md hover:shadow-lg transition-all",
+              "rounded-l-[18px] rounded-r-[2px] border-none",
+              "text-primary-foreground",
+              "py-0 pr-2 pl-2 h-9"
+            )}
             variant="default"
             size="sm"
           >
@@ -134,7 +140,6 @@ const Header: React.FC<HeaderProps> = ({
               </>
             )}
           </Button>
-          {/* <div className="h-9 w-1 bg-border" /> */}
           <Select
             value={selectedPromptId}
             onValueChange={(value) => {
@@ -145,15 +150,31 @@ const Header: React.FC<HeaderProps> = ({
             disabled={isLoading || isSummarizing || loadError || prompts.length === 0}
           >
             <SelectTrigger
-              className="shadow-md hover:shadow-lg transition-all rounded-r-full border-none h-9 bg-primary text-primary-foreground focus:ring-0 focus:ring-offset-0 [&>svg]:text-primary-foreground [&>svg]:opacity-100"
+              className={cn(
+                "shadow-md hover:shadow-lg transition-all",
+                "rounded-r-[18px] rounded-l-[2px] border-none",
+                "w-8 h-9 py-0 pl-1 pr-0",
+                "bg-primary text-primary-foreground",
+                "focus:ring-0 focus:ring-offset-0",
+                "[&>svg]:text-primary-foreground [&>svg]:opacity-100"
+              )}
             >
             </SelectTrigger>
             <SelectContent>
-              {prompts.map((prompt) => (
-                <SelectItem key={prompt.id} value={prompt.id}>
-                  {prompt.command}
-                </SelectItem>
-              ))}
+              {prompts.length > 0 ? (
+                prompts.map((prompt) => (
+                  <SelectItem key={prompt.id} value={prompt.id}>
+                    {prompt.command}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="px-1 py-1 text-sm text-muted-foreground text-center">
+                  No prompts available. Add prompts in ⛭.
+                </div>
+              )}
+              <div className="px-2 py-1 text-xs text-muted-foreground mt-1 text-center">
+                Customize prompts in ⛭
+              </div>
             </SelectContent>
           </Select>
 
@@ -161,12 +182,12 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Stop button - only shown during summarization */}
         {isSummarizing && (
-          <div className="flex justify-center mt-1">
+          <div className="flex justify-center">
             <Button
               onClick={onStopSummarization}
-              variant="outline"
+              variant="ghost"
               size="default"
-              className="rounded-full text-destructive hover:text-destructive"
+              className=" h-9 px-2 rounded-full text-destructive hover:text-destructive border-destructive"
               title="Stop Generating"
             >
               <CircleStop className="!w-6 !h-6" />
@@ -185,7 +206,7 @@ const Header: React.FC<HeaderProps> = ({
           onClick={onOpenSettings}
           variant="ghost"
           size="default"
-          className="flex items-center hover:bg-primary/20 py-0 px-2"
+          className="flex items-center hover:bg-primary/20 py-0 px-2 h-9"
           title="Configure LLM Provider"
         >
           <Settings className="w-4 h-4" />

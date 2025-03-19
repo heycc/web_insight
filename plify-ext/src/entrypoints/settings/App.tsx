@@ -375,7 +375,7 @@ const App = () => {
                 value="profiles" 
                 className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
               >
-                API Profiles
+                LLM API
               </TabsTrigger>
               <TabsTrigger 
                 value="prompts" 
