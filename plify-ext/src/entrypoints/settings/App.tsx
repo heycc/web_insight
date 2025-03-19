@@ -63,8 +63,18 @@ const App = () => {
           
       // If we're adding the default prompt for the first time, save it to storage
       if (!result.prompts || result.prompts.length === 0) {
-        await chrome.storage.local.set({ prompts: defaultPrompts });
-        logger.log('Added default prompt to storage');
+        try {
+          await chrome.storage.local.set({ prompts: defaultPrompts });
+          logger.log('Added default prompt to storage');
+          toast({
+            title: "Default prompt added",
+            description: "A default prompt template has been added to your library.",
+            variant: "default",
+          });
+        } catch (storageError) {
+          logger.error('Error saving default prompt to storage:', storageError);
+          // Even if saving fails, we'll still use the default prompt in-memory
+        }
       }
 
       if (result.profiles && result.profiles.length > 0) {

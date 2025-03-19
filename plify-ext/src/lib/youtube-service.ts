@@ -88,7 +88,7 @@ export class YouTubeService implements ContentService {
         await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
       } catch (reloadError) {
         this.logger.error('Failed to reload content script:', reloadError);
-        throw new Error('Content script not loaded. Please refresh the YouTube page.');
+        throw new Error('Please refresh your page to use this extension.');
       }
     }
     

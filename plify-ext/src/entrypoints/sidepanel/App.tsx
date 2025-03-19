@@ -363,6 +363,11 @@ const App: React.FC = () => {
       {error && (
         <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
           {error}
+          {error.includes('No prompts') && (
+            <div className="mt-2 text-sm">
+              <p>Please click the settings icon (⚙️) in the top-right corner to add a prompt first.</p>
+            </div>
+          )}
         </div>
       )}
 
