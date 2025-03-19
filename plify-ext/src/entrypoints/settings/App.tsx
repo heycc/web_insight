@@ -16,7 +16,8 @@ import {
   ProviderType,
   Language,
   ProfileFormValues,
-  Prompt
+  Prompt,
+  DEFAULT_PROMPT
 } from '../../components/settings/types';
 
 const DEFAULT_PROFILE: Profile = {
@@ -55,6 +56,17 @@ const App = () => {
       const result = await chrome.storage.local.get(['profiles', 'theme', 'language', 'prompts']);
       logger.log('Loaded from storage:', result);
 
+      // Check if we need to add the default prompt
+      const defaultPrompts = result.prompts && result.prompts.length > 0 
+        ? result.prompts 
+        : [DEFAULT_PROMPT];
+          
+      // If we're adding the default prompt for the first time, save it to storage
+      if (!result.prompts || result.prompts.length === 0) {
+        await chrome.storage.local.set({ prompts: defaultPrompts });
+        logger.log('Added default prompt to storage');
+      }
+
       if (result.profiles && result.profiles.length > 0) {
         // Ensure model_name is properly set for each profile
         const validatedProfiles = result.profiles.map((profile: Profile) => ({
@@ -66,7 +78,7 @@ const App = () => {
           profiles: validatedProfiles,
           theme: result.theme || 'system',
           language: result.language || 'en',
-          prompts: result.prompts || []
+          prompts: defaultPrompts
         });
         // Set the first profile as active
         setActiveProfile(validatedProfiles[0]);
@@ -76,7 +88,7 @@ const App = () => {
           profiles: [],
           theme: result.theme || 'system',
           language: result.language || 'en',
-          prompts: result.prompts || []
+          prompts: defaultPrompts
         });
       }
     } catch (error) {
@@ -296,6 +308,23 @@ const App = () => {
 
   const handleDeletePrompt = (promptId: string) => {
     setSettings(prev => {
+      // Check if we're trying to delete the last prompt
+      if (prev.prompts.length <= 1) {
+        toast({
+          title: "Cannot delete prompt",
+          description: "At least one prompt must be kept.",
+          variant: "destructive",
+        });
+        
+        // Make sure we keep the current prompt selected and visible in the UI
+        // by returning the unmodified state
+        return {
+          ...prev,
+          // Force a re-render while keeping the same prompt data
+          prompts: [...prev.prompts]
+        };
+      }
+      
       const updatedPrompts = prev.prompts.filter(p => p.id !== promptId);
       
       // Save the updated prompts to storage
@@ -328,7 +357,7 @@ const App = () => {
 
   return (
     <>
-      <div className="flex flex-col max-w-4xl mx-auto p-4">
+      <div className="flex flex-col max-w-4xl mx-auto p-0">
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <PrivacyNotice />

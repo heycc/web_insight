@@ -33,7 +33,7 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ currentSite }) => {
       </div>
       
       <p className="text-base mt-2">
-        Click "Summarize" on any {currentSite !== 'unknown' ? currentSite : 'supported'} page to get started!
+        Click "Summarize" or custom command above to get started!
       </p>
     </div>
   );
