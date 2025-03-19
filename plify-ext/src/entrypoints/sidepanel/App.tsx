@@ -347,7 +347,7 @@ const App: React.FC = () => {
   }, [showReasoning]);
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto p-4 bg-background">
+    <div className="flex flex-col h-full max-w-4xl mx-auto p-0 mt-1 bg-background">
       <Toaster />
       <Header 
         currentSite={currentSite}
@@ -361,7 +361,7 @@ const App: React.FC = () => {
 
       {/* Error message */}
       {error && (
-        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
+        <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
           {error}
         </div>
       )}
@@ -375,7 +375,7 @@ const App: React.FC = () => {
       {(summary || contentData) && (
         <>
           {contentData && (
-            <div className="mb-3 mx-2 flex flex-row gap-2">
+            <div className="mb-2 mx-4 flex flex-row gap-2">
               <h3 className="text-lg font-semibold hover:underline">
                 <a href={contentData.url || ''} target="_blank" rel="noopener noreferrer">
                   {contentData.title || 'Untitled Post'}
@@ -384,8 +384,8 @@ const App: React.FC = () => {
               </h3>
             </div>
           )}
-          <Tabs value={resultTab} onValueChange={setResultTab} className="w-full mb-4">
-            <TabsList className="grid w-full grid-cols-2 mx-auto bg-secondary">
+          <Tabs value={resultTab} onValueChange={setResultTab} className="w-full">
+            <TabsList className="grid grid-cols-2 mx-auto bg-secondary mx-2">
               <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">✨ Summary</TabsTrigger>
               <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">📄 Content</TabsTrigger>
             </TabsList>

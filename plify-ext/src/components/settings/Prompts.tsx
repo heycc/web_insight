@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { Prompt } from './types';
+import { Prompt, DEFAULT_PROMPT } from './types';
 import { Trash2, Plus } from 'lucide-react';
 import {
   Select,
@@ -212,9 +212,26 @@ const PromptForm: React.FC<{
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                Create reusable prompt templates to quickly access in your conversations
-              </FormDescription>
+              <div className="flex items-center justify-between">
+                <FormDescription>
+                  Create prompt to quickly use when summarizing content
+                </FormDescription>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={() => {
+                    form.setValue('content', DEFAULT_PROMPT.content, { 
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true
+                    });
+                  }}
+                >
+                  Load Default
+                </Button>
+              </div>
               <FormMessage />
             </FormItem>
           )}

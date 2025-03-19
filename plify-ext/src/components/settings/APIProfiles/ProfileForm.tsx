@@ -159,9 +159,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                 />
               </FormControl>
               {field.value && (
-                <p className="text-sm text-muted-foreground">
+                <FormDescription>
                   The chat API will be {field.value}/chat/completions
-                </p>
+                </FormDescription>
               )}
               <FormMessage />
             </FormItem>
