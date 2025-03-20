@@ -27,11 +27,35 @@ export class SummaryService {
   private systemPrompt: string;
   private abortController: AbortController | null = null;
   private logger;
+  private profileListeners: ((hasProfiles: boolean) => void)[] = [];
 
   constructor() {
     this.decoder = new TextDecoder();
     this.systemPrompt = "You are a helpful assistant that give insight of a web page's content and comments.";
     this.logger = createLogger('Summary Service');
+
+    // Listen for storage changes to detect profile updates
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' && changes.profiles) {
+        this.logger.log('API profiles updated');
+        const hasProfiles = Array.isArray(changes.profiles.newValue) && changes.profiles.newValue.length > 0;
+        this.notifyProfileListeners(hasProfiles);
+      }
+    });
+  }
+
+  // Add a method to register profile status change listeners
+  addProfileListener(callback: (hasProfiles: boolean) => void): () => void {
+    this.profileListeners.push(callback);
+    // Return a function to remove the listener
+    return () => {
+      this.profileListeners = this.profileListeners.filter(listener => listener !== callback);
+    };
+  }
+
+  // Notify all listeners of profile status changes
+  private notifyProfileListeners(hasProfiles: boolean): void {
+    this.profileListeners.forEach(listener => listener(hasProfiles));
   }
 
   formatPrompt(data: BodyAndCommentsData, language: string = 'en', customPrompt?: string): string {
@@ -336,6 +360,18 @@ ${commentsList}
       this.abortController = null;
     } else {
       this.logger.warn('No active abort controller to abort');
+    }
+  }
+
+  // Add a new method to check if profiles are configured
+  async hasApiProfiles(): Promise<boolean> {
+    try {
+      const settings = await chrome.storage.local.get(['profiles']);
+      const hasProfiles = Array.isArray(settings.profiles) && settings.profiles.length > 0;
+      return hasProfiles;
+    } catch (error) {
+      this.logger.error('Error checking for API profiles:', error);
+      return false;
     }
   }
 } 
