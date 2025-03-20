@@ -78,39 +78,47 @@ export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export const DEFAULT_PROMPT: Prompt = {
   id: "default-summarize",
   command: "/summarize",
-  content: `Please provide a clear and concise insight of this page content and top liked comments:
+  content: `<INSTRUCTION>
+Please provide a clear and concise insight of this page content and top liked comments:
 
-You should read entire content and comments before summarizing.
-Then group the comments into 5 ~ 8 unique opinions, keep MECE principle.
-
-\${languageInstruction}
+You should read entire content and comments before summarizing. Then group the comments into 5 ~ 8 unique opinions.
 
 Please structure the summary in the following markdown format:
 
+<OUTPUT_FORMAT>
 ## { here goes the main point of the post }
-
-{ here goes the main point of the post }
+The main point of the post and comments.
 
 ## { here goes the main grouped points in comments }
-The Key points of some hot/top comments, group similar comments into one opinion, keep up to 5 ~ 8 opinions.
-You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique backgroup.
-List them as bullet points
+The Key points of some hot/top comments, group similar comments into one opinion, keep up to 5 ~ 8 opinions in causal logic sequential ordering.
 
-1. **grouped opinion xx** (author_name, author_name, 👍 1000+)
+You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique background.
+
+List them as bullet points.
+
+1. **grouped opinion xx** (author_name, author_name, 👍 n+)
 { here is summary of the opinion }
 >{ here is quoted original sentence }
 
-2. **grouped opinion xx** (author_name, 👍 234+)
+2. **grouped opinion xx** (author_name, 👍 n+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
-3. **grouped opinion xx** (author_name, 👍 45+)
+3. **grouped opinion xx** (author_name, 👍 m+)
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
 ## { here goes the overall sentiment or conclusion }
 
-{ here goes the overall sentiment or conclusion }
+The overall sentiment or conclusion of the post and comments in your own words.
+
+</OUTPUT_FORMAT>
+
+<LANGUAGE_REQUIREMENT>
+\${languageInstruction}
+</LANGUAGE_REQUIREMENT>
+
+</INSTRUCTION>
 `,
   createdAt: new Date(),
   updatedAt: new Date()

@@ -65,12 +65,12 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   }, [showReasoning]);
 
   return (
-    <div className="rounded-lg shadow-sm overflow-hidden bg-card">
+    <div className="rounded-lg shadow-sm overflow-hidden bg-card m-2">
       {reasoning && (
         <div className="p-2">
           <button
             onClick={onToggleReasoning}
-            className="w-full p-2 flex items-center justify-between bg-secondary/80 hover:bg-secondary transition-colors"
+            className="w-full p-2 rounded-t-md flex items-center justify-between bg-secondary/80 hover:bg-secondary transition-colors"
           >
             <span className="font-medium text-sm text-accent-foreground flex flex-row items-center">
               Model Reasoning
@@ -117,8 +117,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         </div>
       )}
       {summary && (
-        <div className="p-2">
-          <div className="markdown text-card-foreground">
+          <div className="p-2 markdown text-card-foreground">
             <ReactMarkdown
               components={{
                 p: ({ node, ...props }) => <p className="my-2" {...props} />,
@@ -149,9 +148,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
               {summary}
             </ReactMarkdown>
           </div>
-        </div>
       )}
-      <div className="flex justify-between items-center p-2">
+      <div className="flex justify-between items-center p-4">
         {(isSummarizing || isLoading) && (
           <span
             className="inline-block text-xl"
