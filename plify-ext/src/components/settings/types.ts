@@ -1,18 +1,18 @@
 export enum ProviderType {
   OAI_COMPATIBLE = 'oai_compatible',
   OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  GEMINI = 'gemini',
+  // ANTHROPIC = 'anthropic',
+  // GEMINI = 'gemini',
   LMSTUDIO = 'lmstudio'
 }
 
-export enum ModelName {
-  GPT_4 = 'gpt-4o',
-  GPT_35_TURBO = 'gpt-4o-mini',
-  DEEPSEEK_R1 = 'deepseek-r1',
-  DEEPSEEK_V3 = 'deepseek-v3',
-  QWEN_LONG = 'qwen-max',
-}
+// export enum ModelName {
+//   GPT_4 = 'gpt-4o',
+//   GPT_35_TURBO = 'gpt-4o-mini',
+//   DEEPSEEK_R1 = 'deepseek-r1',
+//   DEEPSEEK_V3 = 'deepseek-v3',
+//   QWEN_LONG = 'qwen-max',
+// }
 
 export enum Language {
   EN = 'en',
@@ -55,8 +55,8 @@ export interface Settings {
 export const DEFAULT_API_ENDPOINTS: Record<ProviderType, string> = {
   [ProviderType.OAI_COMPATIBLE]: '',
   [ProviderType.OPENAI]: 'https://api.openai.com/v1',
-  [ProviderType.ANTHROPIC]: 'https://api.anthropic.com',
-  [ProviderType.GEMINI]: 'https://generativelanguage.googleapis.com',
+  // [ProviderType.ANTHROPIC]: 'https://api.anthropic.com',
+  // [ProviderType.GEMINI]: 'https://generativelanguage.googleapis.com',
   [ProviderType.LMSTUDIO]: 'http://127.0.0.1:1234/v1'
 };
 
@@ -122,4 +122,109 @@ The overall sentiment or conclusion of the post and comments in your own words.
 `,
   createdAt: new Date(),
   updatedAt: new Date()
+};
+
+export interface ProviderPreset {
+  id: string;
+  display_name: string;
+  provider_type: ProviderType;
+  api_endpoint: string;
+  models: string[];
+}
+
+// List of all provider presets, organized as a flat array
+export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
+  // OpenAI Official
+  {
+    id: 'OPENAI_OFFICIAL',
+    display_name: 'OpenAI',
+    provider_type: ProviderType.OPENAI,
+    api_endpoint: 'https://api.openai.com/v1',
+    models: ['gpt-4o', 'gpt-4o-mini']
+  },
+  // OAI Compatible Examples
+  {
+    id: 'DEEPSEEK_OFFICIAL',
+    display_name: 'Deepseek Official',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.deepseek.com',
+    models: ['deepseek-chat', 'deepseek-reasoner']
+  },
+  {
+    id: 'VOLCENGINE',
+    display_name: 'Volcengine (火山云)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
+    models: ['deepseek-r1-250120', 'deepseek-v3-241226']
+  },
+  {
+    id: 'BAILIAN_ALIYUN',
+    display_name: 'Bailian (阿里云)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
+  },
+  {
+    id: 'SILICONFLOW',
+    display_name: 'SiliconFlow (硅基流动)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.siliconflow.cn/v1',
+    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3']
+  },
+  // LM Studio
+  {
+    id: 'LMSTUDIO',
+    display_name: 'LM Studio (Local)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'http://127.0.0.1:1234/v1',
+    models: []
+  }
+  // Anthropic Official
+  // {
+  //   id: 'ANTHROPIC_OFFICIAL',
+  //   display_name: 'Anthropic Official',
+  //   provider_type: ProviderType.ANTHROPIC,
+  //   api_endpoint: 'https://api.anthropic.com',
+  //   models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
+  // },
+  
+  // Google Official
+  // {
+  //   id: 'GOOGLE_OFFICIAL',
+  //   display_name: 'Google AI Official',
+  //   provider_type: ProviderType.GEMINI,
+  //   api_endpoint: 'https://generativelanguage.googleapis.com',
+  //   models: ['gemini-pro', 'gemini-ultra']
+  // },
+];
+
+// Helper function to get provider presets by provider type
+export const getProviderPresetsByType = (providerType: ProviderType): ProviderPreset[] => {
+  return DEFAULT_PROVIDER_PRESETS.filter(preset => preset.provider_type === providerType);
+};
+
+// Helper function to get a specific provider preset by ID
+export const getProviderPresetById = (id: string): ProviderPreset | undefined => {
+  return DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === id);
+};
+
+// Helper function to add a custom provider preset
+export const addCustomProviderPreset = (
+  preset: ProviderPreset,
+  presets: ProviderPreset[] = DEFAULT_PROVIDER_PRESETS
+): ProviderPreset[] => {
+  // Check if preset with same ID exists
+  const existingIndex = presets.findIndex(p => p.id === preset.id);
+  
+  if (existingIndex >= 0) {
+    // Replace existing preset
+    return [
+      ...presets.slice(0, existingIndex),
+      preset,
+      ...presets.slice(existingIndex + 1)
+    ];
+  }
+  
+  // Add new preset
+  return [...presets, preset];
 };
