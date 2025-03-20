@@ -165,7 +165,7 @@ ${commentsList}
         isArray: Array.isArray(settings.profiles),
         profilesLength: settings.profiles?.length
       });
-      throw new Error('Please configure LLM provider in settings');
+      throw new Error('Configure LLM API in settings to use this extension');
     }
 
     // Always use the first profile

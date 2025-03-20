@@ -14,6 +14,7 @@ import {
   PopoverTrigger,
 } from "../../ui/popover";
 import { Profile } from '../types';
+import { Label } from "../../ui/label";
 
 interface ProfileSelectorProps {
   activeProfile: Profile;
@@ -35,6 +36,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   onMoveToTop
 }) => {
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = React.useState(false);
+  const selectId = React.useId();
 
   return (
     <div className="mb-4 flex flex-col gap-1">
@@ -43,6 +45,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
       </p>
       <div className="flex justify-between items-center mb-1">
         <div className="flex-1 mr-4">
+          <Label htmlFor={selectId} className="sr-only">Select Profile</Label>
           <Select
             onValueChange={(value: string) => {
               const selectedProfile = profiles.find(p => p.index === parseInt(value));
@@ -52,7 +55,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             }}
             value={activeProfile.index.toString()}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id={selectId} className="w-full">
               <SelectValue placeholder="Select a profile" />
             </SelectTrigger>
             <SelectContent>
@@ -71,6 +74,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
               size="icon"
               variant="ghost"
               title="Prioritize this profile"
+              aria-label="Move profile to top"
             >
               <ArrowUpToLine className="h-4 w-4 text-blue-700" />
             </Button>
@@ -80,6 +84,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             size="icon"
             variant="ghost"
             title="Add new profile"
+            aria-label="Add new profile"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -88,6 +93,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             size="icon"
             variant="ghost"
             title="Edit profile"
+            aria-label="Edit profile"
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -99,6 +105,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                 variant="ghost"
                 className="text-red-500"
                 title="Delete profile"
+                aria-label="Delete profile"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

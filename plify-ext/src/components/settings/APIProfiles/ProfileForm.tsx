@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Eye, EyeOff, Copy } from 'lucide-react';
+import { Eye, EyeOff, Copy, Plus } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -30,6 +30,7 @@ import {
   profileFormSchema,
   ProfileFormValues
 } from '../types';
+// import { Label } from "../../ui/label";
 
 interface ProfileFormProps {
   activeProfile: Profile | null;
@@ -325,7 +326,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                     className="ml-2"
                     onClick={() => setCustomModelInput(true)}
                   >
-                    <span className="text-xl">+</span>
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               )}
@@ -340,7 +341,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           render={({ field }) => (
             <FormItem className='space-y-0'>
               <FormLabel className="text-base font-normal">Temperature</FormLabel>
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col"> */}
                 <div className="flex items-center space-x-4">
                   <FormControl>
                     <Slider
@@ -375,7 +376,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                     />
                   </FormControl>
                 </div>
-              </div>
+              {/* </div> */}
               <FormDescription>
                 Controls randomness, lower values are more deterministic, range [0.1, 1.5]
               </FormDescription>
