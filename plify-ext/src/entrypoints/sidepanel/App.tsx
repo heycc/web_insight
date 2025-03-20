@@ -48,6 +48,8 @@ const App: React.FC = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
   // Store the content of the currently selected prompt
   const [currentPromptContent, setCurrentPromptContent] = useState<string | undefined>(undefined);
+  // Add state to track if API profiles are configured
+  const [hasApiProfiles, setHasApiProfiles] = useState<boolean>(true);
   const { toast } = useToast();
 
   // Create a single shared instance of SummaryService
@@ -111,6 +113,16 @@ const App: React.FC = () => {
   useEffect(() => {
     const initContentService = async () => {
       try {
+        // First check if profiles are configured using the SummaryService
+        const hasProfiles = await summaryService.hasApiProfiles();
+        setHasApiProfiles(hasProfiles);
+        
+        // Disable this check when initializing, because the wellcome message will show
+        // if (!hasProfiles) {
+        //   setError('No LLM API found. Please add an API profile in settings.');
+        //   return;
+        // }
+        
         await ensureCorrectContentService();
       } catch (error) {
         logger.error('Error initializing content service:', error);
@@ -120,6 +132,21 @@ const App: React.FC = () => {
 
     // Initialize content service on component mount
     initContentService();
+
+    // Register for profile changes
+    const unsubscribe = summaryService.addProfileListener((hasProfiles) => {
+      setHasApiProfiles(hasProfiles);
+      if (hasProfiles) {
+        // Clear error if it was about missing profiles
+        if (error && error.includes('No API profiles configured')) {
+          setError(null);
+        }
+        // Reinitialize content service since profiles are now available
+        ensureCorrectContentService();
+      } else {
+        setError('No API profiles configured. Please configure an API profile in settings.');
+      }
+    });
 
     // Listen for tab updates (URL changes)
     const handleTabUpdated = async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
@@ -149,6 +176,7 @@ const App: React.FC = () => {
     return () => {
       chrome.tabs.onUpdated.removeListener(handleTabUpdated);
       chrome.tabs.onActivated.removeListener(handleTabActivated);
+      unsubscribe(); // Clean up profile listener
     };
   }, []);
 
@@ -383,17 +411,29 @@ const App: React.FC = () => {
       {error && (
         <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
           {error}
-          {error.includes('No prompts') && (
-            <div className="mt-2 text-sm">
-              <p>Please click the settings icon (⚙️) in the top-right corner to add a prompt first.</p>
+          {/* {error.includes('No API profiles configured') && (
+            {error}
+            <div className="flex flex-col items-center">
+              <p className="mb-2 text-sm">You need to configure an API profile before using this extension.</p>
+              <Button 
+                onClick={openSettings}
+                className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Open Settings
+              </Button>
             </div>
-          )}
+          )} */}
         </div>
       )}
 
       {/* Welcome message on first load */}
       {!summary && !contentData && (
-        <WelcomeMessage currentSite={currentSite} />
+        <WelcomeMessage 
+          currentSite={currentSite} 
+          hasApiProfiles={hasApiProfiles} 
+          onOpenSettings={openSettings}
+        />
       )}
 
       {/* Summary or content data */}

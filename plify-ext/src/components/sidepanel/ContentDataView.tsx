@@ -10,7 +10,11 @@ const ContentDataView: React.FC<ContentDataViewProps> = ({ contentData }) => {
 
   return (
     <div className="shadow-sm overflow-hidden bg-card rounded-lg">
-      <div className="p-4">
+      
+      <div className="p-2">
+        <p className='text-xs text-muted-foreground/50 mb-2 italic'>
+          Here is the original page content used for summarization.
+        </p>
         {contentData.content && (
           <div className="mb-4 text-base text-card-foreground">{contentData.content}</div>
         )}
