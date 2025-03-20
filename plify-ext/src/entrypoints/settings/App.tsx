@@ -368,7 +368,7 @@ const App = () => {
   return (
     <>
       <div className="flex flex-col max-w-4xl mx-auto p-0">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold my-6">Settings</h1>
 
         <PrivacyNotice />
 

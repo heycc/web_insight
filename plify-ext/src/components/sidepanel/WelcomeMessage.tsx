@@ -1,7 +1,8 @@
 import React from 'react';
-import { MessageSquareText, ShieldCheck, Brain, Settings } from 'lucide-react';
+import { MessageSquareText, Settings } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-
+import YouTubeIcon from '../../assets/youtube.tsx';
+import RedditIcon from '../../assets/reddit.tsx';
 interface WelcomeMessageProps {
   currentSite: string;
   hasApiProfiles?: boolean;
@@ -36,23 +37,27 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({
           <MessageSquareText className="h-14 w-14 text-primary" />
         </div>
       )}
-      <p className="mb-4 text-lg">
+      <p className="mb-2 text-base">
         Get insights when you are exploring
       </p>
       {currentSite === 'unknown' && (
-        <p className="mb-4 text-lg">
+        <p className="mb-4 text-base">
           Currently supports Reddit & YouTube
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4 w-full mb-4">
-        <div className="flex flex-col items-center p-3 bg-secondary/30 rounded-lg">
-          <Brain className="h-6 w-6 text-primary mb-2" />
-          <p className="text-sm">Concise insights for your interested pages</p>
+      <div className="grid grid-cols-2 gap-2 w-full mb-4">
+        <div className="flex flex-col items-center p-3 rounded-lg">
+          <div className="h-6 w-6">
+            <RedditIcon />
+          </div>
+          <p className="text-sm">Reddit</p>
         </div>
-        <div className="flex flex-col items-center p-3 bg-secondary/30 rounded-lg">
-          <ShieldCheck className="h-6 w-6 text-primary mb-2" />
-          <p className="text-sm">Secure with your preferred LLM Service</p>
+        <div className="flex flex-col items-center p-3  rounded-lg">
+            <div className="h-6 w-6">
+              <YouTubeIcon />
+            </div>
+          <p className="text-sm">YouTube</p>
         </div>
       </div>
 

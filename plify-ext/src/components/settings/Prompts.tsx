@@ -220,7 +220,7 @@ const PromptForm: React.FC<{
                   type="button" 
                   variant="ghost" 
                   size="sm"
-                  className="text-muted-foreground"
+                  className="text-blue-500 hover:text-blue-600"
                   onClick={() => {
                     form.setValue('content', DEFAULT_PROMPT.content, { 
                       shouldDirty: true,
