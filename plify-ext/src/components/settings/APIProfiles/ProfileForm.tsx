@@ -154,6 +154,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
                     while (value.endsWith('/')) {
                       value = value.slice(0, -1);
                     }
+                    // Remove '/chat/completions' if it's at the end of the URL
+                    if (value.endsWith('/chat/completions')) {
+                      value = value.slice(0, -17);
+                    }
                     field.onChange(value);
                   }}
                   disabled={!isEditing}
