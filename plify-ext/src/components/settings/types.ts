@@ -164,13 +164,13 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
   },
-  {
-    id: 'LKEAP_TXYUN',
-    display_name: 'LKE (腾讯云)',
-    provider_type: ProviderType.OAI_COMPATIBLE,
-    api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    models: ['deepseek-r1', 'deepseek-v3']
-  },
+  // {
+  //   id: 'LKEAP_TXYUN',
+  //   display_name: 'LKE (腾讯云)',
+  //   provider_type: ProviderType.OAI_COMPATIBLE,
+  //   api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
+  //   models: ['deepseek-r1', 'deepseek-v3']
+  // },
   {
     id: 'SILICONFLOW',
     display_name: 'SiliconFlow (硅基流动)',
