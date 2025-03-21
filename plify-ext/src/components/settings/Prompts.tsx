@@ -210,7 +210,7 @@ const PromptForm: React.FC<{
               <FormControl>
                 <Textarea
                   placeholder="Enter your prompt template here..."
-                  className="min-h-[360px] bg-muted"
+                  className="min-h-[360px] bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                   {...field}
                 />
               </FormControl>
@@ -218,21 +218,23 @@ const PromptForm: React.FC<{
                 <FormDescription>
                   Create prompt to quickly use when summarizing content
                 </FormDescription>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-blue-500 hover:text-blue-600"
-                  onClick={() => {
-                    form.setValue('content', DEFAULT_PROMPT.content, {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: true
-                    });
-                  }}
-                >
-                  Load Default
-                </Button>
+                {form.getValues('content') !== DEFAULT_PROMPT.content && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-blue-500 hover:text-blue-600"
+                    onClick={() => {
+                      form.setValue('content', DEFAULT_PROMPT.content, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true
+                      });
+                    }}
+                  >
+                    Load Default
+                  </Button>
+                )}
               </div>
               <FormMessage />
             </FormItem>
