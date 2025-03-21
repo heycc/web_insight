@@ -89,7 +89,7 @@ const PromptEditorSelector: React.FC<{
   const handleSelectorChange = (promptId: string) => {
     // Find the selected prompt
     const selectedPrompt = prompts.find(p => p.id === promptId);
-    
+
     // Pass the prompt content (or undefined for default)
     onSelectPrompt(promptId === 'default' ? undefined : selectedPrompt?.content);
   };
@@ -97,12 +97,14 @@ const PromptEditorSelector: React.FC<{
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex-1 mr-4">
-        <Select 
-          onValueChange={handleSelectorChange} 
+        <Select
+          onValueChange={handleSelectorChange}
           value={selectedPromptId || (prompts.length > 0 ? prompts[0].id : "")}
           defaultValue={prompts.length > 0 ? prompts[0].id : ""}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            className="w-full bg-gray-100 border-0 hover:bg-gray-200 focus:ring-0 focus:ring-offset-0"
+          >
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
           <SelectContent>
@@ -216,13 +218,13 @@ const PromptForm: React.FC<{
                 <FormDescription>
                   Create prompt to quickly use when summarizing content
                 </FormDescription>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   size="sm"
                   className="text-blue-500 hover:text-blue-600"
                   onClick={() => {
-                    form.setValue('content', DEFAULT_PROMPT.content, { 
+                    form.setValue('content', DEFAULT_PROMPT.content, {
                       shouldDirty: true,
                       shouldTouch: true,
                       shouldValidate: true
@@ -293,7 +295,7 @@ const Prompts: React.FC<PromptsProps> = ({
   // Helper function to update form with prompt data
   const updateFormWithPrompt = (promptId: string | null) => {
     if (!promptId) return;
-    
+
     const prompt = prompts.find(p => p.id === promptId);
     if (prompt) {
       form.reset({
@@ -344,10 +346,10 @@ const Prompts: React.FC<PromptsProps> = ({
   // Handle prompt content change - maps a content to its corresponding prompt ID
   const handlePromptContentChange = (promptContent: string | undefined) => {
     // Find the prompt ID that corresponds to this content
-    const promptId = promptContent === undefined 
-      ? 'default' 
+    const promptId = promptContent === undefined
+      ? 'default'
       : prompts.find(p => p.content === promptContent)?.id || 'default';
-    
+
     // Only update if selecting a different prompt
     if (promptId !== selectedPromptId) {
       setSelectedPromptId(promptId || null);
@@ -358,7 +360,7 @@ const Prompts: React.FC<PromptsProps> = ({
 
   const handleDeletePrompt = (promptId: string) => {
     onDeletePrompt(promptId);
-    
+
     if (promptId === selectedPromptId) {
       // After deletion, check if there are any prompts left
       const remainingPrompts = prompts.filter(p => p.id !== promptId);
@@ -382,7 +384,7 @@ const Prompts: React.FC<PromptsProps> = ({
   const handleFormSubmit = (data: PromptFormValues) => {
     const currentId = editingPromptId || selectedPromptId || `prompt-${Date.now()}`;
     const existingPrompt = prompts.find(p => p.id === currentId);
-    
+
     const promptToSave: Prompt = {
       id: currentId,
       command: data.command,
@@ -392,12 +394,12 @@ const Prompts: React.FC<PromptsProps> = ({
     };
 
     onSavePrompt(promptToSave);
-    
+
     // Update state to reflect the saved prompt
     setIsAdding(false);
     setEditingPromptId(null);
     setSelectedPromptId(currentId);
-    
+
     // Reset form state to mark it as pristine but keep values
     form.reset(data);
 
@@ -413,10 +415,10 @@ const Prompts: React.FC<PromptsProps> = ({
   const resetForm = () => {
     // Store the current prompt ID before resetting
     const currentPromptId = selectedPromptId;
-    
+
     setIsAdding(false);
     setEditingPromptId(null);
-    
+
     // If we were editing an existing prompt, keep it selected and restore its original values
     if (currentPromptId && prompts.length > 0) {
       updateFormWithPrompt(currentPromptId);
@@ -437,7 +439,7 @@ const Prompts: React.FC<PromptsProps> = ({
 
   const isFormDirty = form.formState.isDirty;
   const isEditing = isAdding || (selectedPromptId !== null && isFormDirty);
-  
+
   // Determine when to show action buttons
   const showActionButtons = isAdding || isFormDirty;
 

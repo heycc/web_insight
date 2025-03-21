@@ -145,14 +145,14 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   // OAI Compatible Examples
   {
     id: 'DEEPSEEK_OFFICIAL',
-    display_name: 'Deepseek Official',
+    display_name: 'DeepSeek (深度求索)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.deepseek.com',
     models: ['deepseek-chat', 'deepseek-reasoner']
   },
   {
     id: 'VOLCENGINE',
-    display_name: 'Volcengine (火山云)',
+    display_name: 'Volcengine (火山引擎)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
     models: ['deepseek-r1-250120', 'deepseek-v3-241226']
@@ -165,6 +165,13 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
   },
   {
+    id: 'LKEAP_TXYUN',
+    display_name: 'LKE (腾讯云)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    models: ['deepseek-r1', 'deepseek-v3']
+  },
+  {
     id: 'SILICONFLOW',
     display_name: 'SiliconFlow (硅基流动)',
     provider_type: ProviderType.OAI_COMPATIBLE,
@@ -174,7 +181,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   // LM Studio
   {
     id: 'LMSTUDIO',
-    display_name: 'LM Studio (Local)',
+    display_name: 'LMStudio (Local)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'http://127.0.0.1:1234/v1',
     models: []

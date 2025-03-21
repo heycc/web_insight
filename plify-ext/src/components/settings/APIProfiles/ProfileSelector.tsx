@@ -39,10 +39,8 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   const selectId = React.useId();
 
   return (
-    <div className="mb-4 flex flex-col gap-1">
-      <p className="text-sm text-muted-foreground">
-        The first profile will be used as by default. Click 'Top' to prioritize your preferred profile.
-      </p>
+    <div className="mb-4 flex flex-col gap-0">
+      
       <div className="flex justify-between items-center mb-1">
         <div className="flex-1 mr-4">
           <Label htmlFor={selectId} className="sr-only">Select Profile</Label>
@@ -55,7 +53,10 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             }}
             value={activeProfile.index.toString()}
           >
-            <SelectTrigger id={selectId} className="w-full">
+            <SelectTrigger 
+              id={selectId} 
+              className="w-full bg-gray-100 border-0 hover:bg-gray-200 focus:ring-0 focus:ring-offset-0"
+            >
               <SelectValue placeholder="Select a profile" />
             </SelectTrigger>
             <SelectContent>
@@ -143,6 +144,9 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
           </Popover>
         </div>
       </div>
+      <p className="text-sm text-muted-foreground">
+        The first profile will be used as by default. Click 'Top' to prioritize your preferred profile.
+      </p>
     </div>
   );
 };
