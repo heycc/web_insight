@@ -30,6 +30,7 @@ import {
   ProfileFormValues,
   DEFAULT_PROVIDER_PRESETS
 } from '../types';
+import ProfileNameField from './formField/ProfileNameField';
 
 interface ProfileFormProps {
   activeProfile: Profile | null;
@@ -49,7 +50,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [customModelInput, setCustomModelInput] = useState<boolean>(false);
-  const [customProfileInput, setCustomProfileInput] = useState<boolean>(false);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const { toast } = useToast();
 
@@ -92,32 +92,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         setSelectedPresetId('');
       }
       
-      // Always reset customModelInput and customProfileInput to false when profile changes
+      // Always reset customModelInput to false when profile changes
       setCustomModelInput(false);
-      setCustomProfileInput(false);
     }
   }, [activeProfile, form]);
   
-  // Update fields when a PRESET is selected
-  const handlePresetSelect = (presetId: string) => {
-    setSelectedPresetId(presetId);
-    const selectedPreset = DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === presetId);
-    
-    if (selectedPreset) {
-      form.setValue('profile_name', selectedPreset.display_name);
-      form.setValue('provider_type', selectedPreset.provider_type);
-      form.setValue('api_endpoint', selectedPreset.api_endpoint);
-      
-      // Always set the first model in the preset's list
-      if (selectedPreset.models.length > 0) {
-        form.setValue('model_name', selectedPreset.models[0] || '');
-      } else {
-        // If no models in the preset, set model_name to empty string
-        form.setValue('model_name', '');
-      }
-    }
-  };
-
   // Function to normalize the API endpoint URL
   const normalizeApiEndpoint = (url: string): string => {
     let normalizedUrl = url.trim();
@@ -138,121 +117,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-2">
-        <FormField
-          control={form.control}
-          name="profile_name"
-          render={({ field }) => (
-            <FormItem className='space-y-1'>
-              <FormLabel className="text-base font-normal">Profile Name</FormLabel>
-              {/* If not editing the profile, show the input field with the current profile name, value is spread from 'field' */}
-              {!isEditing && (
-                <FormControl>
-                  <Input
-                    placeholder="Name this profile"
-                    {...field}
-                    disabled={true}
-                  />
-                </FormControl>
-              )}
-              {/* If user is editing the profile and is adding a custom profile name
-              show the input field that was populated with current profile name with cancel and ok buttons */}
-              {isEditing && customProfileInput && (
-                <div className="flex items-center">
-                  <div className="flex-grow">
-                    <FormControl>
-                      <Input
-                        placeholder="Enter custom profile name"
-                        value={field.value || ''}
-                        onChange={field.onChange}
-                        disabled={false}
-                      />
-                    </FormControl>
-                  </div>
-                  <div className="flex ml-2">
-                    {/* Cancel button to clear the input field */}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className='text-red-500'
-                      onClick={() => {
-                        setCustomProfileInput(false);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    {/* OK button to save the custom profile name */}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (field.value && field.value.trim() !== '') {
-                          setCustomProfileInput(false);
-                        } else {
-                          toast({
-                            title: "Invalid profile name",
-                            description: "Please enter a valid profile name",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      OK
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {/* If user is editing the profile and is not activating a custom input
-              show the dropdown to select a preset with a '+' button to add */}
-              {isEditing && !customProfileInput && (
-                <div className="flex items-center">
-                  <div className="flex-grow">
-                    {/* Always show the current value */}
-                    <Select
-                      onValueChange={(value) => {
-                        handlePresetSelect(value);
-                      }}
-                      value={field.value}
-                      disabled={false}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select provider profile, or click to add custom profile 👉" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {/* Show all presets */}
-                        {DEFAULT_PROVIDER_PRESETS.map((preset) => (
-                          <SelectItem key={preset.id} value={preset.id}>
-                            {preset.display_name}
-                          </SelectItem>
-                        ))}
-                        {/* Also show the current name as an option if it's not already in the list */}
-                        {field.value && !DEFAULT_PROVIDER_PRESETS.some(preset => 
-                          preset.display_name === field.value || preset.id === field.value
-                        ) && (
-                          <SelectItem key={field.value} value={field.value}>
-                            {field.value}
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2"
-                    onClick={() => setCustomProfileInput(true)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
+        <ProfileNameField 
+          form={form}
+          isEditing={isEditing}
+          selectedPresetId={selectedPresetId}
+          setSelectedPresetId={setSelectedPresetId}
         />
 
         <FormField
@@ -541,7 +410,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           )}
         />
 
-        {isEditing && !customModelInput && !customProfileInput && (
+        {isEditing && !customModelInput && (
           <div className="flex justify-end space-x-2 mt-4">
             <Button
               type="button"
