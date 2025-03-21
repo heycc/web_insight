@@ -99,83 +99,7 @@ ${commentsList}
 
 </PAGE_CONTEXT>`;
     }
-
-    // Default prompt format if no custom prompt is provided
-    // Determine response language instruction based on language setting
-    let languageInstruction = 'Respond in English';
-    if (language === 'zh-CN') {
-      languageInstruction = '使用简体中文回答, 但引用的原文应该使用原文的语言.';
-    } else if (language === 'ja') {
-      languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
-    }
-
-    return `<INSTRUCTIONS>
-Please analyze this post and its top N comments to provide insightful perspective.
-
-1. Firstly, thoroughly read the entire post and all comments.
-2. Secondly, group similar comments into coherent viewpoints up to 6 ~ 10 viewpoints, prioritizing those with significant engagement and substantive comments, ordered by number of 👍.
-3. Thirdly, provide your own perspective, including potential groupthink, bias, or shallowness, and what can we learn from this discussion.
-
-OUTPUT REQUIREMENTS:
-- Structure your output in markdown format, see example below.
-- LANGUAGE REQUIREMENT: ${languageInstruction}
-- BE CONCISE.
-
-OUTPUT EXAMPLE:
-
-## OpenAI's Copyright Fair Use Debate and Corporate Accountability
-
-OpenAI asserts that restricting AI training on copyrighted materials under fair use doctrine would end the AI development race, framing this access ...
-
-## Practical Viewpoints
-
-1. **Open-Source Reciprocity Mandate** (username, username1, 👍 522+)
-
-Argues that AI models trained on copyrighted works should be open-sourced and non-commercial to prevent ...
-
-> "If LLM's need copyrighted works, the model ... should be open sourced ... you can't make money on it as your proprietary only."
-
-2. **Corporate Hypocrisy Critique** (username1, username2, 👍 210+)
-
-Accuses OpenAI of advocating for unilateral copyright exceptions to benefit their business ...
-
-> "Company that needs to steal content to survive criticizes intellectual property."
-
-3. ...
-
-## My Perspectives
-
-**Critical Learning**
-
-1. **Reciprocity as a viable compromise**: The open-source mandate addresses ethical concerns but ...
-2. ...
-
-**Potential Groupthink / Bias / Shallowness**
-
-1. ...
-2. ...
-
-**In summary**
-
-...
-
-</INSTRUCTIONS>
-
-<PAGE_CONTEXT>
-# Site:
-${site}
-
-# Page TITLE:
-${title}
-
-# CONTENT:
-${postContent}
-
-# TOP COMMENTS (Up to 50):
-${commentsList}
-
-</PAGE_CONTEXT>
-`;
+    return '';
   }
 
   async getSettings(): Promise<ApiSettings> {
@@ -259,16 +183,48 @@ ${commentsList}
     };
 
     // Make the API request with the abort signal
-    const response = await fetch(`${endpoint}/chat/completions`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(requestBody),
-      signal: signal
-    });
+    let response;
+    try {
+      response = await fetch(`${endpoint}/chat/completions`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(requestBody),
+        signal: signal
+      });
+    } catch (error: unknown) {
+      // Handle fetch errors, including CORS and network issues
+      this.logger.error('Fetch error:', error);
+      
+      // Check for specific error messages that indicate a CORS/preflight issue
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('NetworkError') || 
+          errorMessage.includes('Network request failed') ||
+          // The following check is specifically for Chrome's error message for CORS issues
+          errorMessage.includes('Failed to fetch')) {
+        throw new Error(`API request failed: This appears to be a CORS error, possibly due to a 401 Unauthorized response during preflight. 
+Please check your API key and ensure the API endpoint allows requests from browser extensions.`);
+      } else if (error instanceof DOMException && error.name === 'AbortError') {
+        this.logger.log('Request was aborted by user');
+        return;
+      } else {
+        // Re-throw other errors
+        throw error;
+      }
+    }
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+      let errorText;
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = 'Could not read error response body';
+      }
+      
+      if (response.status === 401) {
+        throw new Error(`Authentication failed (401): Your API key may be invalid or expired. Please check your settings.`);
+      } else {
+        throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
     }
 
     const reader = response.body!.getReader();
@@ -300,7 +256,7 @@ ${commentsList}
               this.logger.log('Stream done:', data);
               return;
             }
-  
+    
             try {
               const json = JSON.parse(data);
               
