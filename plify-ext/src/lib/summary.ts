@@ -201,8 +201,7 @@ ${commentsList}
           errorMessage.includes('Network request failed') ||
           // The following check is specifically for Chrome's error message for CORS issues
           errorMessage.includes('Failed to fetch')) {
-        throw new Error(`API request failed: This appears to be a CORS error, possibly due to a 401 Unauthorized response during preflight. 
-Please check your API key and ensure the API endpoint allows requests from browser extensions.`);
+        throw new Error(`Request failed: This appears to be a CORS error, or network issue.`);
       } else if (error instanceof DOMException && error.name === 'AbortError') {
         this.logger.log('Request was aborted by user');
         return;
