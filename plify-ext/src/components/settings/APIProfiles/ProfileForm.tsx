@@ -106,6 +106,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         <APIKeyField
           form={form}
           isEditing={isEditing}
+          selectedPresetId={selectedPresetId}
         />
 
         <ModelNameField

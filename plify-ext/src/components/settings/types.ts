@@ -100,9 +100,9 @@ List them as bullet points.
 { here goes the summary of the opinion }
 >{ here is quoted original sentence }
 
-## { here goes the overall sentiment or conclusion }
+## { here goes the overall sentiments and conclusion }
 
-The overall sentiment or conclusion of the post and comments in your own words.
+The overall sentiments and conclusion of the post and comments in your own perspective.
 
 </OUTPUT_FORMAT>
 
@@ -121,6 +121,7 @@ export interface ProviderPreset {
   display_name: string;
   provider_type: ProviderType;
   api_endpoint: string;
+  api_key_doc?: string;
   models: string[];
 }
 
@@ -132,6 +133,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'OpenAI',
     provider_type: ProviderType.OPENAI,
     api_endpoint: 'https://api.openai.com/v1',
+    api_key_doc: 'https://platform.openai.com/api-keys',
     models: ['gpt-4o', 'gpt-4o-mini']
   },
   // OAI Compatible Examples
@@ -140,6 +142,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'DeepSeek (深度求索)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.deepseek.com',
+    api_key_doc: 'https://api-docs.deepseek.com',
     models: ['deepseek-chat', 'deepseek-reasoner']
   },
   {
@@ -147,6 +150,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'SiliconFlow (硅基流动)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.siliconflow.cn/v1',
+    api_key_doc: 'https://docs.siliconflow.cn/cn/userguide/quickstart',
     models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3']
   },
   {
@@ -154,6 +158,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'Volcengine (火山引擎)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
+    api_key_doc: 'https://www.volcengine.com/docs/82379/1399008',
     models: ['deepseek-r1-250120', 'deepseek-v3-241226']
   },
   {
@@ -161,6 +166,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'Bailian (阿里云)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    api_key_doc: 'https://help.aliyun.com/zh/model-studio/user-guide/api-key-management',
     models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
   },
   {
@@ -168,6 +174,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'LKEAP (腾讯云知识引擎)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
+    api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
     models: ['deepseek-r1', 'deepseek-v3']
   },
   {
@@ -175,6 +182,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'Hunyuan (腾讯云混元)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.hunyuan.cloud.tencent.com/v1',
+    api_key_doc: 'https://cloud.tencent.com/document/product/1729/111008',
     models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest']
   },
   // LM Studio

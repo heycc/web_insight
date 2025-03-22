@@ -5,25 +5,32 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription
 } from "../../../ui/form";
 import { Input } from "../../../ui/input";
 import { Button } from "../../../ui/button";
 import { Eye, EyeOff, Copy } from 'lucide-react';
 import { useToast } from "../../../ui/use-toast";
-import { ProfileFormValues } from '../../types';
+import { ProfileFormValues, getProviderPresetById } from '../../types';
 
 interface APIKeyFieldProps {
   form: UseFormReturn<ProfileFormValues>;
   isEditing: boolean;
+  selectedPresetId?: string;
 }
 
 const APIKeyField: React.FC<APIKeyFieldProps> = ({
   form,
-  isEditing
+  isEditing,
+  selectedPresetId
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const { toast } = useToast();
+  
+  // Get the API key documentation URL if a preset is selected
+  const selectedPreset = selectedPresetId ? getProviderPresetById(selectedPresetId) : undefined;
+  const apiKeyDoc = selectedPreset?.api_key_doc;
 
   return (
     <FormField
@@ -76,6 +83,18 @@ const APIKeyField: React.FC<APIKeyFieldProps> = ({
               {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
           </div>
+          <FormDescription>
+            {apiKeyDoc && (
+              <a 
+                href={apiKeyDoc} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-xs text-blue-600 hover:underline"
+              >
+                How to get API key from this provider?
+              </a>
+            )}
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}
