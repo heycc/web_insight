@@ -6,14 +6,6 @@ export enum ProviderType {
   LMSTUDIO = 'lmstudio'
 }
 
-// export enum ModelName {
-//   GPT_4 = 'gpt-4o',
-//   GPT_35_TURBO = 'gpt-4o-mini',
-//   DEEPSEEK_R1 = 'deepseek-r1',
-//   DEEPSEEK_V3 = 'deepseek-v3',
-//   QWEN_LONG = 'qwen-max',
-// }
-
 export enum Language {
   EN = 'en',
   ZH_CN = 'zh-CN',
@@ -164,13 +156,20 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
   },
-  // {
-  //   id: 'LKEAP_TXYUN',
-  //   display_name: 'LKE (腾讯云)',
-  //   provider_type: ProviderType.OAI_COMPATIBLE,
-  //   api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
-  //   models: ['deepseek-r1', 'deepseek-v3']
-  // },
+  {
+    id: 'LKEAP_TXYUN',
+    display_name: 'LKEAP (腾讯云知识引擎)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
+    models: ['deepseek-r1', 'deepseek-v3']
+  },
+  {
+    id: 'HUNYUAN_TXYUN',
+    display_name: 'Hunyuan (腾讯云混元)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.hunyuan.cloud.tencent.com/v1',
+    models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest']
+  },
   {
     id: 'SILICONFLOW',
     display_name: 'SiliconFlow (硅基流动)',

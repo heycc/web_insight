@@ -68,16 +68,18 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-x-1 flex-shrink-0">
+        <div className="flex flex-row gap-1 justify-center items-center p-0 h-9">
           {activeProfile.index !== profiles[0]?.index && (
             <Button
               onClick={() => onMoveToTop(activeProfile)}
-              size="icon"
+              size="default"
               variant="ghost"
               title="Prioritize this profile"
               aria-label="Move profile to top"
+              className='p-0 w-10 h-8 text-blue-500 hover:text-blue-600'
             >
-              <ArrowUpToLine className="h-4 w-4 text-blue-700" />
+              Top
+              {/* <ArrowUpToLine className="h-4 w-4 text-blue-700" /> */}
             </Button>
           )}
           <Button
@@ -86,6 +88,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             variant="ghost"
             title="Add new profile"
             aria-label="Add new profile"
+            className='p-0 h-8 w-8'
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -95,6 +98,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
             variant="ghost"
             title="Edit profile"
             aria-label="Edit profile"
+            className='p-0 h-8 w-8'
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -104,7 +108,7 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-red-500"
+                className="text-red-500 p-0 h-8 w-8 hover:text-red-600 hover:bg-red-50 ml-6"
                 title="Delete profile"
                 aria-label="Delete profile"
               >
