@@ -8,7 +8,8 @@ import {
   APIProfilesSection, 
   LanguagePreference, 
   PrivacyNotice,
-  Prompts
+  Prompts,
+  About
 } from '../../components/settings';
 import { 
   Profile,
@@ -399,6 +400,12 @@ const App = () => {
               >
                 General
               </TabsTrigger>
+              <TabsTrigger 
+                value="about" 
+                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+              >
+                About
+              </TabsTrigger>
             </TabsList>
 
             {/* Right side content */}
@@ -431,6 +438,10 @@ const App = () => {
                   language={settings.language}
                   onSaveSettings={handleSaveLanguage}
                 />
+              </TabsContent>
+
+              <TabsContent value="about" className="mt-0 ml-0">
+                <About />
               </TabsContent>
             </div>
           </div>
