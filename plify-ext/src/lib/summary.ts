@@ -139,7 +139,7 @@ ${commentsList}
     const temperature = activeProfile.temperature !== undefined ? activeProfile.temperature : 0.6;
 
     return {
-      provider: activeProfile.provider_type,
+      provider: activeProfile.profile_name,
       apiKey: activeProfile.api_key,
       apiEndpoint: activeProfile.api_endpoint,
       model: activeProfile.model_name,
@@ -197,11 +197,11 @@ ${commentsList}
       
       // Check for specific error messages that indicate a CORS/preflight issue
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('NetworkError') || 
-          errorMessage.includes('Network request failed') ||
-          // The following check is specifically for Chrome's error message for CORS issues
-          errorMessage.includes('Failed to fetch')) {
-        throw new Error(`Request failed: This appears to be a CORS error, or network issue.`);
+      if (errorMessage.includes('Failed to fetch')) {
+        // The following check is specifically for Chrome's error message for CORS issues
+        throw new Error(`Request to ${settings.provider} failed, This appears to be a CORS error caused by the API provider. You may need to switch to a different profile.`);
+      } else if (errorMessage.includes('NetworkError') || errorMessage.includes('Network request failed')) {
+        throw new Error(`Request to ${settings.provider} failed, This appears to be network issue. You may need to switch to a different profile.`);
       } else if (error instanceof DOMException && error.name === 'AbortError') {
         this.logger.log('Request was aborted by user');
         return;

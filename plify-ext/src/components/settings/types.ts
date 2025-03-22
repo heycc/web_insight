@@ -143,6 +143,13 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     models: ['deepseek-chat', 'deepseek-reasoner']
   },
   {
+    id: 'SILICONFLOW',
+    display_name: 'SiliconFlow (硅基流动)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.siliconflow.cn/v1',
+    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3']
+  },
+  {
     id: 'VOLCENGINE',
     display_name: 'Volcengine (火山引擎)',
     provider_type: ProviderType.OAI_COMPATIBLE,
@@ -169,13 +176,6 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.hunyuan.cloud.tencent.com/v1',
     models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest']
-  },
-  {
-    id: 'SILICONFLOW',
-    display_name: 'SiliconFlow (硅基流动)',
-    provider_type: ProviderType.OAI_COMPATIBLE,
-    api_endpoint: 'https://api.siliconflow.cn/v1',
-    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3']
   },
   // LM Studio
   {
