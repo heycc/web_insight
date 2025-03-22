@@ -33,7 +33,9 @@ function extractRedditData(): RedditPost {
   };
 
   // Extract comments
-  const commentElements = document.querySelectorAll('shreddit-comment[depth="0"], shreddit-comment[depth="1"]');
+  const commentElements = document.querySelectorAll(
+    'shreddit-comment[depth="0"], shreddit-comment[depth="1"], shreddit-comment[depth="2"]'
+  );
   commentElements.forEach((comment, index) => {
     try {
       const author = comment.getAttribute('author');

@@ -64,7 +64,7 @@ export class SummaryService {
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
-      .slice(0, 50)
+      .slice(0, 100)
       .map(c => `## [Author: ${c.author || 'unknown'}, 👍: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
       .join('\n') || 'No comments';
 
@@ -94,7 +94,7 @@ ${title}
 # CONTENT:
 ${postContent}
 
-# TOP COMMENTS (Up to 50):
+# TOP COMMENTS (Up to 100):
 ${commentsList}
 
 </PAGE_CONTEXT>`;
