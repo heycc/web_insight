@@ -9,7 +9,9 @@ import {
   LanguagePreference, 
   PrivacyNotice,
   Prompts,
-  About
+  About,
+  FontSizePreference,
+  FontSizeProvider
 } from '../../components/settings';
 import { 
   Profile,
@@ -18,7 +20,8 @@ import {
   Language,
   ProfileFormValues,
   Prompt,
-  DEFAULT_PROMPT
+  DEFAULT_PROMPT,
+  FontSize
 } from '../../components/settings/types';
 
 const DEFAULT_PROFILE: Profile = {
@@ -36,7 +39,8 @@ const App = () => {
     profiles: [],
     theme: 'system',
     language: Language.EN,
-    prompts: []
+    prompts: [],
+    fontSize: FontSize.MEDIUM
   });
 
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
@@ -51,10 +55,28 @@ const App = () => {
     loadSettings();
   }, []);
 
+  // Listen for font size changes from storage
+  useEffect(() => {
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local' && changes.fontSize) {
+        setSettings(prev => ({
+          ...prev,
+          fontSize: changes.fontSize.newValue
+        }));
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
+
   const loadSettings = async () => {
     try {
       setIsLoading(true);
-      const result = await chrome.storage.local.get(['profiles', 'theme', 'language', 'prompts']);
+      const result = await chrome.storage.local.get(['profiles', 'theme', 'language', 'prompts', 'fontSize']);
       logger.log('Loaded from storage:', result);
 
       // Check if we need to add the default prompt
@@ -89,7 +111,8 @@ const App = () => {
           profiles: validatedProfiles,
           theme: result.theme || 'system',
           language: result.language || 'en',
-          prompts: defaultPrompts
+          prompts: defaultPrompts,
+          fontSize: result.fontSize || FontSize.MEDIUM
         });
         // Set the first profile as active
         setActiveProfile(validatedProfiles[0]);
@@ -99,7 +122,8 @@ const App = () => {
           profiles: [],
           theme: result.theme || 'system',
           language: result.language || 'en',
-          prompts: defaultPrompts
+          prompts: defaultPrompts,
+          fontSize: result.fontSize || FontSize.MEDIUM
         });
       }
     } catch (error) {
@@ -116,7 +140,8 @@ const App = () => {
         profiles: settings.profiles,
         theme: settings.theme,
         language: settings.language,
-        prompts: settings.prompts
+        prompts: settings.prompts,
+        fontSize: settings.fontSize
       };
 
       logger.log('Saving settings:', settingsToSave);
@@ -149,7 +174,24 @@ const App = () => {
       profiles: settings.profiles,
       theme: settings.theme,
       language: newLanguage,
-      prompts: settings.prompts
+      prompts: settings.prompts,
+      fontSize: settings.fontSize
+    });
+  };
+
+  const handleSaveFontSize = (newFontSize: FontSize) => {
+    setSettings(prev => ({
+      ...prev,
+      fontSize: newFontSize
+    }));
+
+    // Save the updated font size setting immediately
+    saveSettings({
+      profiles: settings.profiles,
+      theme: settings.theme,
+      language: settings.language,
+      prompts: settings.prompts,
+      fontSize: newFontSize
     });
   };
 
@@ -208,7 +250,8 @@ const App = () => {
       profiles: updatedProfiles,
       theme: settings.theme,
       language: settings.language,
-      prompts: settings.prompts
+      prompts: settings.prompts,
+      fontSize: settings.fontSize
     });
   };
 
@@ -236,7 +279,8 @@ const App = () => {
         profiles: updatedProfiles,
         theme: prev.theme,
         language: prev.language,
-        prompts: prev.prompts
+        prompts: prev.prompts,
+        fontSize: prev.fontSize
       });
 
       return {
@@ -263,7 +307,8 @@ const App = () => {
         profiles: updatedProfiles,
         theme: settings.theme,
         language: settings.language,
-        prompts: settings.prompts
+        prompts: settings.prompts,
+        fontSize: settings.fontSize
       });
 
       toast({
@@ -302,7 +347,8 @@ const App = () => {
         profiles: prev.profiles,
         theme: prev.theme,
         language: prev.language,
-        prompts: updatedPrompts
+        prompts: updatedPrompts,
+        fontSize: prev.fontSize
       });
       
       toast({
@@ -343,7 +389,8 @@ const App = () => {
         profiles: prev.profiles,
         theme: prev.theme,
         language: prev.language,
-        prompts: updatedPrompts
+        prompts: updatedPrompts,
+        fontSize: prev.fontSize
       });
       
       toast({
@@ -367,89 +414,95 @@ const App = () => {
   }
 
   return (
-    <>
-      <div className="flex flex-col max-w-4xl mx-auto p-0">
-        <h1 className="text-2xl font-bold my-6">Settings</h1>
+    <FontSizeProvider fontSize={settings.fontSize}>
+      <>
+        <div className="flex flex-col max-w-4xl mx-auto p-0">
+          <h1 className="text-2xl font-bold my-6">Settings</h1>
 
-        <PrivacyNotice />
+          <PrivacyNotice />
 
-        <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab} 
-          className="w-full mb-4"
-          data-orientation="vertical"
-        >
-          <div className="flex flex-row space-x-6">
-            {/* Left side tabs */}
-            <TabsList className="flex flex-col h-auto w-40 space-y-2 justify-start bg-white">
-              <TabsTrigger 
-                value="profiles" 
-                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
-              >
-                LLM API
-              </TabsTrigger>
-              <TabsTrigger 
-                value="prompts" 
-                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
-              >
-                Prompts
-              </TabsTrigger>
-              <TabsTrigger 
-                value="general" 
-                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
-              >
-                General
-              </TabsTrigger>
-              <TabsTrigger 
-                value="about" 
-                className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
-              >
-                About
-              </TabsTrigger>
-            </TabsList>
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab} 
+            className="w-full mb-4"
+            data-orientation="vertical"
+          >
+            <div className="flex flex-row space-x-6">
+              {/* Left side tabs */}
+              <TabsList className="flex flex-col h-auto w-40 space-y-2 justify-start bg-transparent">
+                <TabsTrigger 
+                  value="profiles" 
+                  className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+                >
+                  LLM API
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="prompts" 
+                  className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+                >
+                  Prompts
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="general" 
+                  className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+                >
+                  General
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="about" 
+                  className="w-full justify-start px-4 py-2 text-left text-lg data-[state=active]:bg-gray-100 shadow-none font-normal"
+                >
+                  About
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Right side content */}
-            <div className="flex-1">
-              <TabsContent value="profiles" className="mt-0 ml-0">
-                <APIProfilesSection 
-                  profiles={settings.profiles}
-                  activeProfile={activeProfile}
-                  isEditing={isEditing}
-                  onProfileChange={setActiveProfile}
-                  onAddNewProfile={addNewProfile}
-                  onEditProfile={editProfile}
-                  onDeleteProfile={deleteProfile}
-                  onMoveToTop={moveProfileToTop}
-                  onProfileFormSubmit={handleProfileFormSubmit}
-                  onProfileCancel={handleProfileCancel}
-                />
-              </TabsContent>
+              {/* Right side content */}
+              <div className="flex-1">
+                <TabsContent value="profiles" className="mt-0 ml-0">
+                  <APIProfilesSection 
+                    profiles={settings.profiles}
+                    activeProfile={activeProfile}
+                    isEditing={isEditing}
+                    onProfileChange={setActiveProfile}
+                    onAddNewProfile={addNewProfile}
+                    onEditProfile={editProfile}
+                    onDeleteProfile={deleteProfile}
+                    onMoveToTop={moveProfileToTop}
+                    onProfileFormSubmit={handleProfileFormSubmit}
+                    onProfileCancel={handleProfileCancel}
+                  />
+                </TabsContent>
 
-              <TabsContent value="prompts" className="mt-0 ml-0">
-                <Prompts 
-                  prompts={settings.prompts}
-                  onSavePrompt={handleSavePrompt}
-                  onDeletePrompt={handleDeletePrompt}
-                />
-              </TabsContent>
+                <TabsContent value="prompts" className="mt-0 ml-0">
+                  <Prompts 
+                    prompts={settings.prompts}
+                    onSavePrompt={handleSavePrompt}
+                    onDeletePrompt={handleDeletePrompt}
+                  />
+                </TabsContent>
 
-              <TabsContent value="general" className="mt-0 ml-0">
-                <LanguagePreference 
-                  language={settings.language}
-                  onSaveSettings={handleSaveLanguage}
-                />
-              </TabsContent>
+                <TabsContent value="general" className="mt-0 ml-0">
+                  <LanguagePreference 
+                    language={settings.language}
+                    onSaveSettings={handleSaveLanguage}
+                  />
+                  <FontSizePreference 
+                    fontSize={settings.fontSize}
+                    onSaveSettings={handleSaveFontSize}
+                  />
+                </TabsContent>
 
-              <TabsContent value="about" className="mt-0 ml-0">
-                <About />
-              </TabsContent>
+                <TabsContent value="about" className="mt-0 ml-0">
+                  <About />
+                </TabsContent>
+              </div>
             </div>
-          </div>
-        </Tabs>
-      </div>
+          </Tabs>
+        </div>
 
-      <Toaster />
-    </>
+        <Toaster />
+      </>
+    </FontSizeProvider>
   );
 };
 

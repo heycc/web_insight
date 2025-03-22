@@ -12,6 +12,27 @@ export enum Language {
   JA = 'ja'
 }
 
+export enum FontSize {
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+  EXTRA_LARGE = 'extra-large'
+}
+
+export const FONT_SIZE_LABELS: Record<FontSize, string> = {
+  [FontSize.SMALL]: 'Small',
+  [FontSize.MEDIUM]: 'Medium',
+  [FontSize.LARGE]: 'Large',
+  [FontSize.EXTRA_LARGE]: 'Extra Large'
+};
+
+export const FONT_SIZE_VALUES: Record<FontSize, string> = {
+  [FontSize.SMALL]: '0.875rem',
+  [FontSize.MEDIUM]: '1rem',
+  [FontSize.LARGE]: '1.125rem',
+  [FontSize.EXTRA_LARGE]: '1.25rem'
+};
+
 export const LANGUAGE_LABELS: Record<Language, string> = {
   [Language.EN]: 'English',
   [Language.ZH_CN]: '简体中文 (Simplified Chinese)',
@@ -41,6 +62,7 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system';
   language: Language;
   prompts: Prompt[];
+  fontSize: FontSize;
 }
 
 // Add default API endpoints for each provider type

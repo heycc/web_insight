@@ -26,7 +26,7 @@ const LanguagePreference: React.FC<LanguagePreferenceProps> = ({
 
   return (
     <div className="mb-6">
-      <h2 className="text-xl mb-4">General Settings</h2>
+      <h2 className="text-xl font-semibold mb-4">General Settings</h2>
       <div className="space-y-2">
         <div className="text-base">Language</div>
         <Select

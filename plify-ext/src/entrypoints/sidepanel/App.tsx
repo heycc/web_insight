@@ -14,6 +14,8 @@ import ContentDataView from '../../components/sidepanel/ContentDataView';
 import WelcomeMessage from '../../components/sidepanel/WelcomeMessage';
 import Header from '../../components/sidepanel/Header';
 import { createLogger } from '../../lib/utils';
+import { FontSizeProvider } from '../../components/settings';
+import { FontSize } from '../../components/settings/types';
 
 // Add global handler for AbortError from stream aborts
 // This prevents the error from showing in the console
@@ -50,6 +52,9 @@ const App: React.FC = () => {
   const [currentPromptContent, setCurrentPromptContent] = useState<string | undefined>(undefined);
   // Add state to track if API profiles are configured
   const [hasApiProfiles, setHasApiProfiles] = useState<boolean>(true);
+  // Add state for font size setting
+  const [fontSize, setFontSize] = useState<FontSize>(FontSize.MEDIUM);
+  
   const { toast } = useToast();
 
   // Create a single shared instance of SummaryService
@@ -177,6 +182,35 @@ const App: React.FC = () => {
       chrome.tabs.onUpdated.removeListener(handleTabUpdated);
       chrome.tabs.onActivated.removeListener(handleTabActivated);
       unsubscribe(); // Clean up profile listener
+    };
+  }, []);
+
+  // Load font size setting
+  useEffect(() => {
+    const loadFontSizeSetting = async () => {
+      try {
+        const result = await chrome.storage.local.get(['fontSize']);
+        if (result.fontSize) {
+          setFontSize(result.fontSize);
+        }
+      } catch (error) {
+        logger.error('Error loading font size setting:', error);
+      }
+    };
+
+    loadFontSizeSetting();
+
+    // Listen for font size changes from settings
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local' && changes.fontSize) {
+        setFontSize(changes.fontSize.newValue);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
     };
   }, []);
 
@@ -393,118 +427,120 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto p-0 mt-1 bg-background">
-      <Toaster />
-      <div className={`sticky top-0 z-10 bg-background transition-shadow duration-200 ${hasScrolled ? 'shadow-md' : ''}`}>
-        <Header 
-          currentSite={currentSite}
-          isLoading={isLoading}
-          isSummarizing={isSummarizing}
-          onSummarize={handleSummarize}
-          onStopSummarization={handleStopSummarization}
-          onOpenSettings={openSettings}
-          onSelectPrompt={handleSelectPrompt}
-        />
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
-          {error}
-          {/* {error.includes('No API profiles configured') && (
-            {error}
-            <div className="flex flex-col items-center">
-              <p className="mb-2 text-sm">You need to configure an API profile before using this extension.</p>
-              <Button 
-                onClick={openSettings}
-                className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Open Settings
-              </Button>
-            </div>
-          )} */}
+    <FontSizeProvider fontSize={fontSize}>
+      <div className="flex flex-col h-full max-w-4xl mx-auto p-0 mt-1 bg-background">
+        <Toaster />
+        <div className={`sticky top-0 z-10 bg-background transition-shadow duration-200 ${hasScrolled ? 'shadow-md' : ''}`}>
+          <Header 
+            currentSite={currentSite}
+            isLoading={isLoading}
+            isSummarizing={isSummarizing}
+            onSummarize={handleSummarize}
+            onStopSummarization={handleStopSummarization}
+            onOpenSettings={openSettings}
+            onSelectPrompt={handleSelectPrompt}
+          />
         </div>
-      )}
 
-      {/* Welcome message on first load */}
-      {!summary && !contentData && (
-        <WelcomeMessage 
-          currentSite={currentSite} 
-          hasApiProfiles={hasApiProfiles} 
-          onOpenSettings={openSettings}
-        />
-      )}
+        {/* Error message */}
+        {error && (
+          <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
+            {error}
+            {/* {error.includes('No API profiles configured') && (
+              {error}
+              <div className="flex flex-col items-center">
+                <p className="mb-2 text-sm">You need to configure an API profile before using this extension.</p>
+                <Button 
+                  onClick={openSettings}
+                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Open Settings
+                </Button>
+              </div>
+            )} */}
+          </div>
+        )}
 
-      {/* Summary or content data */}
-      {(summary || contentData) && (
-        <>
-          {contentData && (
-            <div className="mb-2 mx-4 flex flex-row gap-2">
-              <h3 className="text-lg font-semibold hover:underline">
-                <a href={contentData.url || ''} target="_blank" rel="noopener noreferrer">
-                  {contentData.title || 'Untitled Post'}
-                  <ExternalLink className="h-4 w-4 text-blue-500 ml-4 inline" />
-                </a>
-              </h3>
-            </div>
-          )}
-          <Tabs value={resultTab} onValueChange={setResultTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mx-auto bg-secondary mx-2">
-              <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">✨ Summary</TabsTrigger>
-              <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">📄 Content</TabsTrigger>
-            </TabsList>
+        {/* Welcome message on first load */}
+        {!summary && !contentData && (
+          <WelcomeMessage 
+            currentSite={currentSite} 
+            hasApiProfiles={hasApiProfiles} 
+            onOpenSettings={openSettings}
+          />
+        )}
 
-            <TabsContent value="summary">
-              {(isLoading || isSummarizing) && !(summary || reasoning) && (
-                <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg">
-                  <div className="mb-4">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+        {/* Summary or content data */}
+        {(summary || contentData) && (
+          <>
+            {contentData && (
+              <div className="mb-2 mx-4 flex flex-row gap-2">
+                <h3 className="text-lg font-semibold hover:underline">
+                  <a href={contentData.url || ''} target="_blank" rel="noopener noreferrer">
+                    {contentData.title || 'Untitled Post'}
+                    <ExternalLink className="h-4 w-4 text-blue-500 ml-4 inline" />
+                  </a>
+                </h3>
+              </div>
+            )}
+            <Tabs value={resultTab} onValueChange={setResultTab} className="w-full">
+              <TabsList className="grid grid-cols-2 mx-auto bg-secondary mx-2">
+                <TabsTrigger value="summary" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">✨ Summary</TabsTrigger>
+                <TabsTrigger value="data" className="px-3 py-1 rounded-full font-semibold hover:bg-primary/20 hover:text-accent-foreground">📄 Content</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="summary">
+                {(isLoading || isSummarizing) && !(summary || reasoning) && (
+                  <div className="p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-card rounded-lg">
+                    <div className="mb-4">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                    </div>
+                    <p className="mb-2 font-medium">
+                      {isLoading ? 'Extracting content...' : 'Generating summary...'}
+                    </p>
+                    <p className="text-sm">
+                      {isLoading ? 'Analyzing the page content' : 'Waiting for the first token'}
+                    </p>
                   </div>
-                  <p className="mb-2 font-medium">
-                    {isLoading ? 'Extracting content...' : 'Generating summary...'}
-                  </p>
-                  <p className="text-sm">
-                    {isLoading ? 'Analyzing the page content' : 'Waiting for the first token'}
-                  </p>
-                </div>
-              )}
-              {(summary || reasoning) && (
-                <SummaryView
-                  summary={summary}
-                  reasoning={reasoning}
-                  showReasoning={showReasoning}
-                  isSummarizing={isSummarizing}
-                  isLoading={isLoading}
-                  copiedState={copiedState}
-                  onToggleReasoning={() => setShowReasoning(!showReasoning)}
-                  onCopy={handleCopySummary}
-                  onRegenerate={handleRegenerate}
-                />
-              )}
-              {!(summary || reasoning || isSummarizing) && (
-                <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg">
-                  Click to generate summary
-                  <div className="flex justify-center mb-4">
-                    <Button
-                      onClick={() => handleSummarize()}
-                      className=""
-                      variant="outline"
-                    >
-                      Summarize
-                    </Button>
+                )}
+                {(summary || reasoning) && (
+                  <SummaryView
+                    summary={summary}
+                    reasoning={reasoning}
+                    showReasoning={showReasoning}
+                    isSummarizing={isSummarizing}
+                    isLoading={isLoading}
+                    copiedState={copiedState}
+                    onToggleReasoning={() => setShowReasoning(!showReasoning)}
+                    onCopy={handleCopySummary}
+                    onRegenerate={handleRegenerate}
+                  />
+                )}
+                {!(summary || reasoning || isSummarizing) && (
+                  <div className="p-3 flex flex-col gap-2 text-center text-muted-foreground bg-card rounded-lg">
+                    Click to generate summary
+                    <div className="flex justify-center mb-4">
+                      <Button
+                        onClick={() => handleSummarize()}
+                        className=""
+                        variant="outline"
+                      >
+                        Summarize
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </TabsContent>
+                )}
+              </TabsContent>
 
-            <TabsContent value="data">
-              <ContentDataView contentData={contentData} />
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
-    </div>
+              <TabsContent value="data">
+                <ContentDataView contentData={contentData} />
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+      </div>
+    </FontSizeProvider>
   );
 };
 

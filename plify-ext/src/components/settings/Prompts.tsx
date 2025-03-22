@@ -447,7 +447,7 @@ const Prompts: React.FC<PromptsProps> = ({
 
   return (
     <div className="mb-6">
-      <h2 className="text-xl mb-4">Prompts Library</h2>
+      <h2 className="text-xl font-semibold mb-4">Prompts Library</h2>
 
       {prompts.length > 0 && !isAdding && (
         <PromptEditorSelector
