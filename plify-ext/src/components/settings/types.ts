@@ -152,7 +152,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   // OpenAI Official
   {
     id: 'OPENAI_OFFICIAL',
-    display_name: 'OpenAI',
+    display_name: 'OpenAI Official',
     provider_type: ProviderType.OPENAI,
     api_endpoint: 'https://api.openai.com/v1',
     api_key_doc: 'https://platform.openai.com/api-keys',
@@ -161,7 +161,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   // OAI Compatible Examples
   {
     id: 'DEEPSEEK_OFFICIAL',
-    display_name: 'DeepSeek (深度求索)',
+    display_name: 'DeepSeek Official',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.deepseek.com',
     api_key_doc: 'https://api-docs.deepseek.com',
@@ -169,7 +169,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   },
   {
     id: 'SILICONFLOW',
-    display_name: 'SiliconFlow (硅基流动)',
+    display_name: 'SiliconFlow',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.siliconflow.cn/v1',
     api_key_doc: 'https://docs.siliconflow.cn/cn/userguide/quickstart',
@@ -192,20 +192,20 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
   },
   {
-    id: 'LKEAP_TXYUN',
-    display_name: 'LKEAP (腾讯云知识引擎)',
-    provider_type: ProviderType.OAI_COMPATIBLE,
-    api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
-    api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
-    models: ['deepseek-r1', 'deepseek-v3']
-  },
-  {
     id: 'HUNYUAN_TXYUN',
     display_name: 'Hunyuan (腾讯云混元)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.hunyuan.cloud.tencent.com/v1',
     api_key_doc: 'https://cloud.tencent.com/document/product/1729/111008',
     models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest']
+  },
+  {
+    id: 'LKEAP_TXYUN',
+    display_name: 'LKEAP (腾讯云知识引擎)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
+    api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
+    models: ['deepseek-r1', 'deepseek-v3']
   },
   // LM Studio
   {

@@ -9,9 +9,9 @@ const About = () => {
           Plify AI Insight leverages cutting-edge AI to instantly analyze discussions from Reddit, YouTube, and other platforms, transforming content overload into trusted insights. 🚀 Get to the heart of conversations faster with smart summarization that respects your time.
         </p>
         <p className="text-base text-gray-700 mb-3">
-          ✓ Cut through the noise with precision insights<br/>
-          ✓ Discover key perspectives valuable for you<br/>
-          ✓ Expand the boundaries of your cognitive thinking<br/>
+          ✅ Cut through the noise with precision insights<br/>
+          ✅ Discover key perspectives valuable for you<br/>
+          ✅ Expand the boundaries of your cognitive thinking<br/>
         </p>
         <p className="text-base text-gray-700 mb-3">
           Learn faster, dig deeper, and stay informed - all while keeping full control of your data and privacy.
