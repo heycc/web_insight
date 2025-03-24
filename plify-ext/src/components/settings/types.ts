@@ -95,7 +95,7 @@ export const DEFAULT_PROMPT: Prompt = {
   content: `<INSTRUCTION>
 Please provide a clear and concise insight of this page content and top liked comments:
 
-You should read entire content and comments before summarizing. Then group the comments into 5 ~ 8 unique aspects that the comments focused on.
+You should read entire content and comments before summarizing. Then group the comments into 5 ~ 8 unique categories that the comments focused on.
 
 Please structure the summary in the following markdown format:
 
@@ -104,7 +104,7 @@ Please structure the summary in the following markdown format:
 The main point of the post and comments.
 
 ## { here goes the main grouped points in comments }
-The Key points of some hot/top comments, group comments by what aspects they are focused on, keep up to 5 ~ 8 opinions in most liked ordering.
+The Key points of some hot/top comments, group comments by what categories they are focused on, keep up to 5 ~ 8 opinions in most liked ordering.
 
 You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique background.
 
