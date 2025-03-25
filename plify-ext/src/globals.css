@@ -93,6 +93,17 @@
   }
 
   /* Font size utility data attributes - scaled by the selected font size */
+  html[data-font-size="extra-small"] {
+    --font-size-xs: 0.625rem;   /* 10px */
+    --font-size-sm: 0.75rem;    /* 12px */
+    --font-size-base: 0.8125rem; /* 13px */
+    --font-size-lg: 0.875rem;   /* 14px */
+    --font-size-xl: 1rem;       /* 16px */
+    --font-size-2xl: 1.25rem;   /* 20px */
+    --font-size-3xl: 1.5rem;    /* 24px */
+    --font-size-4xl: 1.75rem;   /* 28px */
+  }
+
   html[data-font-size="small"] {
     --font-size-xs: 0.6875rem;   /* 11px */
     --font-size-sm: 0.8125rem;   /* 13px */

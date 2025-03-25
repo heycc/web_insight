@@ -13,6 +13,7 @@ export enum Language {
 }
 
 export enum FontSize {
+  EXTRA_SMALL = 'extra-small',
   SMALL = 'small',
   MEDIUM = 'medium',
   LARGE = 'large',
@@ -20,6 +21,7 @@ export enum FontSize {
 }
 
 export const FONT_SIZE_LABELS: Record<FontSize, string> = {
+  [FontSize.EXTRA_SMALL]: 'Extra Small',
   [FontSize.SMALL]: 'Small',
   [FontSize.MEDIUM]: 'Medium',
   [FontSize.LARGE]: 'Large',
@@ -27,6 +29,7 @@ export const FONT_SIZE_LABELS: Record<FontSize, string> = {
 };
 
 export const FONT_SIZE_VALUES: Record<FontSize, string> = {
+  [FontSize.EXTRA_SMALL]: '0.75rem',
   [FontSize.SMALL]: '0.875rem',
   [FontSize.MEDIUM]: '1rem',
   [FontSize.LARGE]: '1.125rem',
