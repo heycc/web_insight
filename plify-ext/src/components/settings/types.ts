@@ -163,6 +163,14 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   },
   // OAI Compatible Examples
   {
+    id: 'GEMINI (Google AI Studio)',
+    display_name: 'Gemini (Google AI Studio)',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    api_key_doc: 'https://ai.google.dev/gemini-api/docs/api-key',
+    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite', 'gemma-3-27b-it']
+  },
+  {
     id: 'DEEPSEEK_OFFICIAL',
     display_name: 'DeepSeek Official',
     provider_type: ProviderType.OAI_COMPATIBLE,
@@ -170,7 +178,6 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_key_doc: 'https://api-docs.deepseek.com',
     models: ['deepseek-chat', 'deepseek-reasoner']
   },
-  // OAI Compatible Examples
   {
     id: 'OPENROUTER',
     display_name: 'OpenRouter',
@@ -200,7 +207,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
     api_key_doc: 'https://www.volcengine.com/docs/82379/1399008',
-    models: ['deepseek-r1-250120', 'deepseek-v3-241226']
+    models: ['deepseek-r1-250120', 'deepseek-v3-250324', 'deepseek-v3-241226']
   },
   {
     id: 'BAILIAN_ALIYUN',
@@ -224,7 +231,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
     api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
-    models: ['deepseek-r1', 'deepseek-v3']
+    models: ['deepseek-r1', 'deepseek-v3-0324', 'deepseek-v3']
   },
   // LM Studio
   {
