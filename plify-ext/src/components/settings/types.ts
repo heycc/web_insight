@@ -170,6 +170,22 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_key_doc: 'https://api-docs.deepseek.com',
     models: ['deepseek-chat', 'deepseek-reasoner']
   },
+  // OAI Compatible Examples
+  {
+    id: 'OPENROUTER',
+    display_name: 'OpenRouter',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://openrouter.ai/api/v1',
+    api_key_doc: 'https://openrouter.ai/docs/features/provisioning-api-keys',
+    models: [
+      'deepseek/deepseek-r1:free',
+      'deepseek/deepseek-chat-v3-0324:free',
+      'deepseek/deepseek-r1-distill-qwen-32b:free',
+      'qwen/qwq-32b:free',
+      'google/gemma-2-9b-it:free',
+      'mistralai/mistral-small-24b-instruct-2501:free'
+    ]
+  },
   {
     id: 'SILICONFLOW',
     display_name: 'SiliconFlow',
