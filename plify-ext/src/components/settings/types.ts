@@ -96,47 +96,51 @@ export const DEFAULT_PROMPT: Prompt = {
   id: "default-summarize",
   command: "/summarize",
   content: `<INSTRUCTION>
-Please provide a clear and concise insight of this page content and top liked comments:
+Analyze the provided web page content (e.g., Reddit post) and its top-liked comments to extract key insights. Follow these steps:
 
-You should read entire content and comments before summarizing. Then group the comments into 5 ~ 8 unique categories that the comments focused on.
-
-Please structure the summary in the following markdown format:
+1. **Comprehensive Reading**: Thoroughly read the entire post and all comments before summarizing.
+2. **Opinion Grouping**: Identify and group similar comments into 5–8 distinct opinions, prioritizing top-voted and unique perspectives.
+3. **Structured Output**: Present the analysis in the following markdown format:
 
 <OUTPUT_FORMAT>
-## { here goes the main point of the post }
-The main point of the post and comments.
+## Main Point of the Post
+A concise summary of the post's core message or question.
 
-## { here goes the main grouped points in comments }
-The Key points of some hot/top comments, group comments focused on the same opinion as one opinion, keep up to 5 ~ 8 opinions in most liked ordering.
+## Key Grouped Opinions from Comments
+Synthesize the most significant comments into 5–8 logically ordered opinion groups. For each group:  
+- Include **author names** and **upvote counts** (e.g., 👍 250+).  
+- Summarize the shared viewpoint in your own words.  
+- Quote **key phrases or keywords** (not full sentences) that capture the essence.  
+- Highlight unique backgrounds (e.g., "as a software engineer...").
 
-You should also QUOTE KEYWORDS from the original comments (NOT JUST QUOTING THE ENTIRE SENTENCE), especially those from person with unique background.
+Format each group as follows:  
 
-List them as bullet points.
+1. **Group Label** (author1, author2, 👍 n+)  
+   Summary of the opinion.  
+   > "Keyword or impactful phrase from the original comment."  
 
-1. **grouped opinion xx** (author_name, author_name, 👍 n+)
-{ here is summary of the opinion }
->{ here is quoted original sentence }
+2. **Group Label** (author3, 👍 m+)  
+   Summary of the opinion.  
+   > "Keyword or impactful phrase from the original comment."  
 
-2. **grouped opinion xx** (author_name, 👍 n+)
-{ here goes the summary of the opinion }
->{ here is quoted original sentence }
+... Repeat for 5–8 groups ...
 
-3. **grouped opinion xx** (author_name, 👍 m+)
-{ here goes the summary of the opinion }
->{ here is quoted original sentence }
-
-## { here goes the overall sentiments and conclusion }
-
-The overall sentiments and conclusion of the post and comments in your own perspective.
-
+## Overall Sentiment & Conclusion
+- Summarize the **general tone** (e.g., supportive, divisive, humorous).  
+- Provide **your own conclusion** on the post's impact or unresolved questions.  
 </OUTPUT_FORMAT>
 
-<LANGUAGE_REQUIREMENT>
+<LANGUAGE_REQUIREMENT> 
 \${languageInstruction}
-</LANGUAGE_REQUIREMENT>
+</LANGUAGE_REQUIREMENT>  
 
+<ADDITIONAL GUIDELINES>  
+- **Accuracy**: Ensure summaries reflect the original intent without distortion.  
+- **Brevity**: Keep quotes succinct; avoid full-sentence excerpts.  
+- **Diversity**: Include minority opinions if they add value.  
+- **Neutrality**: Maintain an unbiased tone unless sentiment analysis is requested.  
+</ADDITIONAL GUIDELINES>  
 </INSTRUCTION>
-
 `,
   createdAt: new Date(),
   updatedAt: new Date()
@@ -200,7 +204,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.siliconflow.cn/v1',
     api_key_doc: 'https://docs.siliconflow.cn/cn/userguide/quickstart',
-    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3']
+    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3', 'Qwen/QwQ-32B']
   },
   {
     id: 'VOLCENGINE',

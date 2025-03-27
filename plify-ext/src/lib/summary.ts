@@ -71,11 +71,11 @@ export class SummaryService {
     // If custom prompt is provided, use it instead of the default template
     if (customPrompt) {
       // Determine response language instruction based on language setting
-      let languageInstruction = 'Respond in English';
+      let languageInstruction = 'RESPOND IN ENGLISH';
       if (language === 'zh-CN') {
-        languageInstruction = 'Respond in Simplified Chinese, but keep the original language of the quoted text.';
+        languageInstruction = 'RESPOND IN SIMPLIFIED CHINESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
       } else if (language === 'ja') {
-        languageInstruction = 'Respond in Japanese, but keep the original language of the quoted text.';
+        languageInstruction = 'RESPOND IN JAPANESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
       }
 
       // Replace language placeholder if present in custom prompt
