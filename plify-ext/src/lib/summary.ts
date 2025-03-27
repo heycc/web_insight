@@ -263,6 +263,8 @@ ${commentsList}
                 // Check for reasoning content
                 if (json.choices[0].delta.reasoning_content) {
                   yield { type: 'reasoning', text: json.choices[0].delta.reasoning_content };
+                } else if (json.choices[0].delta.reasoning) {
+                  yield { type: 'reasoning', text: json.choices[0].delta.reasoning };
                 }
                 
                 // Check for regular content

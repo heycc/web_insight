@@ -284,13 +284,14 @@ const App: React.FC = () => {
 
         let reasoningStarted = false;
         let contentStarted = false;
-        let reasoningFolded = false;
+        // let reasoningFolded = false;
 
         for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize, customPrompt)) {
           if (chunk.type === 'reasoning') {
             fullReasoning += chunk.text;
             setReasoning(fullReasoning);
             // Only unfold reasoning when first chunk arrives
+            // console.log('DEBUG, showReasoning:', showReasoning, reasoningStarted)
             if (!reasoningStarted) {
               setShowReasoning(true);
               reasoningStarted = true;
@@ -303,10 +304,11 @@ const App: React.FC = () => {
             // Because some model don't generate reasoning content, or generate it in the content section
             if (!contentStarted && reasoningStarted) {
               setShowReasoning(false);
-              reasoningFolded = true;
+              // reasoningFolded = true;
               contentStarted = true;
             }
           }
+          // console.log('DEBUG, showReasoning:', showReasoning)
         }
       } catch (err) {
         logger.log('Caught error during summarization:', err);

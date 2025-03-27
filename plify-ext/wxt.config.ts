@@ -63,5 +63,15 @@ export default defineConfig({
       resources: ['icons/*', '*.css'],
       matches: ['*://*.reddit.com/*', '*://*.youtube.com/*']
     }]
-  }
+  },
+  dev: {
+    server: {
+      hostname: '127.0.0.1',
+    },
+  },
+  vite: () => ({
+    server: {
+      host: '127.0.0.1'
+    }
+  })
 });

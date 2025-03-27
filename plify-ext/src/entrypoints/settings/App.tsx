@@ -196,9 +196,14 @@ const App = () => {
   };
 
   const addNewProfile = () => {
+    // Find the maximum index among existing profiles
+    const maxIndex = settings.profiles.length > 0
+      ? Math.max(...settings.profiles.map(profile => profile.index))
+      : -1;
+    
     const newProfile: Profile = {
       ...DEFAULT_PROFILE,
-      index: settings.profiles.length,
+      index: maxIndex + 1,
       profile_name: `Profile ${settings.profiles.length + 1}`,
     };
 

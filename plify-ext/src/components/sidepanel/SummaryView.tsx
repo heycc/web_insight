@@ -76,10 +76,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
               Model Reasoning
               {(isSummarizing && !summary) && <Loader2 className="h-4 w-4 ml-1 animate-spin text-accent-foreground" />}
             </span>
-            {showReasoning ?
-              <ChevronUp className="h-4 w-4" /> :
-              <ChevronDown className="h-4 w-4" />
-            }
+            {showReasoning ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
           {showReasoning && (
             <div 
