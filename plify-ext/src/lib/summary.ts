@@ -73,9 +73,9 @@ export class SummaryService {
       // Determine response language instruction based on language setting
       let languageInstruction = 'Respond in English';
       if (language === 'zh-CN') {
-        languageInstruction = '使用简体中文回答, 但引用的原文应该使用原文的语言.';
+        languageInstruction = 'Respond in Simplified Chinese, but keep the original language of the quoted text.';
       } else if (language === 'ja') {
-        languageInstruction = '回答は日本語で行うこと。ただし、引用文については原文の言語表記を維持すること.';
+        languageInstruction = 'Respond in Japanese, but keep the original language of the quoted text.';
       }
 
       // Replace language placeholder if present in custom prompt
