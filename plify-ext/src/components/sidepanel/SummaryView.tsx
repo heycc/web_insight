@@ -64,6 +64,20 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     }
   }, [showReasoning]);
 
+  // Function to preprocess markdown text and fix problematic code fences
+  const preprocessMarkdown = (text: string): string => {
+    if (!text) return '';
+    
+    // Replace lone triple backticks with escaped backticks or a code block with language
+    return text
+      // Replace standalone triple backticks with escaped version
+      .replace(/^```\s*$/gm, '\\`\\`\\`')
+      // Ensure backticks with no language specified have 'text' as default language
+      .replace(/^```(\s*)$/gm, '```text')
+      // Handle triple backticks at the very end of the text
+      .replace(/```\s*$/g, '```text\n');
+  };
+
   return (
     <div className="rounded-lg shadow-sm overflow-hidden bg-card m-2">
       {reasoning && (
@@ -107,7 +121,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                   }
                 }}
               >
-                {reasoning}
+                {preprocessMarkdown(reasoning)}
               </ReactMarkdown>
             </div>
           )}
@@ -142,7 +156,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                 }
               }}
             >
-              {summary}
+              {preprocessMarkdown(summary)}
             </ReactMarkdown>
           </div>
       )}

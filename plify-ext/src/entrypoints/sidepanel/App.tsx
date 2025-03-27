@@ -288,17 +288,26 @@ const App: React.FC = () => {
 
         for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize, customPrompt)) {
           if (chunk.type === 'reasoning') {
-            fullReasoning += chunk.text;
+            // Process chunk text to handle problematic code fences
+            const processedText = chunk.text
+              .replace(/^```\s*$/gm, '\\`\\`\\`')
+              .replace(/^```(\s*)$/gm, '```text');
+            
+            fullReasoning += processedText;
             setReasoning(fullReasoning);
             // Only unfold reasoning when first chunk arrives
-            // console.log('DEBUG, showReasoning:', showReasoning, reasoningStarted)
             if (!reasoningStarted) {
               setShowReasoning(true);
               reasoningStarted = true;
             }
           }
           if (chunk.type === 'content') {
-            fullSummary += chunk.text;
+            // Process chunk text to handle problematic code fences
+            const processedText = chunk.text
+              .replace(/^```\s*$/gm, '\\`\\`\\`')
+              .replace(/^```(\s*)$/gm, '```text');
+            
+            fullSummary += processedText;
             setSummary(fullSummary);
             // Only fold reasoning when first chunk arrives and there is reasoning section
             // Because some model don't generate reasoning content, or generate it in the content section
@@ -448,19 +457,6 @@ const App: React.FC = () => {
         {error && (
           <div className="p-4 mb-2 bg-destructive/10 text-destructive rounded-md shadow-sm break-words">
             {error}
-            {/* {error.includes('No API profiles configured') && (
-              {error}
-              <div className="flex flex-col items-center">
-                <p className="mb-2 text-sm">You need to configure an API profile before using this extension.</p>
-                <Button 
-                  onClick={openSettings}
-                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  Open Settings
-                </Button>
-              </div>
-            )} */}
           </div>
         )}
 
