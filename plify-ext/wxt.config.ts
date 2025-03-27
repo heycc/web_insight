@@ -9,7 +9,7 @@ export default defineConfig({
   manifest: {
     name: 'Plify AI Insight - Reddit & YouTube Summarizer',
     short_name: 'Plify AI Insight',
-    version: '0.2.4',
+    version: '0.2.5',
     description: 'Get AI-powered insight from Reddit, YouTube, and more. Works privately in your browser with your own API keys.',
     permissions: ['sidePanel', 'activeTab', 'storage', 'scripting'],
     host_permissions: [
