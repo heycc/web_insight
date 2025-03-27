@@ -70,12 +70,17 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     
     // Replace lone triple backticks with escaped backticks or a code block with language
     return text
-      // Replace standalone triple backticks with escaped version
-      .replace(/^```\s*$/gm, '\\`\\`\\`')
-      // Ensure backticks with no language specified have 'text' as default language
-      .replace(/^```(\s*)$/gm, '```text')
-      // Handle triple backticks at the very end of the text
-      .replace(/```\s*$/g, '```text\n');
+      // Remove leading code fence with any language indicator at the beginning of the text
+      .replace(/^```[a-zA-Z0-9]*\s*\n/m, '')
+      // Remove trailing code fence at the end of the text
+      .replace(/\n```\s*$/m, '');
+
+      // // Replace standalone triple backticks with escaped version
+      // .replace(/^```\s*$/gm, '\\`\\`\\`')
+      // // Ensure backticks with no language specified have 'text' as default language
+      // .replace(/^```(\s*)$/gm, '```text')
+      // // Handle triple backticks at the very end of the text
+      // .replace(/```\s*$/g, '```text\n')
   };
 
   return (

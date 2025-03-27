@@ -173,7 +173,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai',
     api_key_doc: 'https://ai.google.dev/gemini-api/docs/api-key',
-    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite', 'gemma-3-27b-it']
+    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite']
   },
   {
     id: 'DEEPSEEK_OFFICIAL',

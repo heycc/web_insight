@@ -288,12 +288,12 @@ const App: React.FC = () => {
 
         for await (const chunk of contentServiceRef.current.summarizeData(dataToSummarize, customPrompt)) {
           if (chunk.type === 'reasoning') {
-            // Process chunk text to handle problematic code fences
-            const processedText = chunk.text
-              .replace(/^```\s*$/gm, '\\`\\`\\`')
-              .replace(/^```(\s*)$/gm, '```text');
+            // Remove problematic code fences
+            // const processedText = chunk.text
+            //   .replace(/^```\s*$/gm, '')  // Remove empty code fence
+            //   .replace(/^```(\s*)$/gm, ''); // Remove code fence with whitespace
             
-            fullReasoning += processedText;
+            fullReasoning += chunk.text;
             setReasoning(fullReasoning);
             // Only unfold reasoning when first chunk arrives
             if (!reasoningStarted) {
@@ -302,12 +302,12 @@ const App: React.FC = () => {
             }
           }
           if (chunk.type === 'content') {
-            // Process chunk text to handle problematic code fences
-            const processedText = chunk.text
-              .replace(/^```\s*$/gm, '\\`\\`\\`')
-              .replace(/^```(\s*)$/gm, '```text');
+            // Remove problematic code fences
+            // const processedText = chunk.text
+            //   .replace(/^```\s*$/gm, '')  // Remove empty code fence
+            //   .replace(/^```(\s*)$/gm, ''); // Remove code fence with whitespace
             
-            fullSummary += processedText;
+            fullSummary += chunk.text;
             setSummary(fullSummary);
             // Only fold reasoning when first chunk arrives and there is reasoning section
             // Because some model don't generate reasoning content, or generate it in the content section
