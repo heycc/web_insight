@@ -89,56 +89,58 @@ export const profileFormSchema = z.object({
   temperature: z.number().min(0.1, "Temperature must be at least 0.1").max(1.5, "Temperature must be at most 1.5")
 });
 
-export type ProfileFormValues = z.infer<typeof profileFormSchema>; 
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 // Default prompt that will be used when no prompts exist
 export const DEFAULT_PROMPT: Prompt = {
   id: "default-summarize",
   command: "/summarize",
   content: `<INSTRUCTION>
-Analyze the provided web page content (e.g., Reddit post) and its top-liked comments to extract key insights. Follow these steps:
+Analyze the provided web page content (e.g., a Reddit post) and its top-liked comments to extract key insights. Follow these steps:
 
-1. **Comprehensive Reading**: Thoroughly read the entire post and all comments before summarizing.
-2. **Opinion Grouping**: Identify and group similar comments into 5–8 distinct opinions, prioritizing top-voted and unique perspectives.
+1. **Comprehensive Reading**: Read the entire post and all comments thoroughly before summarizing.
+2. **Opinion Grouping**: Identify and group similar comments into **5–8 distinct opinions**, prioritizing:
+   - Top-voted comments.
+   - Unique perspectives (e.g., expert opinions, personal experiences).
+   - Comments where authors explicitly mention their background or their stories.
 3. **Structured Output**: Present the analysis in the following markdown format:
 
-<OUTPUT_FORMAT>
 ## Main Point of the Post
-A concise summary of the post's core message or question.
+A **1–2 sentence summary** of the post’s core message, question, or debate.
 
 ## Key Grouped Opinions from Comments
-Synthesize the most significant comments into 5–8 logically ordered opinion groups. For each group:  
-- Include **author names** and **upvote counts** (e.g., 👍 250+).  
-- Summarize the shared viewpoint in your own words.  
-- Quote **key phrases or keywords** (not full sentences) that capture the essence.  
-- Highlight unique backgrounds (e.g., "as a software engineer...").
+Synthesize the most  significant comments into **5–8 logically ordered groups**. For each group:
+- **Label**: Briefly name the opinion (e.g., "Support for X," "Criticism of Y").
+- **Upvotes**: Note approximate upvotes (e.g., 👍 500+).
+- **Authors & Backgrounds**: List usernames and **include their self-described backgrounds or stories if any** (e.g., "as a doctor," "10-year industry veteran").
+- **Summary**: Paraphrase the shared viewpoint concisely.
+- **Key Quote**: Extract **1–2 short, impactful phrases** (not full sentences) that capture the essence.
 
-Format each group as follows:  
+**Format Example**:
+1. **Group Label** (👍 n+. @username1[background or story], @username2)
+  Summary of the opinion.
+  > "Key phrase from comment"
 
-1. **Group Label** (author1, author2, 👍 n+)  
-   Summary of the opinion.  
-   > "Keyword or impactful phrase from the original comment."  
+2. **Group Label** ( 👍 m+. @username13[background or story])
+  Summary of the opinion.
+  > "Key phrase from comment"
 
-2. **Group Label** (author3, 👍 m+)  
-   Summary of the opinion.  
-   > "Keyword or impactful phrase from the original comment."  
+[... Repeat for 5–8 groups ...]
 
-... Repeat for 5–8 groups ...
-
-## Overall Sentiment & Conclusion
-- Summarize the **general tone** (e.g., supportive, divisive, humorous).  
-- Provide **your own conclusion** on the post's impact or unresolved questions.  
-</OUTPUT_FORMAT>
+### **Overall Sentiment & Conclusion**
+- **Sentiment**: Describe the dominant tone (e.g., "70% supportive, 30% skeptical").
+- **Notable Divides**: Highlight conflicting viewpoints if applicable.
+- **Your Insight**: Add a brief conclusion or open question raised by the discussion.
 
 <LANGUAGE_REQUIREMENT> 
 \${languageInstruction}
 </LANGUAGE_REQUIREMENT>  
 
 <ADDITIONAL GUIDELINES>  
-- **Accuracy**: Ensure summaries reflect the original intent without distortion.  
-- **Brevity**: Keep quotes succinct; avoid full-sentence excerpts.  
-- **Diversity**: Include minority opinions if they add value.  
-- **Neutrality**: Maintain an unbiased tone unless sentiment analysis is requested.  
+- **Background Emphasis**: If an author mentions their profession/experience (e.g., "as a teacher," "worked in tech for 5 years"), **include it in the group label**.  
+- **Bias Avoidance**: Represent all sides fairly, even minority opinions.  
+- **Quoting**: Never quote full sentences—only **keywords or short phrases**.  
+- **Upvote Threshold**: Ignore comments with negligible upvotes unless they offer unique value.  
 </ADDITIONAL GUIDELINES>  
 </INSTRUCTION>
 `,
@@ -254,7 +256,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   //   api_endpoint: 'https://api.anthropic.com',
   //   models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
   // },
-  
+
   // Google Official
   // {
   //   id: 'GOOGLE_OFFICIAL',
@@ -282,7 +284,7 @@ export const addCustomProviderPreset = (
 ): ProviderPreset[] => {
   // Check if preset with same ID exists
   const existingIndex = presets.findIndex(p => p.id === preset.id);
-  
+
   if (existingIndex >= 0) {
     // Replace existing preset
     return [
@@ -291,7 +293,7 @@ export const addCustomProviderPreset = (
       ...presets.slice(existingIndex + 1)
     ];
   }
-  
+
   // Add new preset
   return [...presets, preset];
 };

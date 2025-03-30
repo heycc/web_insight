@@ -13,7 +13,7 @@ const ContentDataView: React.FC<ContentDataViewProps> = ({ contentData }) => {
       
       <div className="p-4">
         <p className='text-xs text-muted-foreground/50 mb-2 italic'>
-          Here is the original page content, at most 100 comments are used for summarization.
+          Here is the original page content, at most 200 comments are used for summarization.
         </p>
         {contentData.content && (
           <div className="mb-4 text-base text-card-foreground">{contentData.content}</div>

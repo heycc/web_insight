@@ -378,6 +378,11 @@ const App: React.FC = () => {
         textToCopy = `## Model Reasoning\n${reasoning}\n\n## Summary\n${summary}`;
       }
 
+      // Add source URL if available in contentData
+      if (contentData?.url) {
+        textToCopy = `[Source](${contentData.url})\n\n${textToCopy}`;
+      }
+
       navigator.clipboard.writeText(textToCopy);
 
       if (includeReasoning) {
