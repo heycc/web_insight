@@ -69,14 +69,14 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
                 <SelectValue placeholder="Select a profile" />
               </div>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[600px] overflow-y-auto">
               {profiles.map((profile) => {
                 const iconPath = getProfileIconFromPresets(profile.profile_name);
                 return (
                   <SelectItem key={profile.index} value={profile.index.toString()}>
-                    <div className="flex items-center">
+                    <div className="flex items-center py-0">
                       {iconPath && (
-                        <div className="mr-2 h-4 w-4 relative">
+                        <div className="mr-2 h-6 w-6 relative">
                           <img 
                             src={iconPath} 
                             className="h-full w-full object-contain"

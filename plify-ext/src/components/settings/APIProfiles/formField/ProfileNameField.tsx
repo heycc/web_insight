@@ -134,12 +134,12 @@ const ProfileNameField: React.FC<ProfileNameFieldProps> = ({
                                             </div>
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
+                                    <SelectContent className="max-h-[600px] overflow-y-auto">
                                         {DEFAULT_PROVIDER_PRESETS.map((preset) => (
                                             <SelectItem key={preset.id} value={preset.display_name}>
-                                                <div className="flex items-center">
+                                                <div className="flex items-center py-0">
                                                     {preset.icon && (
-                                                        <div className="mr-2 h-4 w-4 relative">
+                                                        <div className="mr-2 h-6 w-6 relative">
                                                             <img
                                                                 src={preset.icon}
                                                                 className="h-full w-full object-contain"
