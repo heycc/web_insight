@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../ui/popover";
-import { Profile } from '../types';
+import { Profile, DEFAULT_PROVIDER_PRESETS } from '../types';
 import { Label } from "../../ui/label";
 
 interface ProfileSelectorProps {
@@ -38,6 +38,14 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = React.useState(false);
   const selectId = React.useId();
 
+  // Find preset that matches the profile name to get its icon
+  const getProfileIconFromPresets = (profileName: string): string | undefined => {
+    const preset = DEFAULT_PROVIDER_PRESETS.find(
+      preset => preset.display_name === profileName
+    );
+    return preset?.icon;
+  };
+
   return (
     <div className="mb-4 flex flex-col gap-0">
       
@@ -57,14 +65,30 @@ const ProfileSelector: React.FC<ProfileSelectorProps> = ({
               id={selectId} 
               className="w-full bg-gray-100 border-0 hover:bg-gray-200 focus:ring-0 focus:ring-offset-0"
             >
-              <SelectValue placeholder="Select a profile" />
+              <div className="flex items-center">
+                <SelectValue placeholder="Select a profile" />
+              </div>
             </SelectTrigger>
             <SelectContent>
-              {profiles.map((profile) => (
-                <SelectItem key={profile.index} value={profile.index.toString()}>
-                  {profile.profile_name}
-                </SelectItem>
-              ))}
+              {profiles.map((profile) => {
+                const iconPath = getProfileIconFromPresets(profile.profile_name);
+                return (
+                  <SelectItem key={profile.index} value={profile.index.toString()}>
+                    <div className="flex items-center">
+                      {iconPath && (
+                        <div className="mr-2 h-4 w-4 relative">
+                          <img 
+                            src={iconPath} 
+                            className="h-full w-full object-contain"
+                            alt=""
+                          />
+                        </div>
+                      )}
+                      {profile.profile_name}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

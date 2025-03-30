@@ -106,7 +106,7 @@ Analyze the provided web page content (e.g., a Reddit post) and its top-liked co
 3. **Structured Output**: Present the analysis in the following markdown format:
 
 ## Main Point of the Post
-A **1–2 sentence summary** of the post’s core message, question, or debate.
+A **1–2 sentence summary** of the post's core message, question, or debate.
 
 ## Key Grouped Opinions from Comments
 Synthesize the most  significant comments into **5–8 logically ordered groups**. For each group:
@@ -155,6 +155,7 @@ export interface ProviderPreset {
   api_endpoint: string;
   api_key_doc?: string;
   models: string[];
+  icon: string;
 }
 
 // List of all provider presets, organized as a flat array
@@ -162,11 +163,12 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   // OpenAI Official
   {
     id: 'OPENAI_OFFICIAL',
-    display_name: 'OpenAI Official',
+    display_name: 'OpenAI',
     provider_type: ProviderType.OPENAI,
     api_endpoint: 'https://api.openai.com/v1',
     api_key_doc: 'https://platform.openai.com/api-keys',
-    models: ['gpt-4o', 'gpt-4o-mini']
+    models: ['gpt-4o', 'gpt-4o-mini'],
+    icon: 'icon/openai.png'
   },
   // OAI Compatible Examples
   {
@@ -175,15 +177,17 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai',
     api_key_doc: 'https://ai.google.dev/gemini-api/docs/api-key',
-    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite']
+    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite'],
+    icon: 'icon/gemini.png'
   },
   {
     id: 'DEEPSEEK_OFFICIAL',
-    display_name: 'DeepSeek Official',
+    display_name: 'DeepSeek',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.deepseek.com',
     api_key_doc: 'https://api-docs.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner']
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+    icon: 'icon/deepseek.png'
   },
   {
     id: 'OPENROUTER',
@@ -198,7 +202,8 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
       'qwen/qwq-32b:free',
       'google/gemma-2-9b-it:free',
       'mistralai/mistral-small-24b-instruct-2501:free'
-    ]
+    ],
+    icon: 'icon/openrouter.png'
   },
   {
     id: 'SILICONFLOW',
@@ -206,39 +211,44 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.siliconflow.cn/v1',
     api_key_doc: 'https://docs.siliconflow.cn/cn/userguide/quickstart',
-    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3', 'Qwen/QwQ-32B']
+    models: ['deepseek-ai/DeepSeek-R1', 'deepseek-ai/DeepSeek-V3', 'Qwen/QwQ-32B'],
+    icon: 'icon/siliconflow.png'
   },
   {
     id: 'VOLCENGINE',
-    display_name: 'Volcengine (火山引擎)',
+    display_name: 'Volcengine (Bytedance Cloud)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
     api_key_doc: 'https://www.volcengine.com/docs/82379/1399008',
-    models: ['deepseek-r1-250120', 'deepseek-v3-250324', 'deepseek-v3-241226']
+    models: ['deepseek-r1-250120', 'deepseek-v3-250324', 'deepseek-v3-241226'],
+    icon: 'icon/volcengine.png'
   },
   {
     id: 'BAILIAN_ALIYUN',
-    display_name: 'Bailian (阿里云)',
+    display_name: 'Bailian (Alibaba Cloud)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     api_key_doc: 'https://help.aliyun.com/zh/model-studio/user-guide/api-key-management',
-    models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo']
+    models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo'],
+    icon: 'icon/aiyun.png'
   },
   {
     id: 'HUNYUAN_TXYUN',
-    display_name: 'Hunyuan (腾讯云混元)',
+    display_name: 'Hunyuan (Tencent Cloud)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.hunyuan.cloud.tencent.com/v1',
     api_key_doc: 'https://cloud.tencent.com/document/product/1729/111008',
-    models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest']
+    models: ['hunyuan-t1-latest', 'hunyuan-turbos-latest'],
+    icon: 'icon/txcloud.png'
   },
   {
     id: 'LKEAP_TXYUN',
-    display_name: 'LKEAP (腾讯云知识引擎)',
+    display_name: 'LKEAP (Tencent Cloud)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://api.lkeap.cloud.tencent.com/v1',
     api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
-    models: ['deepseek-r1', 'deepseek-v3-0324', 'deepseek-v3']
+    models: ['deepseek-r1', 'deepseek-v3-0324', 'deepseek-v3'],
+    icon: 'icon/txcloud.png'
   },
   // LM Studio
   {
@@ -246,7 +256,8 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     display_name: 'LMStudio (Local)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'http://127.0.0.1:1234/v1',
-    models: []
+    models: [],
+    icon: 'icon/lmstudio.png'
   }
   // Anthropic Official
   // {
@@ -255,15 +266,6 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   //   provider_type: ProviderType.ANTHROPIC,
   //   api_endpoint: 'https://api.anthropic.com',
   //   models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']
-  // },
-
-  // Google Official
-  // {
-  //   id: 'GOOGLE_OFFICIAL',
-  //   display_name: 'Google AI Official',
-  //   provider_type: ProviderType.GEMINI,
-  //   api_endpoint: 'https://generativelanguage.googleapis.com',
-  //   models: ['gemini-pro', 'gemini-ultra']
   // },
 ];
 

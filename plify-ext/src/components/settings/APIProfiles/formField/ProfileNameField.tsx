@@ -129,13 +129,26 @@ const ProfileNameField: React.FC<ProfileNameFieldProps> = ({
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select provider profile, or click to add custom profile 👉" />
+                                            <div className="flex items-center">
+                                                <SelectValue placeholder="Select provider profile, or click to add custom profile 👉" />
+                                            </div>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {DEFAULT_PROVIDER_PRESETS.map((preset) => (
                                             <SelectItem key={preset.id} value={preset.display_name}>
-                                                {preset.display_name}
+                                                <div className="flex items-center">
+                                                    {preset.icon && (
+                                                        <div className="mr-2 h-4 w-4 relative">
+                                                            <img
+                                                                src={preset.icon}
+                                                                className="h-full w-full object-contain"
+                                                                alt=""
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {preset.display_name}
+                                                </div>
                                             </SelectItem>
                                         ))}
                                         {field.value && !DEFAULT_PROVIDER_PRESETS.some(preset =>
