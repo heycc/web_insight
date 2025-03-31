@@ -137,10 +137,9 @@ Synthesize the most  significant comments into **5–8 logically ordered groups*
 
 [... Repeat for 5–8 groups ...]
 
-### **Overall Sentiment & Conclusion**
-- **Sentiment**: Describe the dominant tone (e.g., "70% supportive, 30% skeptical").
-- **Notable Divides**: Highlight conflicting viewpoints if applicable.
-- **My Insight**: Add a brief conclusion or open question raised by the discussion.
+## Overall Sentiment & Conclusion
+- Summarize the **general tone** (e.g., supportive, divisive, humorous). Highlight conflicting viewpoints if applicable.
+- Provide **your own insights** on the post's impact or unresolved questions.  
 
 <LANGUAGE_REQUIREMENT> 
 \${languageInstruction}
