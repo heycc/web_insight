@@ -47,11 +47,6 @@ export class RedditService extends BaseSiteService {
 
   convertRawDataToContentData(rawData: any, url: string): ContentData {
     const redditPost = rawData as RedditPost;
-    this.logger.log(`Converting raw Reddit data to ContentData`, {
-      title: redditPost.title,
-      author: redditPost.author,
-      commentCount: redditPost.comments?.length || 0
-    });
 
     return {
       site: this.getSiteName(),
@@ -69,7 +64,6 @@ export class RedditService extends BaseSiteService {
   }
 
   convertToSummaryFormat(data: ContentData) {
-    this.logger.log('Converting ContentData to SummaryService format');
     return {
       title: data.title || '',
       url: data.url || '',

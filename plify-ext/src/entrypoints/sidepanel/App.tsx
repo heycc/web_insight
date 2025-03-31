@@ -250,7 +250,6 @@ const App: React.FC = () => {
   const handleSelectPrompt = (promptContent: string | undefined) => {
     // Store the selected prompt content for use in summarization
     setCurrentPromptContent(promptContent);
-    logger.log('Selected prompt content updated:', promptContent ? 'custom prompt' : 'default');
   };
 
   const summarizeContentData = async (data: ContentData | null = null, customPrompt?: string) => {

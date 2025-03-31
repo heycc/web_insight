@@ -43,21 +43,14 @@ export abstract class BaseSiteService implements ContentService {
         await this.ensureContentScriptReady(tabId);
 
         const action = `extract.${this.getSiteName().toLowerCase()}`;
-        this.logger.log(`Extracting data with action: ${action}`);
 
         try {
             // Send message to content script and wait for response with timeout
             const results = await this.sendMessageWithTimeout(tabId, { action }, 5000);
 
             if (results && results.success) {
-                this.logger.log(`Raw data received successfully`, { /* Consider logging snippets or counts, not full data */ });
                 // Convert the site-specific raw data into the standardized ContentData format
                 const contentData = this.convertRawDataToContentData(results.data, activeTab.url!);
-                this.logger.log(`Converted to ContentData`, {
-                    title: contentData.title,
-                    author: contentData.author,
-                    commentCount: contentData.comments?.length || 0
-                });
                 return contentData;
             } else {
                 // Handle errors reported by the content script
@@ -77,7 +70,6 @@ export abstract class BaseSiteService implements ContentService {
     public async* summarizeData(data: ContentData, customPrompt?: string): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
         // Convert the standard ContentData into the format expected by the SummaryService
         const summaryInput = this.convertToSummaryFormat(data);
-        this.logger.log('Starting summarization with data:', { /* log relevant metadata */ });
         yield* this.summaryService.streamSummary(summaryInput, customPrompt);
     }
 
@@ -127,9 +119,7 @@ export abstract class BaseSiteService implements ContentService {
      */
     protected async ensureContentScriptReady(tabId: number): Promise<void> {
         try {
-            this.logger.log(`Pinging content script in tab ${tabId}`);
             await chrome.tabs.sendMessage(tabId, { action: 'ping' });
-            this.logger.log(`Ping successful.`);
         } catch (error) {
             this.logger.warn(`Ping failed for tab ${tabId}. Attempting to reload content scripts. Error: ${error instanceof Error ? error.message : String(error)}`);
             try {
@@ -150,7 +140,6 @@ export abstract class BaseSiteService implements ContentService {
                     this.logger.log(`Injected scripts [${scriptsToInject.join(', ')}] into tab ${tabId}. Pinging again...`);
                     // Try ping again after reload
                     await chrome.tabs.sendMessage(tabId, { action: 'ping' });
-                    this.logger.log(`Second ping successful after script injection.`);
                 } else {
                     throw new Error("Content script ping failed and no scripts available to inject.");
                 }
@@ -168,7 +157,6 @@ export abstract class BaseSiteService implements ContentService {
      */
     protected async sendMessageWithTimeout(tabId: number, message: any, timeoutMs: number): Promise<any> {
         const actionDescription = typeof message?.action === 'string' ? message.action : 'message';
-        this.logger.log(`Sending ${actionDescription} to tab ${tabId} with ${timeoutMs}ms timeout.`);
 
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {

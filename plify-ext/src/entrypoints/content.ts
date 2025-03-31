@@ -44,7 +44,7 @@ export default defineContentScript({
     
     // Listen for all messages and coordinate with site-specific scripts
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      logger.log('Main content script received message:', request);
+      // logger.log('Main content script received message:', request);
       
       try {
         const action = request.action as ContentScriptAction;
@@ -103,7 +103,7 @@ export default defineContentScript({
           
           // Call the extractor function
           try {
-            logger.log(`Calling extractor for ${targetSite}`);
+            // logger.log(`Calling extractor for ${targetSite}`);
             const data = extractors[targetSite]();
             sendResponse({
               success: true,
