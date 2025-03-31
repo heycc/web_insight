@@ -1,6 +1,7 @@
 import { SummaryService } from './summary';
-import { ContentService, ContentData } from './content-service';
+import { ContentService, ContentData, ContentComment } from './content-service';
 import { createLogger } from './utils';
+import { BaseSiteService } from './base-site-service';
 
 export interface YouTubeComment {
   author: string;
@@ -17,196 +18,68 @@ export interface YouTubeData {
   comments: YouTubeComment[];
 }
 
-export class YouTubeService implements ContentService {
-  private summaryService: SummaryService;
-  private logger;
-
+export class YouTubeService extends BaseSiteService {
   constructor(summaryService?: SummaryService) {
-    // Use the provided SummaryService or create a new one
-    this.summaryService = summaryService || new SummaryService();
-    this.logger = createLogger('YouTube Service');
+    super(summaryService);
+    this.logger = createLogger(this.getSiteName() + ' Service');
   }
 
-  /**
-   * Get the name of the site this service handles
-   */
   getSiteName(): string {
     return 'YouTube';
   }
 
-  /**
-   * Extract YouTube data from the current tab
-   */
-  async extractData(): Promise<ContentData> {
-    this.logger.log('[YoutubeService] Starting extractData method');    
-    // Get the current active tab
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0) {
-      this.logger.error('No active tab found');
-      throw new Error('No active tab found');
-    }
-    
-    const activeTab = tabs[0];
-    this.logger.log(`Active tab URL: ${activeTab.url}`);
-    
-    // Check if we're on a YouTube site
-    if (!activeTab.url?.includes('youtube.com')) {
-      this.logger.error('Not a YouTube page');
-      throw new Error('Not a YouTube page');
-    }
-    
-    // Check if we're on a YouTube video page
-    if (!activeTab.url?.includes('youtube.com/watch')) {
-      this.logger.error('Not a YouTube video page');
-      throw new Error('Please navigate to a YouTube video page to use this feature. (e.g. https://www.youtube.com/watch?v=xxx)');
-    }
-    
-    if (!activeTab.id) {
-      this.logger.error('Tab ID is undefined');
-      throw new Error('Tab ID is undefined');
-    }
-    
-    // First check if content script is loaded by sending a ping
-    try {
-      this.logger.log(`Sending ping to tab ${activeTab.id}`);
-      const pingResponse = await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
-      this.logger.log(`Ping response:`, pingResponse);
-    } catch (error) {
-      this.logger.error('Ping failed:', error);
-      
-      // Try to reload the content script
-      this.logger.log('Attempting to reload content script...');
-      try {
-        // This will execute the content script again if it's not already loaded
-        await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          files: ['content.js', 'youtube-content.js']
-        });
-        this.logger.log('Content script reloaded');
-        
-        // Try ping again
-        await chrome.tabs.sendMessage(activeTab.id, { action: 'ping' });
-      } catch (reloadError) {
-        this.logger.error('Failed to reload content script:', reloadError);
-        throw new Error('Please refresh your page to use this extension.');
-      }
-    }
-    
-    // Use a fixed action name for extracting YouTube data
-    const action = 'extract.youtube';
-    
-    // Execute script to extract data
-    this.logger.log(`Extracting YouTube data with action: ${action}`);
-    try {
-      // Add a timeout to the sendMessage call to prevent infinite waiting
-      const results = await Promise.race([
-        chrome.tabs.sendMessage(activeTab.id, { action, from: 'youtube-service' }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout waiting for response to action: ${action}`)), 5000))
-      ]);
-
-      if (results && results.success) {
-        // Convert YouTubeData to ContentData
-        const youtubeData = results.data as YouTubeData;
-        this.logger.log(`Extracted YouTube data:`, {
-          title: youtubeData.title,
-          author: youtubeData.author,
-          commentCount: youtubeData.comments?.length || 0
-        });
-        
-        return {
-          site: this.getSiteName(),
-          url: activeTab.url,
-          title: youtubeData.title,
-          content: '',
-          author: youtubeData.author,
-          score: youtubeData.likes,
-          comments: youtubeData.comments.map(comment => ({
-            author: comment.author,
-            content: comment.content,
-            score: comment.likes
-          }))
-        };
-      } else {
-        const errorMessage = results?.error || `Failed to extract data with action: ${action}`;
-        this.logger.error(errorMessage, results);
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
-      this.logger.error(errorMessage);
-      throw new Error(errorMessage);
-    }
+  getSiteDomain(): string {
+    return 'youtube.com';
   }
 
-  /**
-   * Get the raw YouTube data (for display purposes)
-   */
-  async getYouTubeData(): Promise<YouTubeData> {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || tabs.length === 0 || !tabs[0].id) {
-      this.logger.error('No active tab found');
-      throw new Error('No active tab found');
-    }
-    
-    try {
-      const results = await chrome.tabs.sendMessage(tabs[0].id, { action: 'extract.youtube' });
-      
-      if (results && results.success) {
-        this.logger.log('Successfully retrieved YouTube data');
-        return results.data;
-      } else {
-        const errorMessage = results?.error || 'Failed to extract data';
-        this.logger.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      const errorMessage = `Error extracting data: ${error instanceof Error ? error.message : String(error)}`;
-      this.logger.error(errorMessage);
-      throw new Error(errorMessage);
-    }
+  getSiteContentScriptFilename(): string | null {
+    return 'youtube-content.js';
   }
 
-  /**
-   * Convert YouTubeData to format for summarization
-   */
-  private convertToSummaryFormat(data: ContentData | YouTubeData) {
-    // Check if this is YouTubeData with likes property
-    const youtubeData = 'likes' in data ? data as YouTubeData : null;
-    
+  isValidPage(url: string): boolean {
+    return url.includes('youtube.com/watch');
+  }
+
+  getInvalidPageError(url: string | undefined): string {
+    return 'Please navigate to a YouTube video page (e.g., youtube.com/watch?v=...) to use this feature.';
+  }
+
+  convertRawDataToContentData(rawData: any, url: string): ContentData {
+    const youtubeData = rawData as YouTubeData;
+    this.logger.log(`Converting raw YouTube data to ContentData`, {
+      title: youtubeData.title,
+      author: youtubeData.author,
+      commentCount: youtubeData.comments?.length || 0
+    });
+
     return {
-      title: data.title || '',
-      url: data.url || '',
-      content: '', // YouTube videos don't have text content like Reddit posts
-      author: data.author || '',
-      score: youtubeData?.likes || '0',
-      comments: data.comments.map(comment => ({
+      site: this.getSiteName(),
+      url: url,
+      title: youtubeData.title,
+      content: null,
+      author: youtubeData.author,
+      score: youtubeData.likes,
+      comments: (youtubeData.comments || []).map((comment: YouTubeComment): ContentComment => ({
         author: comment.author,
         content: comment.content,
-        // Convert null to 0 to avoid type issues
-        score: ('likes' in comment ? (comment.likes || 0) : (comment.score || 0))
+        score: comment.likes != null ? String(comment.likes) : null
       }))
     };
   }
 
-  /**
-   * Summarize YouTube data
-   */
-  async* summarizeData(data: ContentData, customPrompt?: string): AsyncGenerator<{ type: 'content' | 'reasoning', text: string }, void, unknown> {
-    const summaryData = this.convertToSummaryFormat(data);
-    yield* this.summaryService.streamSummary(summaryData, customPrompt);
-  }
-  
-  /**
-   * Stop the summarization process
-   */
-  stopSummarization(): void {
-    this.summaryService.abortStream();
-  }
-
-  /**
-   * Get the SummaryService instance
-   */
-  getSummaryService(): SummaryService {
-    return this.summaryService;
+  convertToSummaryFormat(data: ContentData) {
+    this.logger.log('Converting ContentData to SummaryService format');
+    return {
+      title: data.title || '',
+      url: data.url || '',
+      content: '',
+      author: data.author || '',
+      score: data.score || '0',
+      comments: (data.comments || []).map(comment => ({
+        author: comment.author,
+        content: comment.content,
+        score: comment.score || 0
+      }))
+    };
   }
 } 
