@@ -74,8 +74,18 @@ export class SummaryService {
       let languageInstruction = 'RESPOND IN ENGLISH';
       if (language === 'zh-CN') {
         languageInstruction = 'RESPOND IN SIMPLIFIED CHINESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
+      } else if (language === 'zh-TW') {
+        languageInstruction = 'RESPOND IN TRADITIONAL CHINESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
       } else if (language === 'ja') {
         languageInstruction = 'RESPOND IN JAPANESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
+      } else if (language === 'ko') {
+        languageInstruction = 'RESPOND IN KOREAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
+      } else if (language === 'vi') {
+        languageInstruction = 'RESPOND IN VIETNAMESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
+      } else if (language === 'ru') {
+        languageInstruction = 'RESPOND IN RUSSIAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
+      } else if (language === 'es') {
+        languageInstruction = 'RESPOND IN SPANISH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.';
       }
 
       // Replace language placeholder if present in custom prompt

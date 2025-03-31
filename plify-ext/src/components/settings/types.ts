@@ -6,12 +6,6 @@ export enum ProviderType {
   LMSTUDIO = 'lmstudio'
 }
 
-export enum Language {
-  EN = 'en',
-  ZH_CN = 'zh-CN',
-  JA = 'ja'
-}
-
 export enum FontSize {
   EXTRA_SMALL = 'extra-small',
   SMALL = 'small',
@@ -36,10 +30,26 @@ export const FONT_SIZE_VALUES: Record<FontSize, string> = {
   [FontSize.EXTRA_LARGE]: '1.25rem'
 };
 
+export enum Language {
+  EN = 'en',
+  ZH_CN = 'zh-CN',
+  ZH_TW = 'zh-TW',
+  JA = 'ja',
+  KO = 'ko',
+  VI = 'vi',
+  RU = 'ru',
+  ES = 'es'
+}
+
 export const LANGUAGE_LABELS: Record<Language, string> = {
   [Language.EN]: 'English',
   [Language.ZH_CN]: '简体中文 (Simplified Chinese)',
-  [Language.JA]: '日本語 (Japanese)'
+  [Language.ZH_TW]: '繁體中文 (Traditional Chinese)',
+  [Language.JA]: '日本語 (Japanese)',
+  [Language.KO]: '한국어 (Korean)',
+  [Language.VI]: 'Tiếng Việt (Vietnamese)',
+  [Language.RU]: 'Русский (Russian)',
+  [Language.ES]: 'Español (Spanish)'
 };
 
 export interface Profile {
