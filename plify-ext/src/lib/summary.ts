@@ -65,7 +65,11 @@ export class SummaryService {
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
       .slice(0, 200)
-      .map(c => `## [Author: ${c.author || 'unknown'}, 👍: ${c.score || 0}] \n${c.content?.trim()}\n\n`)
+      .map(c => {
+        const authorPart = `Author: ${c.author || 'unknown'}`;
+        const scorePart = c.score !== undefined && c.score !== null ? `, 👍: ${c.score}` : '';
+        return `## [${authorPart}${scorePart}] \n${c.content?.trim()}\n\n`;
+      })
       .join('\n') || 'No comments';
 
     // If custom prompt is provided, use it instead of the default template

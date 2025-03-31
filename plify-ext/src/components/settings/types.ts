@@ -121,7 +121,7 @@ A **1–2 sentence summary** of the post's core message, question, or debate.
 ## Key Grouped Opinions from Comments
 Synthesize the most  significant comments into **5–8 logically ordered groups**. For each group:
 - **Label**: Briefly name the opinion (e.g., "Support for X," "Criticism of Y").
-- **Upvotes**: Note approximate upvotes (e.g., 👍 500+).
+- **Upvotes**: Note approximate upvotes (e.g., 👍 500+), omit if not available.
 - **Authors & Backgrounds**: List usernames and **include their self-described backgrounds or stories if any** (e.g., "as a doctor," "10-year industry veteran").
 - **Summary**: Paraphrase the shared viewpoint concisely.
 - **Key Quote**: Extract **1–2 short, impactful phrases** (not full sentences) that capture the essence.
@@ -131,7 +131,7 @@ Synthesize the most  significant comments into **5–8 logically ordered groups*
   Summary of the opinion.
   > "Key phrase from comment"
 
-2. **Group Label** ( 👍 m+. @username13[background or story])
+2. **Group Label** (@username13[background or story])
   Summary of the opinion.
   > "Key phrase from comment"
 

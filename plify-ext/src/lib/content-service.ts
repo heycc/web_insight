@@ -40,6 +40,8 @@ export class SiteDetector {
       return 'reddit';
     } else if (url.includes('youtube.com')) {     
       return 'youtube';
+    } else if (url.includes('news.ycombinator.com')) {
+      return 'hackernews';
     } else {
       return 'unknown';
     }
@@ -58,6 +60,9 @@ export class ContentServiceFactory {
     } else if (site === 'youtube') {
       const { YouTubeService } = await import('./youtube-service');
       return new YouTubeService(summaryService);
+    } else if (site === 'hackernews') {
+      const { HackerNewsService } = await import('./hacker-news-service');
+      return new HackerNewsService(summaryService);
     } else {
       throw new Error(`Unsupported site: ${site}`);
     }

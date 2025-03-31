@@ -15,7 +15,7 @@ export default defineConfig({
     host_permissions: [
       '*://*.reddit.com/*',
       '*://*.youtube.com/*',
-      // '*://*.ycombinator.com/*',
+      '*://news.ycombinator.com/*',
       // Add more sites as needed
     ],
     action: {
@@ -39,7 +39,7 @@ export default defineConfig({
     },
     content_scripts: [
       {
-        matches: ['*://*.reddit.com/*', '*://*.youtube.com/*'],
+        matches: ['*://*.reddit.com/*', '*://*.youtube.com/*', '*://news.ycombinator.com/*'],
         js: ['content-scripts/content.js']
       },
       {
@@ -49,19 +49,18 @@ export default defineConfig({
       {
         matches: ['*://*.youtube.com/*'],
         js: ['youtube-content.js']
+      },
+      {
+        matches: ['*://news.ycombinator.com/item?id=*'],
+        js: ['hacker-news-content.js']
       }
-      // },
-      // {
-      //   matches: ['*://*.ycombinator.com/*'],
-      //   js: ['hackernews-content.js']
-      // }
     ],
     side_panel: {
       default_path: 'sidepanel.html'
     },
     web_accessible_resources: [{
       resources: ['icons/*', '*.css'],
-      matches: ['*://*.reddit.com/*', '*://*.youtube.com/*']
+      matches: ['*://*.reddit.com/*', '*://*.youtube.com/*', '*://news.ycombinator.com/*']
     }]
   },
   dev: {

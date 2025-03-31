@@ -8,11 +8,11 @@ import { createLogger } from '../lib/utils';
 export default defineContentScript({
   matches: [
     '*://*.reddit.com/*',
-    '*://*.youtube.com/*'
+    '*://*.youtube.com/*',
+    '*://news.ycombinator.com/*'
   ],
   main() {
     const logger = createLogger('Base Content');
-    logger.log('Main content script loaded');
     
     // Detect the current site
     const url = window.location.href;
@@ -25,6 +25,9 @@ export default defineContentScript({
     } else if (url.includes('youtube.com')) {
       siteName = 'YouTube';
       siteNameLowercase = 'youtube';
+    } else if (url.includes('news.ycombinator.com/item?id=')) {
+      siteName = 'HackerNews';
+      siteNameLowercase = 'hackernews';
     }
 
     // Register site information in the window object
@@ -40,7 +43,7 @@ export default defineContentScript({
     // Initialize the extractors object if it doesn't exist
     window.__PLIFY_EXTRACTORS = window.__PLIFY_EXTRACTORS || {};
     
-    logger.log('Registered site info in window object');
+    logger.log('Registered site info in window object for site:', siteName);
     
     // Listen for all messages and coordinate with site-specific scripts
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -86,11 +89,12 @@ export default defineContentScript({
             return true;
           }
           
-          const targetSite = parts[1];
+          const targetSite = parts[1].toLowerCase(); // Ensure lowercase comparison
           
           // Check if we have an extractor for this site
           // Ensure extractors object exists
           const extractors = window.__PLIFY_EXTRACTORS || {};
+          logger.log(`Available extractors: ${Object.keys(extractors).join(', ')}`);
           
           if (!extractors[targetSite]) {
             sendResponse({
@@ -122,22 +126,22 @@ export default defineContentScript({
         }
         
         // For any other actions, we don't handle them
-        logger.log(`Unknown action: ${action}`);
-        sendResponse({
-          success: false,
-          error: `Unknown action: ${action}`,
-          site: siteName
-        });
-        return true; // We've handled the response
+        logger.log(`Unknown action received by base content script: ${action}`);
+        return false; // Indicate message not handled here
       } catch (error: unknown) {
-        logger.error('Error:', error instanceof Error ? error.message : String(error));
-        sendResponse({
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          site: siteName
-        });
-        return true; // Error already sent, keep channel open for async response
+        logger.error('Error in base content script message listener:', error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : undefined);
+        // Try to send an error response, but might fail if channel closed
+        try {
+          sendResponse({
+            success: false,
+            error: `Base content script error: ${error instanceof Error ? error.message : String(error)}`,
+            stack: error instanceof Error ? error.stack : undefined,
+            site: siteName
+          });
+        } catch (sendError) {
+          logger.error('Failed to send error response:', sendError);
+        }
+        return true; // Indicate message processed (even with error)
       }
     });
   }
