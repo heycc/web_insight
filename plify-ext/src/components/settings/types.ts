@@ -130,7 +130,7 @@ Synthesize the most  significant comments into **5–8 logically ordered groups*
 ### **Overall Sentiment & Conclusion**
 - **Sentiment**: Describe the dominant tone (e.g., "70% supportive, 30% skeptical").
 - **Notable Divides**: Highlight conflicting viewpoints if applicable.
-- **Your Insight**: Add a brief conclusion or open question raised by the discussion.
+- **My Insight**: Add a brief conclusion or open question raised by the discussion.
 
 <LANGUAGE_REQUIREMENT> 
 \${languageInstruction}
@@ -172,22 +172,13 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
   },
   // OAI Compatible Examples
   {
-    id: 'GEMINI (Google AI Studio)',
+    id: 'GEMINI_AISTUDIO',
     display_name: 'Gemini (Google AI Studio)',
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai',
     api_key_doc: 'https://ai.google.dev/gemini-api/docs/api-key',
     models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite'],
     icon: 'icon/gemini.png'
-  },
-  {
-    id: 'DEEPSEEK_OFFICIAL',
-    display_name: 'DeepSeek',
-    provider_type: ProviderType.OAI_COMPATIBLE,
-    api_endpoint: 'https://api.deepseek.com',
-    api_key_doc: 'https://api-docs.deepseek.com',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
-    icon: 'icon/deepseek.png'
   },
   {
     id: 'OPENROUTER',
@@ -204,6 +195,15 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
       'mistralai/mistral-small-24b-instruct-2501:free'
     ],
     icon: 'icon/openrouter.png'
+  },
+  {
+    id: 'DEEPSEEK_OFFICIAL',
+    display_name: 'DeepSeek',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.deepseek.com',
+    api_key_doc: 'https://api-docs.deepseek.com',
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+    icon: 'icon/deepseek.png'
   },
   {
     id: 'SILICONFLOW',
@@ -229,7 +229,21 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     api_key_doc: 'https://help.aliyun.com/zh/model-studio/user-guide/api-key-management',
-    models: ['deepseek-r1', 'deepseek-v3', 'qwen-max', 'qwen-plus', 'qwen-long', 'qwen-turbo'],
+    models: [
+      'deepseek-r1',
+      'deepseek-v3',
+      'qwq-plus',
+      'qwen-max',
+      'qwen-plus',
+      'qwen-long',
+      'qwen-turbo',
+      'qwq-plus-latest',
+      'qwen-max-latest',
+      'qwen-plus-latest',
+      'qwen-long-latest',
+      'qwen-turbo-latest',
+      'qwq-32b'
+    ],
     icon: 'icon/aiyun.png'
   },
   {
@@ -249,6 +263,15 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_key_doc: 'https://cloud.tencent.com/document/product/1772/115970',
     models: ['deepseek-r1', 'deepseek-v3-0324', 'deepseek-v3'],
     icon: 'icon/txcloud.png'
+  },
+  {
+    id: 'ZHIPUAI',
+    display_name: 'ZhipuAI',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://open.bigmodel.cn/api/paas/v4',
+    api_key_doc: 'https://open.bigmodel.cn/dev/api/http-call/http-auth',
+    models: ['glm-4-plus', 'glm-4-long', 'glm-4-air', 'glm-4-flash', 'glm-4-airx', 'glm-4-flashx'],
+    icon: 'icon/zhipuai.png'
   },
   // LM Studio
   {

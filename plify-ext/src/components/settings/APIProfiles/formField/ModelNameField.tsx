@@ -118,7 +118,7 @@ const ModelNameField: React.FC<ModelNameFieldProps> = ({
                       <SelectValue placeholder="Select model, or click to add custom model 👉" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="max-h-[600px] overflow-y-auto">
                     {selectedPresetId && DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === selectedPresetId)?.models.map((model) => (
                       <SelectItem key={model} value={model}>
                         {model}
