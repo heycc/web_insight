@@ -10,15 +10,22 @@ import {
 import { Input } from "../../../ui/input";
 import { Button } from "../../../ui/button";
 import { Plus } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "../../../ui/select";
 import { useToast } from "../../../ui/use-toast";
 import { ProfileFormValues, DEFAULT_PROVIDER_PRESETS } from '../../types';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "../../../ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../../ui/popover";
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from "../../../../lib/utils";
 
 interface ModelNameFieldProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -108,32 +115,63 @@ const ModelNameField: React.FC<ModelNameFieldProps> = ({
           {isEditing && !customModelInput && (
             <div className="flex items-center">
               <div className="flex-grow">
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={false}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select model, or click to add custom model 👉" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="max-h-[600px] overflow-y-auto">
-                    {selectedPresetId && DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === selectedPresetId)?.models.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
-                    {/* Always include the current field value as an option if it has a value */}
-                    {field.value && !(
-                      (selectedPresetId && DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === selectedPresetId)?.models.includes(field.value))
-                    ) && (
-                      <SelectItem key={field.value} value={field.value}>
-                        {field.value}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value || "Select model, or click to add custom model 👉"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                    <Command className="w-full">
+                      <CommandInput placeholder="Search model..." />
+                      <CommandEmpty>No model found.</CommandEmpty>
+                      <CommandGroup className="max-h-[400px] overflow-y-auto scrollbar-visible">
+                        {selectedPresetId && DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === selectedPresetId)?.models.map((model) => (
+                          <CommandItem
+                            key={model}
+                            value={model}
+                            onSelect={() => {
+                              field.onChange(model);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === model ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {model}
+                          </CommandItem>
+                        ))}
+                        {/* Always include the current field value as an option if it has a value */}
+                        {field.value && !(
+                          (selectedPresetId && DEFAULT_PROVIDER_PRESETS.find(preset => preset.id === selectedPresetId)?.models.includes(field.value))
+                        ) && (
+                          <CommandItem
+                            key={field.value}
+                            value={field.value}
+                            onSelect={() => {
+                              field.onChange(field.value);
+                            }}
+                          >
+                            <Check className="mr-2 h-4 w-4 opacity-100" />
+                            {field.value}
+                          </CommandItem>
+                        )}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <Button
                 type="button"

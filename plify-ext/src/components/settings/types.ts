@@ -220,7 +220,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://ark.cn-beijing.volces.com/api/v3',
     api_key_doc: 'https://www.volcengine.com/docs/82379/1399008',
-    models: ['deepseek-r1-250120', 'deepseek-v3-250324', 'deepseek-v3-241226'],
+    models: ['deepseek-r1-250120', 'deepseek-v3-250324'],
     icon: 'icon/volcengine.png'
   },
   {
@@ -233,6 +233,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
       'deepseek-r1',
       'deepseek-v3',
       'qwq-plus',
+      'qwq-32b',
       'qwen-max',
       'qwen-plus',
       'qwen-long',
@@ -241,8 +242,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
       'qwen-max-latest',
       'qwen-plus-latest',
       'qwen-long-latest',
-      'qwen-turbo-latest',
-      'qwq-32b'
+      'qwen-turbo-latest'
     ],
     icon: 'icon/aiyun.png'
   },
