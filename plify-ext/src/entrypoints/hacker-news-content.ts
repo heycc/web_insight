@@ -88,21 +88,17 @@ function extractHackerNewsData(): HackerNewsPost {
              logger.log(`Skipping comment #${index}: [deleted]`);
              return;
         }
-
-
         post.comments.push({
           author: author,
           content: content,
         });
       } catch (error: unknown) {
         logger.error(`Error processing comment #${index}:`, error instanceof Error ? error.message : String(error));
-        // Continue to next comment
       }
     });
   }
 
-  logger.log(`Post title: ${post.title}`);
-  logger.log(`Total comments extracted: ${post.comments.length}`);
+  logger.log(`Post title: ${post.title}, comments: ${post.comments.length}`);
   return post;
 }
 
