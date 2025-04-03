@@ -2,6 +2,18 @@ import { createBaseContentScript } from '../lib/base-content-script';
 import { YouTubeData } from '../lib/youtube-service';
 import { createLogger } from '../lib/utils';
 
+// Define the highlighter function type
+type HighlighterFunction = (username: string) => boolean;
+
+// Add type definitions for window object
+declare global {
+  interface Window {
+    __PLIFY_HIGHLIGHTERS?: {
+      [siteName: string]: HighlighterFunction;
+    };
+  }
+}
+
 // Extract YouTube video and comment data
 function extractYouTubeData(): YouTubeData {
   const logger = createLogger('YouTube Content');
@@ -77,11 +89,65 @@ function extractYouTubeData(): YouTubeData {
   return data;
 }
 
+/**
+ * Highlights comments by a specific author on YouTube
+ * @param username The username to highlight
+ * @returns true if any comments were found and highlighted
+ */
+function highlightYouTubeComments(username: string): boolean {
+  const logger = createLogger('YouTube Content');
+  logger.log(`Looking for YouTube comments by ${username}`);
+  const commentThreads = document.querySelectorAll('ytd-comment-thread-renderer');
+  let found = false;
+  const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
+  
+  // Remove any existing highlights
+  document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
+    el.classList.remove('plify-highlighted-comment');
+    (el as HTMLElement).style.backgroundColor = '';
+  });
+  
+  commentThreads.forEach(thread => {
+    const authorElement = thread.querySelector('#header-author #author-text');
+    if (authorElement && authorElement.textContent) {
+      const author = authorElement.textContent.trim().replace(/^@/, '');
+      if (author.toLowerCase() === username.toLowerCase()) {
+        // Highlight this comment
+        thread.classList.add('plify-highlighted-comment');
+        (thread as HTMLElement).style.backgroundColor = highlightColor;
+        
+        // If the comment isn't expanded, expand it
+        const expandButton = thread.querySelector('#more-button');
+        if (expandButton && (expandButton as HTMLElement).offsetParent !== null) {
+          (expandButton as HTMLElement).click();
+        }
+        
+        // Scroll to the first highlighted comment
+        if (!found) {
+          thread.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          found = true;
+        }
+      }
+    }
+  });
+  
+  return found;
+}
+
 // Create and export the YouTube content script
 const script = createBaseContentScript<YouTubeData>({
   siteName: 'YouTube',
   matches: ['*://*.youtube.com/*'],
   extractDataFunction: extractYouTubeData
 });
+
+// Register the highlight function in the window object
+// so the main content script can call it
+if (typeof window !== 'undefined') {
+  // Ensure __PLIFY_HIGHLIGHTERS exists
+  window.__PLIFY_HIGHLIGHTERS = window.__PLIFY_HIGHLIGHTERS || {};
+  // Add the YouTube highlighter
+  window.__PLIFY_HIGHLIGHTERS['youtube'] = highlightYouTubeComments;
+}
 
 export default script; 

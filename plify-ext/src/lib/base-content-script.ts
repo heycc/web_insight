@@ -40,7 +40,8 @@ export type ContentScriptAction =
   | 'ping'
   | 'getSite'
   | `extract.${string}`
-  | `get.${string}`;
+  | `get.${string}`
+  | `highlight.${string}`;
 
 // Export a type for the extractor functions
 export type ExtractorFunction<T = any> = () => T; 

@@ -24,6 +24,7 @@ export interface ContentService {
   stopSummarization(): void;
   getSummaryService(): SummaryService;
   getSiteName(): string;
+  highlightUserComments(username: string): Promise<void>;
 }
 
 // Site detection utility

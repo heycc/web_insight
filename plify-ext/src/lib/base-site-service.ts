@@ -82,6 +82,41 @@ export abstract class BaseSiteService implements ContentService {
         return this.summaryService;
     }
 
+    /**
+     * Sends a message to the content script to highlight comments by a specific username.
+     * @param username The username to highlight comments for
+     */
+    public async highlightUserComments(username: string): Promise<void> {
+        const activeTab = await this.getActiveTab();
+        const tabId = activeTab.id!; // Presence checked in getActiveTab
+
+        // Ensure the content script is loaded and responsive
+        await this.ensureContentScriptReady(tabId);
+
+        const action = `highlight.${this.getSiteName().toLowerCase()}`;
+
+        try {
+            // Send message to content script with the username
+            const results = await this.sendMessageWithTimeout(tabId, { 
+                action,
+                username
+            }, 3000);
+
+            if (!results || !results.success) {
+                // Handle errors reported by the content script
+                const errorMessage = results?.error || `Content script failed to highlight comments for action: ${action}`;
+                this.logger.error(`Highlighting failed: ${errorMessage}`, results);
+                throw new Error(errorMessage);
+            }
+        } catch (error) {
+            // Handle timeouts or other communication errors
+            const errorMessage = `Error during highlighting process: ${error instanceof Error ? error.message : String(error)}`;
+            this.logger.error(errorMessage);
+            // Rethrow or wrap the error as appropriate
+            throw error instanceof Error ? error : new Error(errorMessage);
+        }
+    }
+
     // --- Helper methods for internal use ---
 
     /**

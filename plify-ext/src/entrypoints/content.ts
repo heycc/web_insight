@@ -2,6 +2,9 @@ import { defineContentScript } from 'wxt/sandbox';
 import { ContentScriptAction, ExtractorFunction } from '../lib/base-content-script';
 import { createLogger } from '../lib/utils';
 
+// Define the highlighter function type
+export type HighlighterFunction = (username: string) => boolean;
+
 /**
  * Main content script that detects the current site and coordinates with site-specific content scripts
  */
@@ -13,12 +16,12 @@ export default defineContentScript({
   ],
   main() {
     const logger = createLogger('Base Content');
-    
+
     // Detect the current site
     const url = window.location.href;
     let siteName = 'Unknown';
     let siteNameLowercase = 'unknown';
-    
+
     if (url.includes('reddit.com')) {
       siteName = 'Reddit';
       siteNameLowercase = 'reddit';
@@ -39,22 +42,102 @@ export default defineContentScript({
       siteSpecificLoaded: false,
       extractorAvailable: false
     };
-    
+
     // Initialize the extractors object if it doesn't exist
     window.__PLIFY_EXTRACTORS = window.__PLIFY_EXTRACTORS || {};
-    
+    // Initialize the highlighters object if it doesn't exist
+    window.__PLIFY_HIGHLIGHTERS = window.__PLIFY_HIGHLIGHTERS || {};
+
     logger.log('Registered site info in window object for site:', siteName);
-    
+
+    // Comment highlighting functions for different sites
+
+    /**
+     * Highlights comments by a specific author on YouTube
+     * @param username The username to highlight
+     * @returns true if any comments were found and highlighted
+     */
+    function highlightYouTubeComments(username: string): boolean {
+      logger.log(`Looking for YouTube comments by ${username}`);
+      const comments = document.querySelectorAll('ytd-comment-thread-renderer');
+      let found = false;
+      const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
+
+      // Remove any existing highlights
+      document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
+        el.classList.remove('plify-highlighted-comment');
+        (el as HTMLElement).style.backgroundColor = '';
+      });
+
+      comments.forEach(comment => {
+        const authorElement = comment.querySelector('#author-text');
+        if (authorElement && authorElement.textContent) {
+          const author = authorElement.textContent.trim().replace(/^@/, '');
+          if (author.toLowerCase() === username.toLowerCase()) {
+            // Highlight this comment
+            comment.classList.add('plify-highlighted-comment');
+            (comment as HTMLElement).style.backgroundColor = highlightColor;
+
+            // Scroll to the first highlighted comment
+            if (!found) {
+              comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              found = true;
+            }
+          }
+        }
+      });
+
+      return found;
+    }
+
+    /**
+     * Highlights comments by a specific author on HackerNews
+     * @param username The username to highlight
+     * @returns true if any comments were found and highlighted
+     */
+    function highlightHackerNewsComments(username: string): boolean {
+      logger.log(`Looking for HackerNews comments by ${username}`);
+      const comments = document.querySelectorAll('.comment-tree .comtr');
+      let found = false;
+      const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
+
+      // Remove any existing highlights
+      document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
+        el.classList.remove('plify-highlighted-comment');
+        (el as HTMLElement).style.backgroundColor = '';
+      });
+
+      comments.forEach(comment => {
+        const userElement = comment.querySelector('.hnuser');
+        if (userElement && userElement.textContent) {
+          const author = userElement.textContent.trim();
+          if (author.toLowerCase() === username.toLowerCase()) {
+            // Highlight this comment
+            comment.classList.add('plify-highlighted-comment');
+            (comment as HTMLElement).style.backgroundColor = highlightColor;
+
+            // Scroll to the first highlighted comment
+            if (!found) {
+              comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              found = true;
+            }
+          }
+        }
+      });
+
+      return found;
+    }
+
     // Listen for all messages and coordinate with site-specific scripts
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // logger.log('Main content script received message:', request);
-      
+
       try {
         const action = request.action as ContentScriptAction;
-        
+
         // Handle ping to check if content script is loaded
         if (action === 'ping') {
-          sendResponse({ 
+          sendResponse({
             success: true,
             site: siteName,
             siteInfo: window.__PLIFY_SITE_INFO,
@@ -64,7 +147,7 @@ export default defineContentScript({
           });
           return true; // Keep channel open for async response
         }
-        
+
         // Handle request to get the current site
         if (action === 'getSite') {
           sendResponse({
@@ -74,7 +157,7 @@ export default defineContentScript({
           });
           return true; // Keep channel open for async response
         }
-        
+
         // Handle site-specific data extraction requests
         const normalizedAction = action.toLowerCase();
         if (normalizedAction.startsWith('extract.') || normalizedAction.startsWith('get.')) {
@@ -88,14 +171,14 @@ export default defineContentScript({
             });
             return true;
           }
-          
+
           const targetSite = parts[1].toLowerCase(); // Ensure lowercase comparison
-          
+
           // Check if we have an extractor for this site
           // Ensure extractors object exists
           const extractors = window.__PLIFY_EXTRACTORS || {};
           logger.log(`Available extractors: ${Object.keys(extractors).join(', ')}`);
-          
+
           if (!extractors[targetSite]) {
             sendResponse({
               success: false,
@@ -104,7 +187,7 @@ export default defineContentScript({
             });
             return true;
           }
-          
+
           // Call the extractor function
           try {
             // logger.log(`Calling extractor for ${targetSite}`);
@@ -124,7 +207,73 @@ export default defineContentScript({
           }
           return true; // Keep channel open for async response
         }
-        
+
+        // Handle highlight actions
+        if (normalizedAction.startsWith('highlight.')) {
+          const parts = normalizedAction.split('.');
+          if (parts.length !== 2) {
+            sendResponse({
+              success: false,
+              error: `Invalid action format: ${action}`,
+              site: siteName
+            });
+            return true;
+          }
+
+          const targetSite = parts[1].toLowerCase();
+          const username = request.username;
+
+          if (!username) {
+            sendResponse({
+              success: false,
+              error: 'No username provided for highlighting',
+              site: siteName
+            });
+            return true;
+          }
+
+          // Check if we have a highlighter for this site
+          const highlighters = window.__PLIFY_HIGHLIGHTERS || {};
+
+          if (!highlighters[targetSite]) {
+            sendResponse({
+              success: false,
+              error: `No highlighter available for site: ${targetSite}`,
+              site: siteName
+            });
+            return true;
+          }
+
+          // Call the site-specific highlighter function
+          try {
+            logger.log(`Highlighting comments by ${username} on ${targetSite}`);
+            const success = highlighters[targetSite](username);
+
+            if (success) {
+              sendResponse({
+                success: true,
+                site: siteName,
+                message: `Highlighted comments by ${username}`
+              });
+            } else {
+              sendResponse({
+                success: false,
+                site: siteName,
+                error: `Could not find comments by ${username}`
+              });
+            }
+          } catch (highlightError) {
+            logger.error(`Error highlighting comments:`,
+              highlightError instanceof Error ? highlightError.message : String(highlightError));
+            sendResponse({
+              success: false,
+              error: highlightError instanceof Error ? highlightError.message : String(highlightError),
+              source: siteName
+            });
+          }
+          return true; // Keep channel open for async response
+        }
+
         // For any other actions, we don't handle them
         logger.log(`Unknown action received by base content script: ${action}`);
         return false; // Indicate message not handled here
@@ -160,6 +309,9 @@ declare global {
     };
     __PLIFY_EXTRACTORS?: {
       [siteName: string]: ExtractorFunction;
+    };
+    __PLIFY_HIGHLIGHTERS?: {
+      [siteName: string]: HighlighterFunction;
     };
   }
 }

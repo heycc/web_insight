@@ -122,12 +122,6 @@ const App: React.FC = () => {
         const hasProfiles = await summaryService.hasApiProfiles();
         setHasApiProfiles(hasProfiles);
         
-        // Disable this check when initializing, because the wellcome message will show
-        // if (!hasProfiles) {
-        //   setError('No LLM API found. Please add an API profile in settings.');
-        //   return;
-        // }
-        
         await ensureCorrectContentService();
       } catch (error) {
         logger.error('Error initializing content service:', error);
@@ -398,11 +392,24 @@ const App: React.FC = () => {
 
   // Handle username clicks
   const handleUsernameClick = (username: string) => {
-    // logger.log(`Username clicked: ${username}`);
-    toast({
-      description: `Username clicked: ${username}`,
-      duration: 2000,
-    });
+    // Only proceed if we have a content service
+    if (contentServiceRef.current) {
+      // Call the content service to highlight user comments
+      contentServiceRef.current.highlightUserComments(username)
+        .then(() => {
+          // Success case - no toast needed
+        })
+        .catch(error => {
+          logger.error(`Error highlighting comments: ${error}`);
+          toast({
+            description: `Could not highlight comments: ${error instanceof Error ? error.message : String(error)}`,
+            variant: "destructive",
+            duration: 3000,
+          });
+        });
+    } else {
+      // No content service available
+    }
   };
 
   const handleStopSummarization = () => {
