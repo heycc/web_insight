@@ -130,7 +130,14 @@ function highlightRedditComments(username: string): boolean {
       
       // Scroll to the first highlighted comment
       if (!found) {
-        comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Get the first child element to scroll to instead of the entire comment
+        const commentFirstChild = comment.firstElementChild as HTMLElement;
+        if (commentFirstChild) {
+          commentFirstChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          // Fallback to the comment itself if no child element exists
+          comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         found = true;
       }
     }

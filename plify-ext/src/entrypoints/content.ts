@@ -166,7 +166,6 @@ export default defineContentScript({
 
           // Call the site-specific highlighter function
           try {
-            logger.log(`Highlighting comments by ${username} on ${targetSite}`);
             const success = highlighters[targetSite](username);
 
             if (success) {
