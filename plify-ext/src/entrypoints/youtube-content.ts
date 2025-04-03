@@ -90,13 +90,11 @@ function extractYouTubeData(): YouTubeData {
 }
 
 /**
- * Highlights comments by a specific author on YouTube
+ * Highlights comments by a specific author on YouTube for 5 seconds
  * @param username The username to highlight
  * @returns true if any comments were found and highlighted
  */
 function highlightYouTubeComments(username: string): boolean {
-  const logger = createLogger('YouTube Content');
-  logger.log(`Looking for YouTube comments by ${username}`);
   const commentThreads = document.querySelectorAll('ytd-comment-thread-renderer');
   let found = false;
   const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
@@ -107,6 +105,9 @@ function highlightYouTubeComments(username: string): boolean {
     (el as HTMLElement).style.backgroundColor = '';
   });
   
+  // Store highlighted elements to remove highlighting after timeout
+  const highlightedElements: HTMLElement[] = [];
+  
   commentThreads.forEach(thread => {
     const authorElement = thread.querySelector('#header-author #author-text');
     if (authorElement && authorElement.textContent) {
@@ -115,6 +116,7 @@ function highlightYouTubeComments(username: string): boolean {
         // Highlight this comment
         thread.classList.add('plify-highlighted-comment');
         (thread as HTMLElement).style.backgroundColor = highlightColor;
+        highlightedElements.push(thread as HTMLElement);
         
         // If the comment isn't expanded, expand it
         const expandButton = thread.querySelector('#more-button');
@@ -130,6 +132,14 @@ function highlightYouTubeComments(username: string): boolean {
       }
     }
   });
+  
+  // Remove highlighting after 5 seconds
+  setTimeout(() => {
+    highlightedElements.forEach(element => {
+      element.classList.remove('plify-highlighted-comment');
+      element.style.backgroundColor = '';
+    });
+  }, 5000);
   
   return found;
 }

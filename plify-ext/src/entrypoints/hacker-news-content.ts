@@ -2,6 +2,18 @@ import { createBaseContentScript } from '../lib/base-content-script';
 import { HackerNewsPost, HackerNewsComment } from '../lib/hacker-news-service';
 import { createLogger } from '../lib/utils';
 
+// Define the highlighter function type
+type HighlighterFunction = (username: string) => boolean;
+
+// Add type definitions for window object
+declare global {
+  interface Window {
+    __PLIFY_HIGHLIGHTERS?: {
+      [siteName: string]: HighlighterFunction;
+    };
+  }
+}
+
 // Extract Hacker News post and comment data
 function extractHackerNewsData(): HackerNewsPost {
   const logger = createLogger('HackerNews Content');
@@ -102,11 +114,67 @@ function extractHackerNewsData(): HackerNewsPost {
   return post;
 }
 
+/**
+ * Highlights comments by a specific author on Hacker News for 5 seconds
+ * @param username The username to highlight
+ * @returns true if any comments were found and highlighted
+ */
+function highlightHackerNewsComments(username: string): boolean {
+  const comments = document.querySelectorAll('.comment-tree .comtr');
+  let found = false;
+  const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
+  
+  // Remove any existing highlights
+  document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
+    el.classList.remove('plify-highlighted-comment');
+    (el as HTMLElement).style.backgroundColor = '';
+  });
+  
+  // Store highlighted elements to remove highlighting after timeout
+  const highlightedElements: HTMLElement[] = [];
+  
+  comments.forEach(comment => {
+    const authorElement = comment.querySelector('.hnuser');
+    const author = authorElement?.textContent?.trim();
+    
+    if (author && author.toLowerCase() === username.toLowerCase()) {
+      // Highlight this comment
+      comment.classList.add('plify-highlighted-comment');
+      (comment as HTMLElement).style.backgroundColor = highlightColor;
+      highlightedElements.push(comment as HTMLElement);
+      
+      // Scroll to the first highlighted comment
+      if (!found) {
+        comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        found = true;
+      }
+    }
+  });
+  
+  // Remove highlighting after 5 seconds
+  setTimeout(() => {
+    highlightedElements.forEach(element => {
+      element.classList.remove('plify-highlighted-comment');
+      element.style.backgroundColor = '';
+    });
+  }, 5000);
+  
+  return found;
+}
+
 // Create and export the Hacker News content script
 const script = createBaseContentScript<HackerNewsPost>({
   siteName: 'HackerNews',
   matches: ['*://news.ycombinator.com/item?id=*'], // Specific match for item pages
   extractDataFunction: extractHackerNewsData
 });
+
+// Register the highlight function in the window object
+if (typeof window !== 'undefined') {
+  // Ensure __PLIFY_HIGHLIGHTERS exists
+  window.__PLIFY_HIGHLIGHTERS = window.__PLIFY_HIGHLIGHTERS || {};
+  // Add the Hacker News highlighter
+  window.__PLIFY_HIGHLIGHTERS['hackernews'] = highlightHackerNewsComments;
+}
 
 export default script;

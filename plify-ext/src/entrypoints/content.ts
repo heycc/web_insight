@@ -50,88 +50,8 @@ export default defineContentScript({
 
     logger.log('Registered site info in window object for site:', siteName);
 
-    // Comment highlighting functions for different sites
-
-    /**
-     * Highlights comments by a specific author on YouTube
-     * @param username The username to highlight
-     * @returns true if any comments were found and highlighted
-     */
-    function highlightYouTubeComments(username: string): boolean {
-      logger.log(`Looking for YouTube comments by ${username}`);
-      const comments = document.querySelectorAll('ytd-comment-thread-renderer');
-      let found = false;
-      const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
-
-      // Remove any existing highlights
-      document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
-        el.classList.remove('plify-highlighted-comment');
-        (el as HTMLElement).style.backgroundColor = '';
-      });
-
-      comments.forEach(comment => {
-        const authorElement = comment.querySelector('#author-text');
-        if (authorElement && authorElement.textContent) {
-          const author = authorElement.textContent.trim().replace(/^@/, '');
-          if (author.toLowerCase() === username.toLowerCase()) {
-            // Highlight this comment
-            comment.classList.add('plify-highlighted-comment');
-            (comment as HTMLElement).style.backgroundColor = highlightColor;
-
-            // Scroll to the first highlighted comment
-            if (!found) {
-              comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              found = true;
-            }
-          }
-        }
-      });
-
-      return found;
-    }
-
-    /**
-     * Highlights comments by a specific author on HackerNews
-     * @param username The username to highlight
-     * @returns true if any comments were found and highlighted
-     */
-    function highlightHackerNewsComments(username: string): boolean {
-      logger.log(`Looking for HackerNews comments by ${username}`);
-      const comments = document.querySelectorAll('.comment-tree .comtr');
-      let found = false;
-      const highlightColor = 'rgba(121, 224, 238, 0.25)'; // Light blue with transparency
-
-      // Remove any existing highlights
-      document.querySelectorAll('.plify-highlighted-comment').forEach(el => {
-        el.classList.remove('plify-highlighted-comment');
-        (el as HTMLElement).style.backgroundColor = '';
-      });
-
-      comments.forEach(comment => {
-        const userElement = comment.querySelector('.hnuser');
-        if (userElement && userElement.textContent) {
-          const author = userElement.textContent.trim();
-          if (author.toLowerCase() === username.toLowerCase()) {
-            // Highlight this comment
-            comment.classList.add('plify-highlighted-comment');
-            (comment as HTMLElement).style.backgroundColor = highlightColor;
-
-            // Scroll to the first highlighted comment
-            if (!found) {
-              comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              found = true;
-            }
-          }
-        }
-      });
-
-      return found;
-    }
-
     // Listen for all messages and coordinate with site-specific scripts
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      // logger.log('Main content script received message:', request);
-
       try {
         const action = request.action as ContentScriptAction;
 

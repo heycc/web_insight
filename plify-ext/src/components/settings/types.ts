@@ -127,11 +127,11 @@ Synthesize the most  significant comments into **5–8 logically ordered groups*
 - **Key Quote**: Extract **1–2 short, impactful phrases** (not full sentences) that capture the essence.
 
 **Format Example**:
-1. **Group Label** (👍 n+. @username1[background or story], @username2)
+1. **Group Label** (👍 n+ @username1[background or story], 👍 n+ @username2)
   Summary of the opinion.
   > "Key phrase from comment"
 
-2. **Group Label** (@username13[background or story])
+2. **Group Label** (👍 n+ @username13[background or story])
   Summary of the opinion.
   > "Key phrase from comment"
 
