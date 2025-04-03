@@ -132,7 +132,7 @@ ${commentsList}
 
     // Always use the first profile
     const activeProfile = settings.profiles[0];
-    this.logger.log('Using first profile: [' + activeProfile.profile_name + ']');
+    // this.logger.log('Using first profile: [' + activeProfile.profile_name + ']');
 
     if (!activeProfile || !activeProfile.provider_type || !activeProfile.api_key || !activeProfile.api_endpoint || !activeProfile.model_name) {
       this.logger.error('Missing required profile fields:', {

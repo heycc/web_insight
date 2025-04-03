@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import rehypeRaw from 'rehype-raw';
 
 interface SummaryViewProps {
   summary: string;
@@ -20,6 +21,7 @@ interface SummaryViewProps {
   onToggleReasoning: () => void;
   onCopy: (includeReasoning: boolean) => void;
   onRegenerate: () => void;
+  onUsernameClick?: (username: string) => void;
 }
 
 export const SummaryView: React.FC<SummaryViewProps> = ({
@@ -31,7 +33,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   copiedState,
   onToggleReasoning,
   onCopy,
-  onRegenerate
+  onRegenerate,
+  onUsernameClick
 }) => {
   // Add ref for reasoning container
   const reasoningContainerRef = useRef<HTMLDivElement>(null);
@@ -65,7 +68,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   }, [showReasoning]);
 
   // Function to preprocess markdown text and fix problematic code fences
-  const preprocessMarkdown = (text: string): string => {
+  const processMarkdownFence = (text: string): string => {
     if (!text) return '';
     
     // Replace lone triple backticks with escaped backticks or a code block with language
@@ -82,6 +85,44 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       // // Handle triple backticks at the very end of the text
       // .replace(/```\s*$/g, '```text\n')
   };
+
+  // Process the markdown content before rendering to replace @username with clickable spans
+  const addClickableUsernames = (text: string): string => {
+    if (!text || !onUsernameClick) return text;
+    
+    // Replace @username with HTML that will create clickable spans
+    // We'll use a special placeholder that we can target with CSS and JavaScript after rendering
+    return text.replace(/@([a-zA-Z0-9_-]+)/g, '<span class="username-mention" data-username="$1">@$1</span>');
+  };
+
+  // Add click handlers to username mentions after the component is rendered
+  useEffect(() => {
+    if (!onUsernameClick) return;
+    
+    // Find all username mention elements
+    const usernameElements = document.querySelectorAll('.username-mention');
+    
+    // Add click handlers
+    usernameElements.forEach(element => {
+      const username = element.getAttribute('data-username');
+      if (username) {
+        element.addEventListener('click', () => onUsernameClick(username));
+        
+        // Add styling
+        element.classList.add('text-primary', 'cursor-pointer', 'hover:underline');
+      }
+    });
+    
+    // Clean up event listeners when component unmounts
+    return () => {
+      usernameElements.forEach(element => {
+        const username = element.getAttribute('data-username');
+        if (username) {
+          element.removeEventListener('click', () => onUsernameClick(username));
+        }
+      });
+    };
+  }, [summary, reasoning, showReasoning, onUsernameClick]);
 
   return (
     <div className="rounded-lg shadow-sm overflow-hidden bg-card m-2">
@@ -123,10 +164,14 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                     return isInline ?
                       <code className="px-1 py-0.5 bg-muted rounded text-sm" {...props} /> :
                       <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
-                  }
+                  },
+                  p: ({ node, ...props }) => <p className="my-2" {...props} />
                 }}
+                skipHtml={false}
+                remarkPlugins={[]}
+                rehypePlugins={[rehypeRaw]}
               >
-                {preprocessMarkdown(reasoning)}
+                {addClickableUsernames(processMarkdownFence(reasoning))}
               </ReactMarkdown>
             </div>
           )}
@@ -140,10 +185,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                 ul: ({ node, ...props }) => <ul className="list-disc pl-4" {...props} />,
                 ol: ({ node, ...props }) => <ol className="list-decimal pl-4" {...props} />,
                 li: ({ node, ...props }) => (
-                  <li
-                    className="mt-2"
-                    {...props}
-                  />
+                  <li className="mt-2" {...props} />
                 ),
                 h2: ({ node, ...props }) => <h2 className="text-lg font-semibold my-3 text-accent-foreground" {...props} />,
                 h3: ({ node, ...props }) => <h3 className="text-base font-semibold my-2 text-accent-foreground" {...props} />,
@@ -160,8 +202,11 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                     <code className="block p-3 bg-muted rounded-md text-sm overflow-x-auto my-3" {...props} />;
                 }
               }}
+              skipHtml={false}
+              remarkPlugins={[]}
+              rehypePlugins={[rehypeRaw]}
             >
-              {preprocessMarkdown(summary)}
+              {addClickableUsernames(processMarkdownFence(summary))}
             </ReactMarkdown>
           </div>
       )}

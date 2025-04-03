@@ -396,6 +396,15 @@ const App: React.FC = () => {
     }
   };
 
+  // Handle username clicks
+  const handleUsernameClick = (username: string) => {
+    // logger.log(`Username clicked: ${username}`);
+    toast({
+      description: `Username clicked: ${username}`,
+      duration: 2000,
+    });
+  };
+
   const handleStopSummarization = () => {
     if (isSummarizing && contentServiceRef.current) {
       logger.log('User stopping summarization...');
@@ -517,6 +526,7 @@ const App: React.FC = () => {
                     onToggleReasoning={() => setShowReasoning(!showReasoning)}
                     onCopy={handleCopySummary}
                     onRegenerate={handleRegenerate}
+                    onUsernameClick={handleUsernameClick}
                   />
                 )}
                 {!(summary || reasoning || isSummarizing) && (
