@@ -7,9 +7,11 @@ import {
   RefreshCw,
   Loader2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ImageDown
 } from 'lucide-react';
 import rehypeRaw from 'rehype-raw';
+import html2canvas from 'html2canvas';
 
 interface SummaryViewProps {
   summary: string;
@@ -40,6 +42,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   const reasoningContainerRef = useRef<HTMLDivElement>(null);
   // Track if user has manually scrolled up
   const [userScrolledUp, setUserScrolledUp] = useState(false);
+  // Add a new ref for the summary container
+  const summaryContainerRef = useRef<HTMLDivElement>(null);
 
   // Add scroll handler for reasoning container
   const handleReasoningScroll = () => {
@@ -101,13 +105,11 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     
     // Find all username mention elements
     const usernameElements = document.querySelectorAll('.username-mention');
-    
     // Add click handlers
     usernameElements.forEach(element => {
       const username = element.getAttribute('data-username');
       if (username) {
         element.addEventListener('click', () => onUsernameClick(username));
-        
         // Add styling
         element.classList.add('text-primary', 'cursor-pointer', 'hover:underline');
       }
@@ -123,6 +125,38 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       });
     };
   }, [summary, reasoning, showReasoning, onUsernameClick]);
+
+  // Add a function to handle image export
+  const handleExportImage = async () => {
+    if (!summaryContainerRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(summaryContainerRef.current, {
+        backgroundColor: window.getComputedStyle(summaryContainerRef.current).backgroundColor || '#ffffff',
+        scale: 2, // Higher scale for better quality
+        logging: false,
+        useCORS: true
+      });
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'summary-export.png';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error exporting image:', error);
+    }
+  };
 
   return (
     <div className="rounded-lg shadow-sm overflow-hidden bg-card m-2">
@@ -178,7 +212,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
         </div>
       )}
       {summary && (
-          <div className="p-2 markdown text-card-foreground">
+          <div ref={summaryContainerRef} className="p-2 markdown text-card-foreground">
             <ReactMarkdown
               components={{
                 p: ({ node, ...props }) => <p className="my-2" {...props} />,
@@ -228,7 +262,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
             variant="ghost"
             size="sm"
             onClick={onRegenerate}
-            className="text-muted-foreground hover:text-foreground mr-2"
+            className="text-muted-foreground hover:text-foreground"
             title="Regenerate"
             disabled={isLoading || isSummarizing}
           >
@@ -241,7 +275,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onCopy(false)}
-                className="text-muted-foreground hover:text-foreground mr-2"
+                className="text-muted-foreground hover:text-foreground"
                 title="Copy summary only"
                 disabled={isLoading || isSummarizing}
               >
@@ -271,6 +305,17 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
               {copiedState.summary ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </Button>
           )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExportImage}
+            className="text-muted-foreground hover:text-foreground mr-2"
+            title="Export as image"
+            disabled={isLoading || isSummarizing || !summary}
+          >
+            <ImageDown className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>
