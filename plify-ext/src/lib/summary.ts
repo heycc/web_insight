@@ -64,7 +64,7 @@ export class SummaryService {
     const postContent = data.content || 'No content';
     const commentsList = (data.comments || [])
       .filter(c => c && c.content)
-      .slice(0, 200)
+      .slice(0, 1000)
       .map(c => {
         const authorPart = `Author: ${c.author || 'unknown'}`;
         const scorePart = c.score !== undefined && c.score !== null ? `, 👍: ${c.score}` : '';
@@ -108,7 +108,7 @@ ${title}
 # CONTENT:
 ${postContent}
 
-# TOP COMMENTS (Up to 200):
+# TOP COMMENTS (Up to 1000):
 ${commentsList}
 
 </PAGE_CONTEXT>`;
