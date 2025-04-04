@@ -24,6 +24,8 @@ interface SummaryViewProps {
   onCopy: (includeReasoning: boolean) => void;
   onRegenerate: () => void;
   onUsernameClick?: (username: string) => void;
+  title?: string;
+  url?: string;
 }
 
 export const SummaryView: React.FC<SummaryViewProps> = ({
@@ -36,7 +38,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
   onToggleReasoning,
   onCopy,
   onRegenerate,
-  onUsernameClick
+  onUsernameClick,
+  title,
+  url
 }) => {
   // Add ref for reasoning container
   const reasoningContainerRef = useRef<HTMLDivElement>(null);
@@ -131,22 +135,48 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     if (!summaryContainerRef.current) return;
     
     try {
-      // Get the computed background color
-      const computedBgColor = window.getComputedStyle(summaryContainerRef.current).backgroundColor;
-      // Check if the background is empty, transparent, or rgba with 0 alpha
-      const isTransparent = !computedBgColor || 
-                            computedBgColor === 'transparent' || 
-                            computedBgColor === 'rgba(0, 0, 0, 0)' ||
-                            /rgba\(\d+,\s*\d+,\s*\d+,\s*0\)/.test(computedBgColor);
+      // Create and style temporary export container
+      const exportContainer = document.createElement('div');
+      // Apply class for styled background texture
+      exportContainer.className = 'export-image-container';
+      // Set container width to match the source
+      exportContainer.style.width = `${summaryContainerRef.current.offsetWidth}px`;
+      // Add header with only the title
+      const header = document.createElement('div');
+      header.className = 'export-image-header';
       
-      // Use html-to-image instead of html2canvas
-      const dataUrl = await toPng(summaryContainerRef.current, {
-        backgroundColor: isTransparent ? '#ffffff' : computedBgColor,
-        pixelRatio: 2, // Higher ratio for better quality
-        cacheBust: true,
+      // Use the title prop passed from App.tsx or fall back to a default
+      header.textContent = title || 'Web Content Summary';
+      
+      // Add URL beneath the title if available
+      if (url) {
+        const urlElement = document.createElement('div');
+        urlElement.className = 'text-sm text-gray-400 mt-1 url-wrap';
+        urlElement.textContent = url;
+        header.appendChild(urlElement);
+      }
+      
+      exportContainer.appendChild(header);
+      
+      // Copy content
+      exportContainer.innerHTML += summaryContainerRef.current.innerHTML;
+      
+      // Add footer with class
+      const footer = document.createElement('div');
+      footer.className = 'export-image-footer';
+      footer.textContent = 'Generated with Web Insight';
+      exportContainer.appendChild(footer);
+      
+      // Add to DOM, render, and capture
+      document.body.appendChild(exportContainer);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const dataUrl = await toPng(exportContainer, {
+        pixelRatio: 2,
+        cacheBust: true
       });
       
-      // Create download link
+      // Download image
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = 'summary-export.png';
@@ -154,7 +184,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
       link.click();
       
       // Clean up
-      document.body.removeChild(link);
+      [link, exportContainer].forEach(el => document.body.removeChild(el));
     } catch (error) {
       console.error('Error exporting image:', error);
     }

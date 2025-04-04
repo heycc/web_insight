@@ -534,6 +534,8 @@ const App: React.FC = () => {
                     onCopy={handleCopySummary}
                     onRegenerate={handleRegenerate}
                     onUsernameClick={handleUsernameClick}
+                    title={contentData?.title || 'Untitled Post'}
+                    url={contentData?.url || ''}
                   />
                 )}
                 {!(summary || reasoning || isSummarizing) && (
