@@ -11,7 +11,7 @@ import {
   ImageDown
 } from 'lucide-react';
 import rehypeRaw from 'rehype-raw';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 interface SummaryViewProps {
   summary: string;
@@ -131,28 +131,30 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     if (!summaryContainerRef.current) return;
     
     try {
-      const canvas = await html2canvas(summaryContainerRef.current, {
-        backgroundColor: window.getComputedStyle(summaryContainerRef.current).backgroundColor || '#ffffff',
-        scale: 2, // Higher scale for better quality
-        logging: false,
-        useCORS: true
+      // Get the computed background color
+      const computedBgColor = window.getComputedStyle(summaryContainerRef.current).backgroundColor;
+      // Check if the background is empty, transparent, or rgba with 0 alpha
+      const isTransparent = !computedBgColor || 
+                            computedBgColor === 'transparent' || 
+                            computedBgColor === 'rgba(0, 0, 0, 0)' ||
+                            /rgba\(\d+,\s*\d+,\s*\d+,\s*0\)/.test(computedBgColor);
+      
+      // Use html-to-image instead of html2canvas
+      const dataUrl = await toPng(summaryContainerRef.current, {
+        backgroundColor: isTransparent ? '#ffffff' : computedBgColor,
+        pixelRatio: 2, // Higher ratio for better quality
+        cacheBust: true,
       });
-      // Convert canvas to blob
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        
-        // Create download link
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'summary-export.png';
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 'image/png');
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'summary-export.png';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error exporting image:', error);
     }
