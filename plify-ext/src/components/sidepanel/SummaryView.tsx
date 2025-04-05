@@ -100,7 +100,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     
     // Replace @username with HTML that will create clickable spans
     // We'll use a special placeholder that we can target with CSS and JavaScript after rendering
-    return text.replace(/@([a-zA-Z0-9_-]+)/g, '<span class="username-mention" data-username="$1">@$1</span>');
+    return text.replace(/@([a-zA-Z0-9_\-.]+)/g, '<span class="username-mention" data-username="$1">@$1</span>');
   };
 
   // Add click handlers to username mentions after the component is rendered
