@@ -11,7 +11,7 @@ import {
   ImageDown
 } from 'lucide-react';
 import rehypeRaw from 'rehype-raw';
-import { toPng } from 'html-to-image';
+import { exportSummaryAsImage } from './SummaryExport';
 
 interface SummaryViewProps {
   summary: string;
@@ -130,61 +130,16 @@ export const SummaryView: React.FC<SummaryViewProps> = ({
     };
   }, [summary, reasoning, showReasoning, onUsernameClick]);
 
-  // Add a function to handle image export
+  // Handle export image using the extracted utility
   const handleExportImage = async () => {
     if (!summaryContainerRef.current) return;
     
     try {
-      // Create and style temporary export container
-      const exportContainer = document.createElement('div');
-      // Apply class for styled background texture
-      exportContainer.className = 'export-image-container';
-      // Set container width to match the source
-      exportContainer.style.width = `${summaryContainerRef.current.offsetWidth}px`;
-      // Add header with only the title
-      const header = document.createElement('div');
-      header.className = 'export-image-header';
-      
-      // Use the title prop passed from App.tsx or fall back to a default
-      header.textContent = title || 'Web Content Summary';
-      
-      // Add URL beneath the title if available
-      if (url) {
-        const urlElement = document.createElement('div');
-        urlElement.className = 'text-sm text-gray-400 mt-1 url-wrap';
-        urlElement.textContent = url;
-        header.appendChild(urlElement);
-      }
-      
-      exportContainer.appendChild(header);
-      
-      // Copy content
-      exportContainer.innerHTML += summaryContainerRef.current.innerHTML;
-      
-      // Add footer with class
-      const footer = document.createElement('div');
-      footer.className = 'export-image-footer';
-      footer.textContent = 'Generated with Web Insight';
-      exportContainer.appendChild(footer);
-      
-      // Add to DOM, render, and capture
-      document.body.appendChild(exportContainer);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const dataUrl = await toPng(exportContainer, {
-        pixelRatio: 2,
-        cacheBust: true
+      await exportSummaryAsImage({
+        containerRef: summaryContainerRef,
+        title,
+        url,
       });
-      
-      // Download image
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = 'summary-export.png';
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      [link, exportContainer].forEach(el => document.body.removeChild(el));
     } catch (error) {
       console.error('Error exporting image:', error);
     }

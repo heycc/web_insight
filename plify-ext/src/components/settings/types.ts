@@ -109,7 +109,7 @@ export const DEFAULT_PROMPT: Prompt = {
 Analyze the provided web page content (e.g., a Reddit post) and its top-liked comments to extract key insights. Follow these steps:
 
 1. **Comprehensive Reading**: Read the entire post and all comments thoroughly before summarizing.
-2. **Opinion Grouping**: Identify and group similar comments into **5–8 distinct opinions**, prioritizing:
+2. **Aspect Grouping**: Identify and group similar comments into **5–8 distinct and most focused aspects**, prioritizing:
    - Top-voted comments.
    - Unique perspectives (e.g., expert opinions, personal experiences).
    - Comments where authors explicitly mention their background or their stories.
@@ -118,9 +118,9 @@ Analyze the provided web page content (e.g., a Reddit post) and its top-liked co
 ## Main Point of the Post
 A **1–2 sentence summary** of the post's core message, question, or debate.
 
-## Key Grouped Opinions from Comments
+## Key Grouped Aspects from Comments
 Synthesize the most  significant comments into **5–8 logically ordered groups**. For each group:
-- **Label**: Briefly name the opinion (e.g., "Support for X," "Criticism of Y").
+- **Label**: Briefly name the aspect (e.g., "Support for X," "Criticism of Y").
 - **Upvotes**: Note approximate upvotes (e.g., 👍 500+), omit if not available.
 - **Authors & Backgrounds**: List usernames and **include their self-described backgrounds or stories if any** (e.g., "as a doctor," "10-year industry veteran").
 - **Summary**: Paraphrase the shared viewpoint concisely.
