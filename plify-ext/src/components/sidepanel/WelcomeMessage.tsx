@@ -3,6 +3,7 @@ import { MessageSquareText, Settings } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import YouTubeIcon from '../../assets/youtube.tsx';
 import RedditIcon from '../../assets/reddit.tsx';
+import HackerNewsIcon from '../../assets/y18.tsx';
 interface WelcomeMessageProps {
   currentSite: string;
   hasApiProfiles?: boolean;
@@ -46,18 +47,24 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-2 w-full mb-4">
+      <div className="grid grid-cols-3 gap-2 w-full mb-4">
         <div className="flex flex-col items-center p-3 rounded-lg">
-          <div className="h-6 w-6">
+          <div className="w-12 h-12 flex items-center justify-center">
             <RedditIcon />
           </div>
           <p className="text-sm">Reddit</p>
         </div>
-        <div className="flex flex-col items-center p-3  rounded-lg">
-            <div className="h-6 w-6">
-              <YouTubeIcon />
-            </div>
+        <div className="flex flex-col items-center p-3 rounded-lg">
+          <div className="w-12 h-12 flex items-center justify-center">
+            <YouTubeIcon />
+          </div>
           <p className="text-sm">YouTube</p>
+        </div>
+        <div className="flex flex-col items-center p-3 rounded-lg">
+          <div className="w-12 h-12 flex items-center justify-center">
+            <HackerNewsIcon />
+          </div>
+          <p className="text-sm">Hacker News</p>
         </div>
       </div>
 
