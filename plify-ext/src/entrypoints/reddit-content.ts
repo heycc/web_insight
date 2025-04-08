@@ -54,6 +54,11 @@ function extractRedditData(): RedditPost {
       const score = comment.getAttribute('score');
       const commentElement = comment.querySelector(':scope > [slot="comment"]');
 
+      if (author === '[deleted]') {
+        logger.log(`Skipping comment #${index}: deleted author`);
+        return;
+      }
+
       // Validate required fields
       if (!author || !commentElement) {
         logger.log(`Skipping comment #${index}: missing author or comment element`);
@@ -73,11 +78,11 @@ function extractRedditData(): RedditPost {
         return;
       }
 
-      // Extract comment content
+      // Extract comment content. innerText is not working for collapsed comments
       const commentContent = Array.from(commentElement.querySelectorAll('p'))
-        .map(p => (p as HTMLElement).innerText?.trim() || '')
-        .filter(Boolean)
-        .join('\n\n');
+      .map(p => (p as HTMLElement).textContent?.trim() || '')
+      .filter(Boolean)
+      .join('\n\n');
 
       // Add valid comment to post
       post.comments.push({
