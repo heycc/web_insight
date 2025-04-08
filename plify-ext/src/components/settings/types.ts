@@ -215,6 +215,15 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     icon: 'icon/deepseek.png'
   },
   {
+    id: 'MOONSHOTAI',
+    display_name: 'Moonshot AI',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://api.moonshot.cn/v1',
+    api_key_doc: 'https://platform.moonshot.cn/docs/intro',
+    models: ['moonshot-v1-auto', 'kimi-latest'],
+    icon: 'icon/kimi.png'
+  },
+  {
     id: 'SILICONFLOW',
     display_name: 'SiliconFlow',
     provider_type: ProviderType.OAI_COMPATIBLE,
