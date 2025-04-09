@@ -186,7 +186,7 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     provider_type: ProviderType.OAI_COMPATIBLE,
     api_endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai',
     api_key_doc: 'https://ai.google.dev/gemini-api/docs/api-key',
-    models: ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite'],
+    models: ['gemini-2.5-pro-preview-03-25', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite'],
     icon: 'icon/gemini.png'
   },
   {
@@ -196,11 +196,15 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     api_endpoint: 'https://openrouter.ai/api/v1',
     api_key_doc: 'https://openrouter.ai/docs/features/provisioning-api-keys',
     models: [
+      'google/gemini-2.5-pro-exp-03-25:free',
+      'google/gemini-2.0-flash-exp:free',
+      'google/gemini-2.0-flash-thinking-exp-1219:free',
+      'google/gemma-3-27b-it:free',
+      'google/gemma-2-9b-it:free',
       'deepseek/deepseek-r1:free',
       'deepseek/deepseek-chat-v3-0324:free',
       'deepseek/deepseek-r1-distill-qwen-32b:free',
       'qwen/qwq-32b:free',
-      'google/gemma-2-9b-it:free',
       'mistralai/mistral-small-24b-instruct-2501:free'
     ],
     icon: 'icon/openrouter.png'
