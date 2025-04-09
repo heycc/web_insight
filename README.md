@@ -19,8 +19,8 @@ Reddit Insight extracts and analyzes content from Reddit pages to provide concis
 
 1. Clone the repository:
    ```
-   git clone https://github.com/iheycc/reddit_insight.git
-   cd reddit_insight/plify-ext/
+   git clone https://github.com/heycc/web_insight.git
+   cd web_insight/plify-ext/
    ```
 
 2. Install dependencies:

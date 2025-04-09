@@ -38,18 +38,59 @@ export enum Language {
   KO = 'ko',
   VI = 'vi',
   RU = 'ru',
-  ES = 'es'
+  ES = 'es',
+  FR = 'fr',
+  DE = 'de',
+  PT = 'pt',
+  IT = 'it',
+  HI = 'hi',
+  TR = 'tr',
+  NL = 'nl',
+  PL = 'pl',
+  TH = 'th',
+  ID = 'id'
 }
 
 export const LANGUAGE_LABELS: Record<Language, string> = {
-  [Language.EN]: 'English',
-  [Language.ZH_CN]: '简体中文 (Simplified Chinese)',
-  [Language.ZH_TW]: '繁體中文 (Traditional Chinese)',
-  [Language.JA]: '日本語 (Japanese)',
-  [Language.KO]: '한국어 (Korean)',
-  [Language.VI]: 'Tiếng Việt (Vietnamese)',
-  [Language.RU]: 'Русский (Russian)',
-  [Language.ES]: 'Español (Spanish)'
+  [Language.EN]: '🇺🇸 English',
+  [Language.ZH_CN]: '🇨🇳 简体中文',
+  [Language.ZH_TW]: '🇭🇰 繁體中文',
+  [Language.JA]: '🇯🇵 日本語',
+  [Language.KO]: '🇰🇷 한국어',
+  [Language.VI]: '🇻🇳 Tiếng Việt',
+  [Language.RU]: '🇷🇺 Русский',
+  [Language.ES]: '🇪🇸 Español',
+  [Language.FR]: '🇫🇷 Français',
+  [Language.DE]: '🇩🇪 Deutsch',
+  [Language.PT]: '🇵🇹 Português',
+  [Language.IT]: '🇮🇹 Italiano',
+  [Language.HI]: '🇮🇳 हिन्दी',
+  [Language.TR]: '🇹🇷 Türkçe',
+  [Language.NL]: '🇳🇱 Nederlands',
+  [Language.PL]: '🇵🇱 Polski',
+  [Language.TH]: '🇹🇭 ไทย',
+  [Language.ID]: '🇮🇩 Bahasa Indonesia'
+};
+
+export const LANGUAGE_INSTRUCTIONS: Record<Language, string> = {
+  [Language.EN]: 'RESPOND IN ENGLISH',
+  [Language.ZH_CN]: 'IMPORTANT: RESPOND IN SIMPLIFIED CHINESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.ZH_TW]: 'IMPORTANT: RESPOND IN TRADITIONAL CHINESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.JA]: 'IMPORTANT: RESPOND IN JAPANESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.KO]: 'IMPORTANT: RESPOND IN KOREAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.VI]: 'IMPORTANT: RESPOND IN VIETNAMESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.RU]: 'IMPORTANT: RESPOND IN RUSSIAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.ES]: 'IMPORTANT: RESPOND IN SPANISH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.FR]: 'IMPORTANT: RESPOND IN FRENCH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.DE]: 'IMPORTANT: RESPOND IN GERMAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.PT]: 'IMPORTANT: RESPOND IN PORTUGUESE, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.IT]: 'IMPORTANT: RESPOND IN ITALIAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.HI]: 'IMPORTANT: RESPOND IN HINDI, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.TR]: 'IMPORTANT: RESPOND IN TURKISH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.NL]: 'IMPORTANT: RESPOND IN DUTCH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.PL]: 'IMPORTANT: RESPOND IN POLISH, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.TH]: 'IMPORTANT: RESPOND IN THAI, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.',
+  [Language.ID]: 'IMPORTANT: RESPOND IN INDONESIAN, BUT KEEP THE ORIGINAL LANGUAGE OF THE QUOTED TEXT.'
 };
 
 export interface Profile {
@@ -204,7 +245,10 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
       'deepseek/deepseek-r1:free',
       'deepseek/deepseek-chat-v3-0324:free',
       'deepseek/deepseek-r1-distill-qwen-32b:free',
+      'meta-llama/llama-4-maverick:free',
+      'meta-llama/llama-4-scout:free',
       'qwen/qwq-32b:free',
+      'openrouter/quasar-alpha',
       'mistralai/mistral-small-24b-instruct-2501:free'
     ],
     icon: 'icon/openrouter.png'
