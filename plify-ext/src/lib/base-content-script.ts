@@ -8,7 +8,7 @@ import { createLogger } from './utils';
 export function createBaseContentScript<T>(options: {
   siteName: string;
   matches: string[];
-  extractDataFunction: () => T;
+  extractDataFunction: () => T | Promise<T>;
 }) {
   const { siteName, matches, extractDataFunction } = options;
   const siteNameLower = siteName.toLowerCase();
@@ -44,4 +44,4 @@ export type ContentScriptAction =
   | `highlight.${string}`;
 
 // Export a type for the extractor functions
-export type ExtractorFunction<T = any> = () => T; 
+export type ExtractorFunction<T = any> = () => T | Promise<T>; 

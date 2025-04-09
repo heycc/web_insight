@@ -5,6 +5,9 @@ import { createLogger } from '../lib/utils';
 // Define the highlighter function type
 export type HighlighterFunction = (username: string) => boolean;
 
+// Define the loader function type
+export type LoaderFunction = () => Promise<boolean>;
+
 /**
  * Main content script that detects the current site and coordinates with site-specific content scripts
  */
@@ -111,12 +114,35 @@ export default defineContentScript({
           // Call the extractor function
           try {
             // logger.log(`Calling extractor for ${targetSite}`);
-            const data = extractors[targetSite]();
-            sendResponse({
-              success: true,
-              data: data,
-              source: siteName
-            });
+            const extractorResult = extractors[targetSite]();
+            
+            // Handle both synchronous and asynchronous extractor functions
+            if (extractorResult instanceof Promise) {
+              extractorResult
+                .then(data => {
+                  sendResponse({
+                    success: true,
+                    data: data,
+                    source: siteName
+                  });
+                })
+                .catch(error => {
+                  logger.error(`Error in async data extraction:`, 
+                    error instanceof Error ? error.message : String(error));
+                  sendResponse({
+                    success: false,
+                    error: error instanceof Error ? error.message : String(error),
+                    source: siteName
+                  });
+                });
+            } else {
+              // Handle synchronous result
+              sendResponse({
+                success: true,
+                data: extractorResult,
+                source: siteName
+              });
+            }
           } catch (extractError) {
             logger.error(`Error extracting data:`, extractError instanceof Error ? extractError.message : String(extractError));
             sendResponse({
@@ -193,6 +219,74 @@ export default defineContentScript({
           return true; // Keep channel open for async response
         }
 
+        // Handle loadMore actions
+        if (normalizedAction.startsWith('loadmore.')) {
+          const parts = normalizedAction.split('.');
+          if (parts.length !== 2) {
+            sendResponse({
+              success: false,
+              error: `Invalid action format: ${action}`,
+              site: siteName
+            });
+            return true;
+          }
+
+          const targetSite = parts[1].toLowerCase();
+
+          // Check if we have a loader for this site
+          const loaders = window.__PLIFY_LOADERS || {};
+
+          if (!loaders[targetSite]) {
+            sendResponse({
+              success: false,
+              error: `No loader available for site: ${targetSite}`,
+              site: siteName
+            });
+            return true;
+          }
+
+          // Call the site-specific loader function
+          try {
+            // Loader functions return promises, so handle them properly
+            loaders[targetSite]()
+              .then(success => {
+                if (success) {
+                  sendResponse({
+                    success: true,
+                    site: siteName,
+                    message: `Loaded more content for ${targetSite}`
+                  });
+                } else {
+                  sendResponse({
+                    success: false,
+                    site: siteName,
+                    error: `Could not load more content for ${targetSite}`
+                  });
+                }
+              })
+              .catch(error => {
+                logger.error(`Error loading more content:`,
+                  error instanceof Error ? error.message : String(error));
+                sendResponse({
+                  success: false,
+                  error: error instanceof Error ? error.message : String(error),
+                  source: siteName
+                });
+              });
+            
+            return true; // Keep channel open for async response
+          } catch (loaderError) {
+            logger.error(`Error initiating content loading:`,
+              loaderError instanceof Error ? loaderError.message : String(loaderError));
+            sendResponse({
+              success: false,
+              error: loaderError instanceof Error ? loaderError.message : String(loaderError),
+              source: siteName
+            });
+            return true;
+          }
+        }
+
         // For any other actions, we don't handle them
         logger.log(`Unknown action received by base content script: ${action}`);
         return false; // Indicate message not handled here
@@ -231,6 +325,9 @@ declare global {
     };
     __PLIFY_HIGHLIGHTERS?: {
       [siteName: string]: HighlighterFunction;
+    };
+    __PLIFY_LOADERS?: {
+      [siteName: string]: LoaderFunction;
     };
   }
 }

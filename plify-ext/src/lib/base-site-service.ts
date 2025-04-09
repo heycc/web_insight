@@ -46,7 +46,7 @@ export abstract class BaseSiteService implements ContentService {
 
         try {
             // Send message to content script and wait for response with timeout
-            const results = await this.sendMessageWithTimeout(tabId, { action }, 5000);
+            const results = await this.sendMessageWithTimeout(tabId, { action }, 60000);
 
             if (results && results.success) {
                 // Convert the site-specific raw data into the standardized ContentData format
