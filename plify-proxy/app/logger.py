@@ -1,13 +1,17 @@
 import os
 import logging
-from logging.handlers import TimedRotatingFileHandler
 import sys
-from pathlib import Path
 import uuid
 import contextvars
 import functools
 import inspect
+import json
 
+from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 # Create logs directory if it doesn't exist
 log_dir = Path("logs")
 log_dir.mkdir(exist_ok=True)
@@ -16,18 +20,60 @@ log_dir.mkdir(exist_ok=True)
 trace_id_var = contextvars.ContextVar('trace_id', default=None)
 request_context_var = contextvars.ContextVar('request_context', default={})
 
+# JSON formatter for structured logging
+class JsonFormatter(logging.Formatter):
+    """
+    Formatter that outputs JSON strings after parsing the log record.
+    """
+    def format(self, record):
+        logobj = {}
+        
+        # Standard log record attributes
+        logobj["timestamp"] = self.formatTime(record, self.datefmt)
+        logobj["level"] = record.levelname
+        logobj["logger"] = record.name
+        logobj["message"] = record.getMessage()
+        
+        # Add trace_id and component
+        logobj["trace_id"] = getattr(record, "trace_id", "-")
+        logobj["component"] = getattr(record, "component", "app")
+        
+        # Include all other record attributes
+        for key, value in record.__dict__.items():
+            if key not in ["timestamp", "level", "logger", "message", "trace_id", "component", 
+                          "args", "exc_info", "exc_text", "levelname", "levelno", 
+                          "created", "msecs", "relativeCreated", "funcName", "lineno", 
+                          "module", "pathname", "filename", "processName", "process", 
+                          "threadName", "thread", "msg", "name", "asctime"]:
+                logobj[key] = value
+                
+        # Add exception info if available
+        if record.exc_info:
+            logobj["exception"] = self.formatException(record.exc_info)
+            
+        return json.dumps(logobj)
+
 # Configure basic logger
-def setup_logger(name="plify_proxy", log_level=logging.INFO):
+def setup_logger(name="plify_proxy", log_level=logging.INFO, enable_console=None, json_format=None):
     """
     Set up a logger with weekly rotation
     
     Args:
         name: Logger name
         log_level: Logging level
+        enable_console: Enable console output (defaults to True in development mode)
+        json_format: Use JSON format for logs (defaults to False in development mode)
         
     Returns:
         Configured logger instance
     """
+    # Default settings based on environment
+    env = os.getenv("ENVIRONMENT", "development")
+    if enable_console is None:
+        enable_console = env == "development" 
+    if json_format is None:
+        json_format = env != "development"
+    
     # Create logger
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
@@ -36,9 +82,17 @@ def setup_logger(name="plify_proxy", log_level=logging.INFO):
     if logger.handlers:
         logger.handlers.clear()
     
-    # Configure log format with trace ID and component
-    log_format = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | [%(trace_id)s] | %(component)s | %(message)s"
+    # Create formatters
+    if json_format:
+        file_formatter = JsonFormatter()
+    else:
+        file_formatter = logging.Formatter(
+            "%(asctime)s | %(levelname)s | %(name)s | [%(trace_id)s] | %(component)s | %(message)s"
+        )
+    
+    # Console formatter is always human-readable
+    console_formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | [%(trace_id)s] | %(component)s | %(message)s"
     )
     
     # File handler with weekly rotation
@@ -49,8 +103,14 @@ def setup_logger(name="plify_proxy", log_level=logging.INFO):
         backupCount=4,  # Keep 4 weeks of logs
         encoding="utf-8"
     )
-    file_handler.setFormatter(log_format)
+    file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
+    
+    # Add console handler if enabled
+    if enable_console:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
     
     return logger
 
@@ -129,13 +189,22 @@ for handler in app_logger.handlers:
     if hasattr(handler, 'filters'):
         handler.addFilter(LogContextFilter())
 
-# Log levels convenience functions
-def debug(msg, *args, **kwargs):
+# Helper function to prepare logging context
+def _prepare_log_context(kwargs):
+    """
+    Extract component name and prepare context for logging
+    
+    Args:
+        kwargs: Keyword arguments passed to the logging function
+        
+    Returns:
+        tuple: (remaining kwargs, component name)
+    """
     # Extract component from kwargs or caller frame
     component = kwargs.pop('component', None)
     if component is None:
-        # Try to get the caller's module name
-        frame = inspect.currentframe().f_back
+        # Try to get the caller's module name (2 levels up to skip this helper function)
+        frame = inspect.currentframe().f_back.f_back
         module_name = frame.f_globals['__name__'].split('.')[-1] if frame else 'unknown'
         component = module_name
     
@@ -144,68 +213,25 @@ def debug(msg, *args, **kwargs):
     context['component'] = component
     set_request_context(**context)
     
+    return kwargs, component
+
+# Log levels convenience functions
+def debug(msg, *args, **kwargs):
+    kwargs, _ = _prepare_log_context(kwargs)
     app_logger.debug(msg, *args, **kwargs)
 
 def info(msg, *args, **kwargs):
-    # Extract component from kwargs or caller frame
-    component = kwargs.pop('component', None)
-    if component is None:
-        # Try to get the caller's module name
-        frame = inspect.currentframe().f_back
-        module_name = frame.f_globals['__name__'].split('.')[-1] if frame else 'unknown'
-        component = module_name
-    
-    # Extract and set context
-    context = kwargs.pop('context', {})
-    context['component'] = component
-    set_request_context(**context)
-    
+    kwargs, _ = _prepare_log_context(kwargs)
     app_logger.info(msg, *args, **kwargs)
 
 def warning(msg, *args, **kwargs):
-    # Extract component from kwargs or caller frame
-    component = kwargs.pop('component', None)
-    if component is None:
-        # Try to get the caller's module name
-        frame = inspect.currentframe().f_back
-        module_name = frame.f_globals['__name__'].split('.')[-1] if frame else 'unknown'
-        component = module_name
-    
-    # Extract and set context
-    context = kwargs.pop('context', {})
-    context['component'] = component
-    set_request_context(**context)
-    
+    kwargs, _ = _prepare_log_context(kwargs)
     app_logger.warning(msg, *args, **kwargs)
 
 def error(msg, *args, **kwargs):
-    # Extract component from kwargs or caller frame
-    component = kwargs.pop('component', None)
-    if component is None:
-        # Try to get the caller's module name
-        frame = inspect.currentframe().f_back
-        module_name = frame.f_globals['__name__'].split('.')[-1] if frame else 'unknown'
-        component = module_name
-    
-    # Extract and set context
-    context = kwargs.pop('context', {})
-    context['component'] = component
-    set_request_context(**context)
-    
+    kwargs, _ = _prepare_log_context(kwargs)
     app_logger.error(msg, *args, **kwargs)
 
 def critical(msg, *args, **kwargs):
-    # Extract component from kwargs or caller frame
-    component = kwargs.pop('component', None)
-    if component is None:
-        # Try to get the caller's module name
-        frame = inspect.currentframe().f_back
-        module_name = frame.f_globals['__name__'].split('.')[-1] if frame else 'unknown'
-        component = module_name
-    
-    # Extract and set context
-    context = kwargs.pop('context', {})
-    context['component'] = component
-    set_request_context(**context)
-    
+    kwargs, _ = _prepare_log_context(kwargs)
     app_logger.critical(msg, *args, **kwargs) 
