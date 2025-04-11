@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from typing import Dict, List, Optional, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -16,7 +16,13 @@ class ProviderConfig(BaseModel):
     api_key: str
     api_endpoint: str
     models: List[str]
-    available: bool = False
+    available: bool = Field(default=None)
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.available is None:
+            # Automatically determine availability based on API key presence
+            self.available = bool(self.api_key)
 
 # Provider configurations
 PROVIDER_CONFIGS: Dict[ProviderType, Dict[str, ProviderConfig]] = {
@@ -24,36 +30,31 @@ PROVIDER_CONFIGS: Dict[ProviderType, Dict[str, ProviderConfig]] = {
         "openrouter": ProviderConfig(
             api_key=os.getenv("OPENROUTER_API_KEY", ""),
             api_endpoint="https://openrouter.ai/api/v1",
-            models=["openai/gpt-4-turbo", "anthropic/claude-3-opus", "mistral/mistral-large"],
-            available=False
+            models=["openai/gpt-4-turbo", "anthropic/claude-3-opus", "mistral/mistral-large"]
         ),
         "deepseek": ProviderConfig(
             api_key=os.getenv("DEEPSEEK_API_KEY", ""),
             api_endpoint="https://api.deepseek.com/v1",
-            models=["deepseek-chat", "deepseek-reasoner"],
-            available=True
+            models=["deepseek-chat", "deepseek-reasoner"]
         ),
         "siliconflow": ProviderConfig(
             api_key=os.getenv("SILICONFLOW_API_KEY", ""),
             api_endpoint="https://api.siliconflow.cn/v1",
-            models=["deepseek-ai/DeepSeek-R1", "deepseek-ai/DeepSeek-V3", "Qwen/QwQ-32B"],
-            available=False
+            models=["deepseek-ai/DeepSeek-R1", "deepseek-ai/DeepSeek-V3", "Qwen/QwQ-32B"]
         )
     },
     ProviderType.GEMINI: {
         "google_aistudio": ProviderConfig(
             api_key=os.getenv("GEMINI_AISTUDIO_API_KEY", ""),
             api_endpoint="https://generativelanguage.googleapis.com/v1beta/openai",
-            models=["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-2.0-flash-lite"],
-            available=True
+            models=["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-2.0-flash-lite"]
         )
     },
     ProviderType.ANTHROPIC: {
         "anthropic": ProviderConfig(
             api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             api_endpoint="https://api.anthropic.com/v1",
-            models=["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-            available=False
+            models=["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]
         )
     }
 }
