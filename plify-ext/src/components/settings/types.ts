@@ -179,6 +179,16 @@ export const DEFAULT_PROVIDER_PRESETS: ProviderPreset[] = [
     models: ['gpt-4o', 'gpt-4o-mini'],
     icon: 'icon/openai.png'
   },
+  // Reddit Insight Proxy (add this as the first item)
+  {
+    id: 'REDDIT_INSIGHT_PROXY',
+    display_name: 'Reddit Insight Proxy',
+    provider_type: ProviderType.OAI_COMPATIBLE,
+    api_endpoint: 'https://proxy.redditinsight.example/v1',
+    api_key_doc: 'https://github.com/iheycc/reddit_insight#proxy-service',
+    models: ['gpt-4-proxy', 'gemini-proxy', 'claude-proxy'],
+    icon: 'icon/openai.png'
+  },
   // OAI Compatible Examples
   {
     id: 'GEMINI_AISTUDIO',
